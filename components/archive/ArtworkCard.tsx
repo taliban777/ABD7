@@ -1,10 +1,10 @@
 import styles from "./archive.module.css";
 import { CmsProject, valueLabel } from "./types";
 
-export type ArtworkCardProps = CmsProject;
+export type ArtworkCardProps = Partial<CmsProject>;
 
-export function ArtworkCard({ title, frontCover, artists, year }: ArtworkCardProps) {
-  const artistNames = artists.map(valueLabel).filter(Boolean).join(", ");
+export function ArtworkCard({ title = "Untitled", frontCover = "", artists = [], year }: ArtworkCardProps) {
+  const artistNames = (Array.isArray(artists) ? artists : []).map(valueLabel).filter(Boolean).join(", ");
 
   return (
     <article className={styles.card}>

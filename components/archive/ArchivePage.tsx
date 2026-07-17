@@ -7,36 +7,41 @@ import { ArchiveFilterKey, ArchiveSelection, CmsListValue, CmsProject, paletteVa
 const emptySelection: ArchiveSelection = { artists: [], categories: [], style: [], years: [], palette: [] };
 const unique = (items: CmsListValue[]) => Array.from(new Map(items.map((item) => [valueLabel(item), item])).values()).filter(valueLabel);
 
-export interface ArchivePageProps { projects: CmsProject[] }
+export interface ArchivePageProps { projects?: CmsProject[] }
 
-export function ArchivePage({ projects }: ArchivePageProps) {
+export function ArchivePage({ projects = [] }: ArchivePageProps) {
+  const safeProjects = useMemo(() => Array.isArray(projects) ? projects : [], [projects]);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<ArchiveSelection>(emptySelection);
 
   const options = useMemo(() => ({
-    artists: unique(projects.flatMap((project) => project.artists)),
-    categories: unique(projects.flatMap((project) => project.categories)),
-    style: unique(projects.flatMap((project) => project.style)),
-    years: Array.from(new Set(projects.map((project) => project.year).filter(Boolean).map(String))).sort((a, b) => Number(b) - Number(a)),
-    palette: Array.from(new Map(projects.flatMap((project) => project.palette).map((item) => [paletteValue(item), item])).values()).filter((item) => paletteValue(item)),
-  }), [projects]);
+    artists: unique(safeProjects.flatMap((project) => Array.isArray(project.artists) ? project.artists : [])),
+    categories: unique(safeProjects.flatMap((project) => Array.isArray(project.categories) ? project.categories : [])),
+    style: unique(safeProjects.flatMap((project) => Array.isArray(project.style) ? project.style : [])),
+    years: Array.from(new Set(safeProjects.map((project) => project.year).filter(Boolean).map(String))).sort((a, b) => Number(b) - Number(a)),
+    palette: Array.from(new Map(safeProjects.flatMap((project) => Array.isArray(project.palette) ? project.palette : []).map((item) => [paletteValue(item), item])).values()).filter((item) => paletteValue(item)),
+  }), [safeProjects]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
     const includesAny = (values: CmsListValue[], chosen: string[]) => chosen.length === 0 || values.some((value) => chosen.includes(valueLabel(value)));
-    return projects
+    return safeProjects
       .filter((project) => {
-        const searchable = [project.title, project.year, ...project.artists.map(valueLabel), ...project.categories.map(valueLabel), ...project.style.map(valueLabel)].join(" ").toLocaleLowerCase();
+        const artists = Array.isArray(project.artists) ? project.artists : [];
+        const categories = Array.isArray(project.categories) ? project.categories : [];
+        const projectStyles = Array.isArray(project.style) ? project.style : [];
+        const palette = Array.isArray(project.palette) ? project.palette : [];
+        const searchable = [project.title || "", project.year, ...artists.map(valueLabel), ...categories.map(valueLabel), ...projectStyles.map(valueLabel)].join(" ").toLocaleLowerCase();
         return (!query || searchable.includes(query))
-          && includesAny(project.artists, selected.artists)
-          && includesAny(project.categories, selected.categories)
-          && includesAny(project.style, selected.style)
+          && includesAny(artists, selected.artists)
+          && includesAny(categories, selected.categories)
+          && includesAny(projectStyles, selected.style)
           && (selected.years.length === 0 || selected.years.includes(String(project.year)))
-          && (selected.palette.length === 0 || project.palette.some((value) => selected.palette.includes(paletteValue(value))));
+          && (selected.palette.length === 0 || palette.some((value) => selected.palette.includes(paletteValue(value))));
       })
       .sort((a, b) => (b.year || 0) - (a.year || 0) || (b.createdAt || "").localeCompare(a.createdAt || ""));
-  }, [projects, search, selected]);
+  }, [safeProjects, search, selected]);
 
   const activeCount = Object.values(selected).reduce((count, values) => count + values.length, 0);
   const toggle = (key: ArchiveFilterKey, value: string) => setSelected((current) => ({ ...current, [key]: current[key].includes(value) ? current[key].filter((item) => item !== value) : [...current[key], value] }));
