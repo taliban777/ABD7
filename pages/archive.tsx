@@ -34,9 +34,10 @@ function collectProjects(value: unknown, found = new Map<string, CmsProject>(), 
   const title = typeof data.title === "string" ? data.title : "";
   const cover = imageUrl(data.frontCover);
   if (title && cover) {
-    const id = String(record.id || data.id || `${title}-${data.year || ""}`);
-    found.set(id, {
-      id,
+    const sourceId = String(record.id || data.id || `${title}-${data.year || ""}`);
+    const archiveKey = `${title.trim().toLocaleLowerCase()}|${cover}`;
+    found.set(archiveKey, {
+      id: sourceId,
       title,
       frontCover: cover,
       artists: asList(data.artists),
