@@ -1,4 +1,6 @@
 import { initPlasmicLoader } from "@plasmicapp/loader-nextjs";
+import { ArchivePage } from "@/components/archive/ArchivePage";
+import { ArtworkCard } from "@/components/archive/ArtworkCard";
 
 export const PLASMIC = initPlasmicLoader({
   projects: [
@@ -22,4 +24,30 @@ export const PLASMIC = initPlasmicLoader({
 // http://localhost:3000/plasmic-host).  See
 // https://docs.plasmic.app/learn/app-hosting/#set-a-plasmic-project-to-use-your-app-host
 
-// PLASMIC.registerComponent(...);
+PLASMIC.registerComponent(ArchivePage, {
+  name: "ArchivePage",
+  displayName: "Archive / Page",
+  props: {
+    projects: { type: "object", displayName: "CMS projects" },
+  },
+  importPath: "@/components/archive/ArchivePage",
+  importName: "ArchivePage",
+});
+
+PLASMIC.registerComponent(ArtworkCard, {
+  name: "ArtworkCard",
+  displayName: "Archive / Artwork Card",
+  props: {
+    id: "string",
+    title: "string",
+    frontCover: "imageUrl",
+    artists: { type: "object", displayName: "Artists" },
+    categories: { type: "object", displayName: "Categories" },
+    style: { type: "object", displayName: "Style" },
+    palette: { type: "object", displayName: "Palette" },
+    year: "number",
+    createdAt: "string",
+  },
+  importPath: "@/components/archive/ArtworkCard",
+  importName: "ArtworkCard",
+});
