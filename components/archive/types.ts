@@ -22,12 +22,14 @@ export interface ArchiveSelection {
 
 export type ArchiveFilterKey = keyof ArchiveSelection;
 
-export function valueLabel(value: CmsListValue): string {
+export function valueLabel(value?: CmsListValue | null): string {
+  if (!value) return "";
   if (typeof value === "string") return value;
   return value.name || value.title || value.label || value.value || value.color || value.hex || "";
 }
 
-export function paletteValue(value: CmsListValue): string {
+export function paletteValue(value?: CmsListValue | null): string {
+  if (!value) return "";
   if (typeof value === "string") return value;
   return value.hex || value.color || value.value || value.name || "";
 }
