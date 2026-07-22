@@ -39,12 +39,14 @@ function collectProjects(value: unknown, found = new Map<string, CmsProject>(), 
     found.set(archiveKey, {
       id: sourceId,
       title,
+      slug: typeof data.slug === "string" && data.slug ? data.slug : undefined,
       frontCover: cover,
       artists: asList(data.artists),
       categories: asList(data.categories),
       style: asList(data.style),
       palette: asList(data.palette),
       year: typeof data.year === "number" ? data.year : Number(data.year) || undefined,
+      date: typeof data.date === "string" ? data.date : undefined,
       createdAt: typeof record.createdAt === "string" ? record.createdAt : undefined,
     });
   }

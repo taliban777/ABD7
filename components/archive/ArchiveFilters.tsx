@@ -1,41 +1,47 @@
 import { PaletteFilter } from "./PaletteFilter";
 import styles from "./archive.module.css";
-import { ArchiveFilterKey, ArchiveSelection, CmsListValue, valueLabel } from "./types";
+import { ArchiveFilterKey, ArchiveFilterOptions, ArchiveSelection, FilterOption } from "./types";
 
 interface ArchiveFiltersProps {
-  options: {
-    artists: CmsListValue[];
-    categories: CmsListValue[];
-    style: CmsListValue[];
-    years: string[];
-    palette: CmsListValue[];
-  };
+  options: ArchiveFilterOptions;
   selected: ArchiveSelection;
   onToggle: (key: ArchiveFilterKey, value: string) => void;
 }
 
-function CheckFilter({ title, filterKey, options, selected, onToggle }: {
+function CheckFilter({
+  title,
+  filterKey,
+  options,
+  selected,
+  onToggle,
+}: {
   title: string;
   filterKey: Exclude<ArchiveFilterKey, "palette">;
-  options: Array<CmsListValue | string>;
+  options: FilterOption[];
   selected: string[];
   onToggle: ArchiveFiltersProps["onToggle"];
 }) {
   return (
     <fieldset className={styles.filterGroup}>
       <legend className={styles.filterLegend}>{title}</legend>
-      <div className={styles.checkList}>
-        {options.map((option) => {
-          const label = typeof option === "string" ? option : valueLabel(option);
-          return (
-            <label className={styles.checkOption} key={label}>
-              <input type="checkbox" checked={selected.includes(label)} onChange={() => onToggle(filterKey, label)} />
-              <span aria-hidden="true" />
-              {label}
+      {options.length === 0 ? (
+        <p className={styles.filterEmpty}>None available</p>
+      ) : (
+        <div className={styles.checkList}>
+          {options.map((option) => (
+            <label className={styles.checkOption} key={option.value}>
+              <input
+                type="checkbox"
+                checked={selected.includes(option.value)}
+                onChange={() => onToggle(filterKey, option.value)}
+              />
+              <span className={styles.checkBox} aria-hidden="true" />
+              <span className={styles.checkText}>{option.label}</span>
+              <span className={styles.filterCount}>{option.count}</span>
             </label>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </fieldset>
   );
 }
