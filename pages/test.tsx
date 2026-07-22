@@ -2,14 +2,8 @@ import type { GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
 import { PlasmicComponent, PlasmicRootProvider, extractPlasmicQueryData } from "@plasmicapp/loader-nextjs";
 import { ArchivePage } from "@/components/archive/ArchivePage";
-import type { CmsListValue, CmsProject } from "@/components/archive/types";
+import type { CmsProject } from "@/components/archive/types";
 import { PLASMIC } from "@/plasmic-init";
-
-function asList(value: unknown): CmsListValue[] {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.filter((item): item is CmsListValue => typeof item === "string" || Boolean(item && typeof item === "object"));
-  return typeof value === "string" || typeof value === "object" ? [value as CmsListValue] : [];
-}
 
 function imageUrl(value: unknown): string {
   if (typeof value === "string") return value;
@@ -21,37 +15,53 @@ function imageUrl(value: unknown): string {
   return "";
 }
 
-function collectProjects(value: unknown, found = new Map<string, CmsProject>(), seen = new Set<object>()): CmsProject[] {
-  if (!value || typeof value !== "object" || seen.has(value)) return Array.from(found.values());
-  seen.add(value);
-  if (Array.isArray(value)) {
-    value.forEach((item) => collectProjects(item, found, seen));
-    return Array.from(found.values());
-  }
-
-  const record = value as Record<string, unknown>;
-  const data = record.data && typeof record.data === "object" ? record.data as Record<string, unknown> : record;
-  const title = typeof data.title === "string" ? data.title : "";
-  const cover = imageUrl(data.frontCover);
-  if (title && cover) {
-    const sourceId = String(record.id || data.id || `${title}-${data.year || ""}`);
-    const archiveKey = `${title.trim().toLocaleLowerCase()}|${cover}`;
-    found.set(archiveKey, {
-      id: sourceId,
+function collectProjects(value: unknown, seen = new Set<object>()): CmsProject[] {
+  const projects: CmsProject[] = [];
+  
+  if (!value || typeof value !== "object" || seen.has(value as object)) return projects;
+  seen.add(value as object);
+  
+  // Check if THIS object looks like a project row (has both title string and frontCover)
+  const obj = value as Record<string, unknown>;
+  const title = typeof obj.title === "string" ? obj.title : "";
+  const frontCover = imageUrl(obj.frontCover);
+  
+  if (title && frontCover && title.length > 0) {
+    projects.push({
+      id: typeof obj.id === "string" ? obj.id : title,
       title,
-      slug: typeof data.slug === "string" && data.slug ? data.slug : undefined,
-      frontCover: cover,
-      artists: asList(data.artists),
-      categories: asList(data.categories),
-      style: asList(data.style),
-      palette: asList(data.palette),
-      year: typeof data.year === "number" ? data.year : Number(data.year) || undefined,
-      date: typeof data.date === "string" ? data.date : undefined,
-      createdAt: typeof record.createdAt === "string" ? record.createdAt : undefined,
+      slug: typeof obj.slug === "string" ? obj.slug : undefined,
+      frontCover,
+      artists: extractColumnValue(obj.artists),
+      categories: extractColumnValue(obj.categories),
+      style: extractColumnValue(obj.style),
+      palette: extractColumnValue(obj.palette),
+      year: typeof obj.year === "number" ? obj.year : undefined,
+      date: typeof obj.date === "string" ? obj.date : undefined,
     });
   }
-  Object.values(record).forEach((item) => collectProjects(item, found, seen));
-  return Array.from(found.values());
+  
+  // Recurse into array items and object values
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      projects.push(...collectProjects(item, seen));
+    }
+  } else {
+    for (const val of Object.values(obj)) {
+      projects.push(...collectProjects(val, seen));
+    }
+  }
+  
+  return projects;
+}
+
+function extractColumnValue(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
+  if (typeof value === "object" && value !== null) {
+    return Object.values(value).filter((v): v is string => typeof v === "string");
+  }
+  return [];
 }
 
 export default function TestArchiveRoute({ projects }: InferGetStaticPropsType<typeof getStaticProps>) {
@@ -68,14 +78,16 @@ export default function TestArchiveRoute({ projects }: InferGetStaticPropsType<t
 }
 
 export const getStaticProps: GetStaticProps<{ projects: CmsProject[] }> = async () => {
-  const plasmicData = await PLASMIC.maybeFetchComponentData("Archive");
+  const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
   if (!plasmicData) return { props: { projects: [] }, revalidate: 60 };
+  
   const pageMeta = plasmicData.entryCompMetas[0];
   const queryCache = await extractPlasmicQueryData(
     <PlasmicRootProvider loader={PLASMIC} prefetchedData={plasmicData} pageRoute={pageMeta.path} pageParams={pageMeta.params}>
       <PlasmicComponent component={pageMeta.displayName} />
     </PlasmicRootProvider>
   );
+  
   const projects = JSON.parse(JSON.stringify(collectProjects(queryCache))) as CmsProject[];
   return { props: { projects }, revalidate: 60 };
 };
