@@ -1,6 +1,6 @@
 import type { GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
-import { PlasmicComponent, PlasmicRootProvider } from "@plasmicapp/loader-nextjs";
+import { PlasmicComponent, PlasmicRootProvider, type ComponentRenderData } from "@plasmicapp/loader-nextjs";
 import { PLASMIC } from "@/plasmic-init";
 
 export default function ArchiveRoute({ plasmicData }: InferGetStaticPropsType<typeof getStaticProps>) {
@@ -18,7 +18,7 @@ export default function ArchiveRoute({ plasmicData }: InferGetStaticPropsType<ty
   );
 }
 
-export const getStaticProps: GetStaticProps<{ plasmicData: unknown }> = async () => {
+export const getStaticProps: GetStaticProps<{ plasmicData: ComponentRenderData }> = async () => {
   const plasmicData = await PLASMIC.maybeFetchComponentData("Archive");
   if (!plasmicData) return { notFound: true };
   return { props: { plasmicData }, revalidate: 3600 };
