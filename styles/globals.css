@@ -4,6 +4,8 @@
   --surface: #e4e1d8;
   --muted: #6f6d66;
   --line: #c7c3b9;
+  --label: #ffffff;
+  --label-foreground: #11110f;
   --font-sans: var(--font-geist-sans), Arial, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
