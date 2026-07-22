@@ -28,7 +28,7 @@ PLASMIC.registerComponent(ArchivePage, {
   name: "ArchivePage",
   displayName: "Archive / Page",
   props: {
-    projects: { type: "object", displayName: "CMS projects", defaultValue: [] },
+    projects: { type: "array", displayName: "CMS projects", defaultValue: [] },
   },
   importPath: "@/components/archive/ArchivePage",
   importName: "ArchivePage",
