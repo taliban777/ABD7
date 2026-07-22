@@ -55,12 +55,26 @@ function collectProjects(value: unknown, seen = new Set<object>()): CmsProject[]
   return projects;
 }
 
-function extractColumnValue(value: unknown): string[] {
+function extractColumnValue(value: unknown): (string | { name?: string; title?: string; label?: string; value?: string; color?: string; hex?: string })[] {
+  // Handle string
   if (typeof value === "string") return [value];
-  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === "string");
-  if (typeof value === "object" && value !== null) {
-    return Object.values(value).filter((v): v is string => typeof v === "string");
+  
+  // Handle array of strings or objects
+  if (Array.isArray(value)) {
+    return value.filter((v): v is string | Record<string, unknown> => typeof v === "string" || (typeof v === "object" && v !== null));
   }
+  
+  // Handle single object
+  if (typeof value === "object" && value !== null) {
+    // If it has typical artist fields, return it as-is
+    const obj = value as Record<string, unknown>;
+    if (obj.name || obj.title || obj.label) {
+      return [obj as any];
+    }
+    // Otherwise try to extract string values
+    return Object.values(obj).filter((v): v is string => typeof v === "string");
+  }
+  
   return [];
 }
 
