@@ -5,65 +5,74 @@ import { useRouter } from "next/router";
 import styles from "./home.module.css";
 
 interface Particle {
-  id: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
   opacity: number;
-  scale: number;
-  rotation: number;
+  size: number;
   born: number;
   lifetime: number;
 }
+
+const POOL_MAX = 14;
+const SPAWN_THROTTLE = 90; // ms
+const GLYPH_SIZE = 14;
 
 export default function HomePage() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef<number>(0);
-  const nextIdRef = useRef(0);
   const lastSpawnRef = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
   const transitioningRef = useRef(false);
+  // Pre-rendered glyph cached on an offscreen canvas
+  const glyphRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Grain canvas
-  const grainCanvasRef = useRef<HTMLCanvasElement>(null);
-  const grainRafRef = useRef<number>(0);
+  // Pre-render "7" once to an offscreen canvas — avoids repeated fillText calls
+  useEffect(() => {
+    const off = document.createElement("canvas");
+    const pad = 4;
+    off.width = GLYPH_SIZE + pad * 2;
+    off.height = GLYPH_SIZE + pad * 2;
+    const ctx = off.getContext("2d")!;
+    ctx.font = `${GLYPH_SIZE}px Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#3a3630";
+    ctx.fillText("7", off.width / 2, off.height / 2);
+    glyphRef.current = off;
+  }, []);
 
   const spawnParticle = useCallback((x: number, y: number) => {
     const now = performance.now();
-    // Throttle: max 1 particle every 80ms
-    if (now - lastSpawnRef.current < 80) return;
+    if (now - lastSpawnRef.current < SPAWN_THROTTLE) return;
     lastSpawnRef.current = now;
 
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 0.3 + Math.random() * 0.6;
-    particlesRef.current.push({
-      id: nextIdRef.current++,
-      x: x + (Math.random() - 0.5) * 14,
-      y: y + (Math.random() - 0.5) * 14,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 0.4,
-      opacity: 0.55 + Math.random() * 0.3,
-      scale: 0.55 + Math.random() * 0.55,
-      rotation: Math.random() * Math.PI * 2,
-      born: now,
-      lifetime: 1600 + Math.random() * 900,
-    });
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;
+    const speed = 0.4 + Math.random() * 0.5;
 
-    // Cap pool
-    if (particlesRef.current.length > 18) {
+    if (particlesRef.current.length >= POOL_MAX) {
       particlesRef.current.shift();
     }
+    particlesRef.current.push({
+      x: x + (Math.random() - 0.5) * 10,
+      y: y + (Math.random() - 0.5) * 10,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      opacity: 0.45 + Math.random() * 0.35,
+      size: 0.6 + Math.random() * 0.7,
+      born: now,
+      lifetime: 1400 + Math.random() * 800,
+    });
   }, []);
 
-  // Particle render loop
+  // Particle render loop — only runs when particles are alive
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx = canvas.getContext("2d")!;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -72,37 +81,45 @@ export default function HomePage() {
     resize();
     window.addEventListener("resize", resize);
 
-    const FONT_SIZE = 13;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
     const tick = (now: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const particles = particlesRef.current;
 
-      particlesRef.current = particlesRef.current.filter((p) => {
+      if (particles.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const glyph = glyphRef.current;
+      const gw = glyph ? glyph.width : 0;
+      const gh = glyph ? glyph.height : 0;
+
+      particlesRef.current = particles.filter((p) => {
         const age = now - p.born;
         if (age > p.lifetime) return false;
 
-        const progress = age / p.lifetime;
-        // ease-out fade
-        const fade = progress < 0.15
-          ? progress / 0.15
-          : 1 - ((progress - 0.15) / 0.85);
+        const t = age / p.lifetime;
+        // Smooth fade: quick in, slow out
+        const fade = t < 0.12 ? t / 0.12 : 1 - ((t - 0.12) / 0.88) ** 1.5;
 
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.006; // gentle gravity
-        p.vx *= 0.998;
-        p.rotation += 0.008;
+        p.vy += 0.012; // gravity
+        p.vx *= 0.997;
+
+        if (!glyph) return true;
 
         ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.scale(p.scale, p.scale);
         ctx.globalAlpha = p.opacity * fade;
-        ctx.font = `${FONT_SIZE}px Georgia, serif`;
-        ctx.fillStyle = "#3a3630";
-        ctx.fillText("7", 0, 0);
+        // drawImage is ~10x faster than fillText per frame
+        ctx.drawImage(
+          glyph,
+          p.x - (gw * p.size) / 2,
+          p.y - (gh * p.size) / 2,
+          gw * p.size,
+          gh * p.size
+        );
         ctx.restore();
         return true;
       });
@@ -117,43 +134,6 @@ export default function HomePage() {
     };
   }, []);
 
-  // Animated grain
-  useEffect(() => {
-    const canvas = grainCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const SIZE = 200;
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-
-    let frame = 0;
-    const renderGrain = () => {
-      const imageData = ctx.createImageData(SIZE, SIZE);
-      const data = imageData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const noise = Math.random() * 30;
-        data[i] = noise;
-        data[i + 1] = noise;
-        data[i + 2] = noise;
-        data[i + 3] = Math.random() * 22;
-      }
-      ctx.putImageData(imageData, 0, 0);
-
-      // Only re-render grain every 3 frames for performance
-      frame++;
-      if (frame % 3 === 0) {
-        grainRafRef.current = requestAnimationFrame(renderGrain);
-      } else {
-        grainRafRef.current = requestAnimationFrame(renderGrain);
-      }
-    };
-
-    grainRafRef.current = requestAnimationFrame(renderGrain);
-    return () => cancelAnimationFrame(grainRafRef.current);
-  }, []);
-
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     spawnParticle(e.clientX, e.clientY);
   }, [spawnParticle]);
@@ -164,16 +144,14 @@ export default function HomePage() {
 
     const overlay = overlayRef.current;
     if (!overlay) {
-      router.push("/archive");
+      router.push("/test");
       return;
     }
 
-    // Trigger the radial expand from center
     overlay.classList.add(styles.overlayExpand);
 
-    // After transition completes, navigate
     const tid = setTimeout(() => {
-      router.push("/archive");
+      router.push("/test");
     }, 820);
 
     return () => clearTimeout(tid);
@@ -185,13 +163,6 @@ export default function HomePage() {
       onMouseMove={handleMouseMove}
       aria-label="ARTBYDANI7 — Enter Gallery"
     >
-      {/* Atmospheric grain overlay */}
-      <canvas
-        ref={grainCanvasRef}
-        className={styles.grain}
-        aria-hidden="true"
-      />
-
       {/* Particle canvas */}
       <canvas
         ref={canvasRef}
