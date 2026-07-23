@@ -79,6 +79,10 @@
   grid-template-rows: 1fr;
   opacity: 1;
   transform: none;
+}
+/* Single direct child — required for the 0fr collapse trick */
+.filterPanelInner {
+  min-height: 0;
   padding-bottom: 22px;
 }
 .filters {
@@ -287,6 +291,11 @@
   min-width: 0;
   display: block;
   animation: cardIn 0.4s ease both;
+  transition: transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+.card:hover {
+  transform: scale(1.018);
 }
 .imageFrame {
   aspect-ratio: 1 / 1;
@@ -301,10 +310,10 @@
   height: 100%;
   display: block;
   object-fit: contain;
-  transition: opacity 0.35s ease;
 }
-.card:hover .cover {
-  opacity: 0.88;
+.card:hover .labelTitle {
+  font-weight: 900;
+  letter-spacing: 0.03em;
 }
 .coverFallback {
   width: 100%;
