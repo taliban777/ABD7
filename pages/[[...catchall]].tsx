@@ -10,7 +10,7 @@ import type { GetStaticPaths, GetStaticProps } from "next";
 import Error from "next/error";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { HomePage } from "@/components/home/HomePage";
+import HomePage from "@/components/home/HomePage";
 import { PLASMIC } from "@/plasmic-init";
 
 export default function PlasmicLoaderPage(props: {
