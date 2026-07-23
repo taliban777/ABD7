@@ -9,14 +9,31 @@ import type { GetStaticPaths, GetStaticProps } from "next";
 
 import Error from "next/error";
 import { useRouter } from "next/router";
+import Head from "next/head";
+import { HomePage } from "@/components/home/HomePage";
 import { PLASMIC } from "@/plasmic-init";
 
 export default function PlasmicLoaderPage(props: {
   plasmicData?: ComponentRenderData;
   queryCache?: Record<string, unknown>;
+  isHomepage?: boolean;
 }) {
-  const { plasmicData, queryCache } = props;
+  const { plasmicData, queryCache, isHomepage } = props;
   const router = useRouter();
+  
+  if (isHomepage) {
+    return (
+      <>
+        <Head>
+          <title>ARTBYDANI7</title>
+          <meta name="description" content="Independent art direction and visual archive." />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <HomePage />
+      </>
+    );
+  }
+  
   if (!plasmicData || plasmicData.entryCompMetas.length === 0) {
     return <Error statusCode={404} />;
   }
@@ -37,6 +54,12 @@ export default function PlasmicLoaderPage(props: {
 
 export const getStaticProps: GetStaticProps = async (context) => {
   const { catchall } = context.params ?? {};
+  const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
+  
+  if (isHomepage) {
+    return { props: { isHomepage: true }, revalidate: 3600 };
+  }
+  
   const plasmicPath = typeof catchall === 'string' ? catchall : Array.isArray(catchall) ? `/${catchall.join('/')}` : '/';
   const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
   if (!plasmicData) {
