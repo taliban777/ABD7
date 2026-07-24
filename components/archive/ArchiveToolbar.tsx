@@ -31,14 +31,16 @@ export function ArchiveToolbar(props: ArchiveToolbarProps) {
         </button>
       </div>
       <div className={styles.filterPanel} id="archive-filter-panel" aria-hidden={!props.isOpen}>
-        <ArchiveFilters options={props.options} selected={props.selected} onToggle={props.onToggle} />
-        <div className={styles.filterFooter}>
-          <button type="button" onClick={props.onClear} disabled={props.activeCount === 0 && props.search.length === 0}>
-            Clear Filters
-          </button>
-          <span>
-            {props.activeCount} {props.activeCount === 1 ? "Filter" : "Filters"} Selected
-          </span>
+        <div className={styles.filterPanelInner}>
+          <ArchiveFilters options={props.options} selected={props.selected} onToggle={props.onToggle} />
+          <div className={styles.filterFooter}>
+            <button type="button" onClick={props.onClear} disabled={props.activeCount === 0 && props.search.length === 0}>
+              Clear Filters
+            </button>
+            <span>
+              {props.activeCount} {props.activeCount === 1 ? "Filter" : "Filters"} Selected
+            </span>
+          </div>
         </div>
       </div>
     </section>

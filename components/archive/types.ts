@@ -3,15 +3,15 @@ export type CmsListValue = string | { name?: string; title?: string; label?: str
 export interface CmsProject {
   id: string;
   title: string;
-  slug?: string;
+  slug?: string | null;
   frontCover: string;
   artists: CmsListValue[];
   categories: CmsListValue[];
   style: CmsListValue[];
   palette: CmsListValue[];
-  year?: number;
-  date?: string;
-  createdAt?: string;
+  year?: number | null;
+  date?: string | null;
+  createdAt?: string | null;
 }
 
 export interface ArchiveSelection {

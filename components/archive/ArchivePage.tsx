@@ -72,13 +72,7 @@ export function ArchivePage({ projects = [] }: ArchivePageProps) {
         <a href="/" className={styles.wordmark}>
           ARTBYDANI7
         </a>
-        <span>Archive Control Centre</span>
       </header>
-
-      <div className={styles.intro}>
-        <p>Independent art direction and visual archive</p>
-        <h1>Archive</h1>
-      </div>
 
       <ArchiveToolbar
         isOpen={isOpen}

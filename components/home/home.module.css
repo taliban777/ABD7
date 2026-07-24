@@ -1,0 +1,192 @@
+/* ─── Homepage ─────────────────────────────────────────── */
+
+.root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f1ea;
+  overflow: hidden;
+  cursor: default;
+}
+
+/* ─── Grain (CSS pseudo-element, no JS canvas needed) ────── */
+
+.root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  animation: grainDrift 0.08s steps(1) infinite;
+}
+
+@keyframes grainDrift {
+  0%   { background-position: 0 0; }
+  10%  { background-position: -5% -10%; }
+  20%  { background-position: -15% 5%; }
+  30%  { background-position: 7% -25%; }
+  40%  { background-position: -5% 25%; }
+  50%  { background-position: -15% 10%; }
+  60%  { background-position: 15% 0%; }
+  70%  { background-position: 0 15%; }
+  80%  { background-position: 3% 35%; }
+  90%  { background-position: -18% 10%; }
+  100% { background-position: 0 0; }
+}
+
+/* ─── Slow ambient light shift ──────────────────────────── */
+
+.lightShift {
+  position: absolute;
+  inset: -20%;
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    rgba(255, 248, 230, 0.55) 0%,
+    transparent 70%
+  );
+  animation: lightDrift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes lightDrift {
+  0%   { transform: translate(-4%, -3%) scale(1); }
+  25%  { transform: translate(3%, 2%) scale(1.04); }
+  50%  { transform: translate(-2%, 4%) scale(0.97); }
+  75%  { transform: translate(4%, -2%) scale(1.02); }
+  100% { transform: translate(-3%, 3%) scale(1); }
+}
+
+/* ─── Particle canvas ───────────────────────────────────── */
+
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ─── Centre content ────────────────────────────────────── */
+
+.centre {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  text-align: center;
+  animation: fadeUp 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wordmark {
+  font-family: var(--font-sans), Arial, sans-serif;
+  font-size: clamp(52px, 8vw, 110px);
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #1a1814;
+  line-height: 1;
+  text-indent: 0.22em; /* compensate for letter-spacing on last char */
+}
+
+.enterBtn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1a1814;
+  padding: 0 0 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #1a1814;
+  cursor: pointer !important;
+  position: relative;
+  transition: opacity 0.25s ease, letter-spacing 0.55s ease;
+}
+
+.enterBtn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 1px;
+  background: #1a1814;
+  transition: width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.enterBtn:hover {
+  opacity: 0.6;
+  letter-spacing: 0.34em;
+}
+
+.enterBtn:hover::after {
+  width: 100%;
+}
+
+/* ─── Transition overlay ────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background: #f4f1ea;
+  /* clip-path: circle starting at 0 from center, expanding to cover */
+  clip-path: circle(0% at 50% 50%);
+  opacity: 0;
+}
+
+.overlayExpand {
+  pointer-events: all;
+  animation: radialExpand 0.82s cubic-bezier(0.55, 0, 0.1, 1) forwards;
+}
+
+@keyframes radialExpand {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 1;
+  }
+  100% {
+    clip-path: circle(150% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+
+@media (max-width: 540px) {
+  .centre {
+    gap: 28px;
+  }
+  .wordmark {
+    letter-spacing: 0.14em;
+    text-indent: 0.14em;
+  }
+  .enterBtn {
+    letter-spacing: 0.2em;
+  }
+}

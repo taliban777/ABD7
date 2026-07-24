@@ -7,7 +7,7 @@ const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff", variable: "--font
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable}`}>
+    <div className={`${geistSans.variable} ${geistMono.variable}`} style={{ minHeight: "100%", display: "contents" }}>
       <Component {...pageProps} />
     </div>
   );

@@ -20,26 +20,6 @@
   font-size: 12px;
 }
 
-/* Intro */
-.intro {
-  min-height: 260px;
-  padding: 56px 0 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
-.intro p {
-  font: 500 10px/1.4 var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.intro h1 {
-  font: 500 clamp(76px, 14vw, 180px)/0.75 var(--font-sans);
-  letter-spacing: -0.075em;
-  text-transform: uppercase;
-}
-
 /* Toolbar */
 .toolbar {
   border-bottom: 1px solid var(--line);
@@ -99,6 +79,10 @@
   grid-template-rows: 1fr;
   opacity: 1;
   transform: none;
+}
+/* Single direct child — required for the 0fr collapse trick */
+.filterPanelInner {
+  min-height: 0;
   padding-bottom: 22px;
 }
 .filters {
@@ -246,7 +230,7 @@
 
 /* Index / sort bar */
 .index {
-  min-height: 86px;
+  height: 44px;
   display: flex;
   align-items: center;
   gap: 32px;
@@ -254,7 +238,6 @@
   font: 500 10px/1 var(--font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 18px 0;
 }
 .index strong {
   margin-right: auto;
@@ -297,8 +280,8 @@
 /* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 28px;
   row-gap: 56px;
   padding-top: 28px;
 }
@@ -306,23 +289,34 @@
 /* Card */
 .card {
   min-width: 0;
-  display: block;
+  display: flex;
+  flex-direction: column;
   animation: cardIn 0.4s ease both;
+  transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+  transform-origin: center bottom;
+}
+.card:hover {
+  transform: scale(1.022);
 }
 .imageFrame {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   background: var(--surface);
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .cover {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
-  transition: transform 0.45s ease;
+  object-fit: contain;
 }
-.card:hover .cover {
-  transform: scale(1.015);
+.card:hover .labelTitle {
+  text-shadow:
+    0 0 0.4px currentColor,
+    0 0 0.4px currentColor;
 }
 .coverFallback {
   width: 100%;
@@ -354,19 +348,20 @@
 }
 .catNumber,
 .labelYear {
-  font: 500 9px/1 var(--font-mono);
-  letter-spacing: 0.12em;
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .labelTitle {
-  font: 500 12px/1.3 var(--font-mono);
+  font: 700 12px/1.3 var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: text-shadow 0.38s ease;
 }
 .labelArtist {
   margin-top: 5px;
-  font: 400 11px/1.35 var(--font-mono);
+  font: 400 10px/1.35 var(--font-mono);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
@@ -418,13 +413,11 @@
 
 @media (max-width: 800px) {
   .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 20px;
   }
   .filters {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .intro {
-    min-height: 220px;
   }
   .index {
     gap: 20px;
@@ -435,16 +428,6 @@
 @media (max-width: 540px) {
   .archivePage {
     padding: 0 14px 48px;
-  }
-  .siteHeader span {
-    display: none;
-  }
-  .intro {
-    min-height: 190px;
-    padding-top: 40px;
-  }
-  .intro h1 {
-    font-size: 25vw;
   }
   .toolbarTop {
     height: 68px;
@@ -474,6 +457,7 @@
   }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 40px;
+    column-gap: 14px;
+    row-gap: 36px;
   }
 }
