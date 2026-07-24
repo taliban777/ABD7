@@ -20,7 +20,7 @@ export default function PlasmicLoaderPage(props: {
 }) {
   const { plasmicData, queryCache, isHomepage } = props;
   const router = useRouter();
-  
+
   if (isHomepage) {
     return (
       <>
@@ -55,12 +55,12 @@ export default function PlasmicLoaderPage(props: {
 export const getStaticProps: GetStaticProps = async (context) => {
   const { catchall } = context.params ?? {};
   const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
-  
+
   if (isHomepage) {
     return { props: { isHomepage: true }, revalidate: 3600 };
   }
-  
-  const plasmicPath = typeof catchall === 'string' ? catchall : Array.isArray(catchall) ? `/${catchall.join('/')}` : '/';
+
+  const plasmicPath = typeof catchall === "string" ? catchall : Array.isArray(catchall) ? `/${catchall.join("/")}` : "/";
   const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
   if (!plasmicData) {
     // non-Plasmic catch-all
