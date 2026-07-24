@@ -1,4 +1,4 @@
-import type { GetStaticProps, InferGetStaticPropsType } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { PlasmicComponent, PlasmicRootProvider, extractPlasmicQueryData } from "@plasmicapp/loader-nextjs";
 import { ArchivePage } from "@/components/archive/ArchivePage";
@@ -55,13 +55,15 @@ function collectProjects(value: unknown, seen = new Set<object>()): CmsProject[]
   return projects;
 }
 
-function extractColumnValue(value: unknown): (string | { name?: string; title?: string; label?: string; value?: string; color?: string; hex?: string })[] {
+type ColumnValue = string | { name?: string; title?: string; label?: string; value?: string; color?: string; hex?: string };
+
+function extractColumnValue(value: unknown): ColumnValue[] {
   // Handle string
   if (typeof value === "string") return [value];
   
   // Handle array of strings or objects
   if (Array.isArray(value)) {
-    return value.filter((v): v is string | Record<string, unknown> => typeof v === "string" || (typeof v === "object" && v !== null));
+    return value.filter((v): v is string | Record<string, unknown> => typeof v === "string" || (typeof v === "object" && v !== null)) as ColumnValue[];
   }
   
   // Handle single object
@@ -69,7 +71,7 @@ function extractColumnValue(value: unknown): (string | { name?: string; title?: 
     // If it has typical artist fields, return it as-is
     const obj = value as Record<string, unknown>;
     if (obj.name || obj.title || obj.label) {
-      return [obj as any];
+      return [obj as ColumnValue];
     }
     // Otherwise try to extract string values
     return Object.values(obj).filter((v): v is string => typeof v === "string");
@@ -78,7 +80,7 @@ function extractColumnValue(value: unknown): (string | { name?: string; title?: 
   return [];
 }
 
-export default function TestArchiveRoute({ projects }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function TestArchiveRoute({ projects }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
     <>
       <Head>
@@ -91,7 +93,7 @@ export default function TestArchiveRoute({ projects }: InferGetStaticPropsType<t
   );
 }
 
-export const getStaticProps: GetStaticProps<{ projects: CmsProject[] }> = async () => {
+export const getServerSideProps: GetServerSideProps<{ projects: CmsProject[] }> = async () => {
   const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
   if (!plasmicData) return { props: { projects: [] }, revalidate: 60 };
   
@@ -103,5 +105,5 @@ export const getStaticProps: GetStaticProps<{ projects: CmsProject[] }> = async 
   );
   
   const projects = JSON.parse(JSON.stringify(collectProjects(queryCache))) as CmsProject[];
-  return { props: { projects }, revalidate: 60 };
+  return { props: { projects } };
 };
