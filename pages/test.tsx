@@ -95,13 +95,23 @@ export default function TestArchiveRoute({ projects }: InferGetServerSidePropsTy
 
 export const getServerSideProps: GetServerSideProps<{ projects: CmsProject[] }> = async () => {
   const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
-  if (!plasmicData) return { props: { projects: [] }, revalidate: 60 };
+  if (!plasmicData) return { props: { projects: [] } };
   
   const pageMeta = plasmicData.entryCompMetas[0];
+  
+  // Use React.createElement to avoid JSX syntax in server function
+  const React = await import("react");
   const queryCache = await extractPlasmicQueryData(
-    <PlasmicRootProvider loader={PLASMIC} prefetchedData={plasmicData} pageRoute={pageMeta.path} pageParams={pageMeta.params}>
-      <PlasmicComponent component={pageMeta.displayName} />
-    </PlasmicRootProvider>
+    React.createElement(
+      PlasmicRootProvider,
+      { 
+        loader: PLASMIC, 
+        prefetchedData: plasmicData, 
+        pageRoute: pageMeta.path, 
+        pageParams: pageMeta.params 
+      },
+      React.createElement(PlasmicComponent, { component: pageMeta.displayName })
+    )
   );
   
   const projects = JSON.parse(JSON.stringify(collectProjects(queryCache))) as CmsProject[];
