@@ -155,9 +155,8 @@ export function IndexPage({ projects = [] }: IndexPageProps) {
           <div className={styles.tableHead} role="row" aria-label="Column headers">
             <span className={styles.colCatalogue}>CATALOGUE</span>
             <span className={styles.colTitle}>TITLE</span>
-            <span className={styles.colArtist}>PRIMARY ARTIST</span>
+            <span className={styles.colArtist}>ARTIST</span>
             <span className={styles.colYear}>YEAR</span>
-            <span className={styles.colFormat}>FORMAT</span>
           </div>
 
           {/* Rows */}
@@ -180,8 +179,6 @@ export function IndexPage({ projects = [] }: IndexPageProps) {
                 const primaryArtist = asArray(project.artists)
                   .map(valueLabel)
                   .filter(Boolean)[0] ?? "—";
-                const format =
-                  asArray(project.categories).map(valueLabel).filter(Boolean)[0] ?? "—";
 
                 return (
                   <li key={project.id} className={styles.tableRow} role="row">
@@ -199,7 +196,6 @@ export function IndexPage({ projects = [] }: IndexPageProps) {
                       <span className={styles.colTitle}>{project.title}</span>
                       <span className={styles.colArtist}>{primaryArtist}</span>
                       <span className={styles.colYear}>{project.year ?? "—"}</span>
-                      <span className={styles.colFormat}>{format}</span>
                     </Link>
                   </li>
                 );

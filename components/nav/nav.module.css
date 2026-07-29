@@ -151,10 +151,34 @@
   border-bottom: 1px solid var(--line);
   transition: color 0.14s ease, background 0.14s ease;
   white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .dropdownLink:last-child {
   border-bottom: none;
+}
+
+.chevronRight {
+  font-size: 10px;
+  margin-left: 12px;
+}
+
+.chevronLeft {
+  font-size: 10px;
+  margin-right: 8px;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
 }
 
 .dropdownLink:hover,

@@ -29,12 +29,20 @@ function getUniqueYears(projects: CmsProject[]): number[] {
   return Array.from(years).sort((a, b) => b - a);
 }
 
+function getProjectsByYear(projects: CmsProject[], year: number): CmsProject[] {
+  return projects
+    .filter((p) => p.year === year)
+    .sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+}
+
 export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const years = getUniqueYears(projects);
+  const albumsInYear = selectedYear ? getProjectsByYear(projects, selectedYear) : [];
 
   // Close dropdown on route change
   useEffect(() => {
@@ -105,7 +113,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             <button
               ref={triggerRef}
               type="button"
-              className={`${styles.navLink} ${styles.navLinkBtn} ${isActive("/projects") ? styles.navLinkActive : ""}`}
+              className={`${styles.navLink} ${styles.navLinkBtn} ${isActive("/projects") || isActive("/test") ? styles.navLinkActive : ""}`}
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen}
               onClick={() => setDropdownOpen((v) => !v)}
@@ -121,32 +129,66 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                 ref={dropdownRef}
                 className={styles.dropdown}
                 role="listbox"
-                aria-label="Filter projects by year"
+                aria-label="Browse projects by year"
               >
-                <Link
-                  href="/test"
-                  className={styles.dropdownLink}
-                  role="option"
-                  aria-selected={false}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  ALL YEARS
-                </Link>
-                {years.length === 0 ? (
-                  <span className={styles.dropdownEmpty}>No years available</span>
-                ) : (
-                  years.map((year) => (
+                {/* Primary level: ALL YEARS or year list */}
+                {!selectedYear ? (
+                  <>
                     <Link
-                      key={year}
-                      href={`/test?year=${year}`}
+                      href="/test"
                       className={styles.dropdownLink}
                       role="option"
-                      aria-selected={router.query.year === String(year)}
+                      aria-selected={false}
                       onClick={() => setDropdownOpen(false)}
                     >
-                      {year}
+                      ALL YEARS
                     </Link>
-                  ))
+                    {years.length === 0 ? (
+                      <span className={styles.dropdownEmpty}>No years available</span>
+                    ) : (
+                      years.map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          className={styles.dropdownLink}
+                          role="option"
+                          onClick={() => setSelectedYear(year)}
+                          aria-selected={false}
+                        >
+                          {year}
+                          <span className={styles.chevronRight} aria-hidden="true">→</span>
+                        </button>
+                      ))
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className={styles.dropdownLink}
+                      role="option"
+                      onClick={() => setSelectedYear(null)}
+                    >
+                      <span className={styles.chevronLeft} aria-hidden="true">←</span> Back
+                    </button>
+                    <div className={styles.dropdownDivider} />
+                    {albumsInYear.length === 0 ? (
+                      <span className={styles.dropdownEmpty}>No projects in {selectedYear}</span>
+                    ) : (
+                      albumsInYear.map((project) => (
+                        <Link
+                          key={project.id}
+                          href={`/projects/${project.slug ?? project.title.toLowerCase().replace(/\s+/g, "-")}`}
+                          className={styles.dropdownLink}
+                          role="option"
+                          aria-selected={false}
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          {project.title}
+                        </Link>
+                      ))
+                    )}
+                  </>
                 )}
               </div>
             )}

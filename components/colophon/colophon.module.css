@@ -89,6 +89,67 @@
   vertical-align: top;
 }
 
+/* Palette section */
+.paletteSection {
+  margin-bottom: 40px;
+  border-bottom: 2px solid var(--foreground);
+  padding-bottom: 32px;
+}
+
+.paletteTitle {
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  margin-bottom: 20px;
+}
+
+/* Palette graphic */
+.paletteGraphic {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 200px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  padding: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+
+.paletteBar {
+  flex: 1;
+  min-height: 8px;
+  border-radius: 1px;
+  transition: opacity 0.18s ease;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.paletteBar:hover {
+  opacity: 1;
+}
+
+.paletteEmpty {
+  font: 400 11px/1.4 var(--font-mono);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin: auto;
+}
+
+.paletteLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 24px;
+  font: 400 10px/1.4 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.paletteLegendItem {
+  display: block;
+}
+
 /* Footer */
 .colophonFooter {
   padding: 48px 24px 0;

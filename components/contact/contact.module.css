@@ -40,10 +40,10 @@
 }
 
 .sectionLabel {
-  font: 600 10px/1 var(--font-mono);
+  font: 700 11px/1 var(--font-mono);
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--foreground);
   margin-bottom: 28px;
 }
 
@@ -58,7 +58,7 @@
   border: 1px solid var(--line);
   background: transparent;
   color: var(--foreground);
-  font: 500 10px/1 var(--font-mono);
+  font: 700 11px/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 10px 16px;
@@ -243,6 +243,22 @@
   text-align: left;
   transition: background 0.12s ease;
   border-bottom: 1px solid var(--line);
+}
+
+.suggestionThumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  flex: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.suggestionContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .suggestionItem:last-child {
@@ -464,6 +480,63 @@
 .resetBtn:hover {
   background: var(--foreground);
   color: var(--background);
+}
+
+/* Budget slider */
+.budgetSliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.budgetSlider {
+  flex: 1;
+  min-width: 200px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.budgetSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.12s ease;
+}
+
+.budgetSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.budgetSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.12s ease;
+}
+
+.budgetSlider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.budgetPreview {
+  font: 700 16px/1 var(--font-mono);
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  min-width: 150px;
+  text-align: right;
 }
 
 /* Utility */

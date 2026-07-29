@@ -73,9 +73,9 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 function SectionHeader({ title }: { title: string }) {
   return (
     <tr className={styles.sectionHeaderRow}>
-      <th colSpan={2} className={styles.sectionHeader}>
+      <td colSpan={2} className={styles.sectionHeader}>
         {title}
-      </th>
+      </td>
     </tr>
   );
 }
@@ -193,6 +193,8 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
           </p>
         </header>
 
+
+
         {/* Single unified table */}
         <div className={styles.tableContainer}>
           <table className={styles.table} cellSpacing={0}>
@@ -228,9 +230,6 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
               <Row label="Data Strategy" value="CMS-driven — no hardcoded project data" />
               <Row label="Revalidation" value="Incremental Static Regeneration (ISR)" />
               <Row label="Project Record Fields" value="title, artists, categories, style, palette, year, date, frontCover, slug" />
-              {lastUpdated ? (
-                <Row label="CMS Last Updated" value={formatDate(lastUpdated)} />
-              ) : null}
 
               {/* ── Hosting ── */}
               <SectionHeader title="Hosting" />
@@ -253,7 +252,7 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
               <Row label="Unique Artists" value={stats.artists} />
               <Row label="Year Span" value={stats.yearRange} />
               <Row label="Years Active" value={stats.years} />
-              <Row label="Format / Category Types" value={stats.categories} />
+              <Row label="Category Types" value={stats.categories} />
               <Row
                 label="Newest Project"
                 value={
@@ -276,22 +275,9 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
                   ) : "—"
                 }
               />
-
-              {/* ── Archive Statistics ── */}
-              <SectionHeader title="Archive Statistics" />
-              <Row label="Total Palette Swatches" value={stats.colours} />
-              <Row label="Average Palette Size" value={stats.avgPalette} />
-              <Row
-                label="Most Common Colour Family"
-                value={stats.dominantFamily}
-              />
-              {stats.colourFamilies.map(([family, count]) => (
-                <Row
-                  key={family}
-                  label={`  ${family}`}
-                  value={`${count} swatch${count !== 1 ? "es" : ""}`}
-                />
-              ))}
+              {lastUpdated ? (
+                <Row label="Last Updated" value={formatDate(lastUpdated)} />
+              ) : null}
 
             </tbody>
           </table>

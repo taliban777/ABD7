@@ -3,6 +3,7 @@ import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, valueLabel } from "@/components/archive/types";
+import { getArchiveImageUrl } from "@/components/images/cloudinary";
 
 export interface ContactPageProps {
   projects?: CmsProject[];
@@ -68,6 +69,7 @@ interface FormState {
   vision: string;
   inspirations: CmsProject[];
   budget: BudgetRange | "";
+  budgetCustom: number; // 0 to 1000000
   deadline: Deadline | "";
   specificDate: string;
   email: string;
@@ -80,6 +82,7 @@ const INITIAL: FormState = {
   vision: "",
   inspirations: [],
   budget: "",
+  budgetCustom: 0,
   deadline: "",
   specificDate: "",
   email: "",
@@ -98,10 +101,10 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filtered project suggestions from CMS search
+  // Filtered project suggestions from CMS search — only show results when typing
   const projectSuggestions = useMemo(() => {
     const q = projectSearch.trim().toLowerCase();
-    if (!q) return safeProjects.slice(0, 8);
+    if (!q) return [];
     return safeProjects
       .filter((p) => {
         const haystack = [
@@ -113,7 +116,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           .toLowerCase();
         return haystack.includes(q);
       })
-      .slice(0, 8);
+      .slice(0, 12);
   }, [safeProjects, projectSearch]);
 
   const toggleService = (s: ServiceType) =>
@@ -334,10 +337,11 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                 aria-label="Search archive projects"
               />
 
-              {(projectSearch.length > 0 || projectSuggestions.length > 0) && (
+              {projectSearch.length > 0 && (
                 <ul className={styles.suggestions} role="listbox" aria-label="Archive suggestions">
                   {projectSuggestions.map((p) => {
                     const isAdded = form.inspirations.some((x) => x.id === p.id);
+                    const thumbUrl = getArchiveImageUrl(p.frontCover);
                     return (
                       <li key={p.id} role="option" aria-selected={isAdded}>
                         <button
@@ -346,12 +350,23 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                           onClick={() => addInspiration(p)}
                           disabled={isAdded}
                         >
-                          <span className={styles.suggestionTitle}>
-                            {p.title}
-                          </span>
-                          <span className={styles.suggestionMeta}>
-                            {asArray(p.artists).map(valueLabel).filter(Boolean)[0] ?? ""}
-                            {p.year ? ` · ${p.year}` : ""}
+                          {thumbUrl && (
+                            <img
+                              src={thumbUrl}
+                              alt={`${p.title} thumbnail`}
+                              className={styles.suggestionThumb}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          )}
+                          <span className={styles.suggestionContent}>
+                            <span className={styles.suggestionTitle}>
+                              {p.title}
+                            </span>
+                            <span className={styles.suggestionMeta}>
+                              {asArray(p.artists).map(valueLabel).filter(Boolean)[0] ?? ""}
+                              {p.year ? ` · ${p.year}` : ""}
+                            </span>
                           </span>
                           {isAdded && (
                             <span className={styles.suggestionCheck} aria-hidden="true">
@@ -362,7 +377,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                       </li>
                     );
                   })}
-                  {projectSuggestions.length === 0 && (
+                  {projectSuggestions.length === 0 && projectSearch.length > 0 && (
                     <li className={styles.suggestionsEmpty}>No results</li>
                   )}
                 </ul>
@@ -448,9 +463,31 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             )}
           </section>
 
-          {/* ─── 8. Contact details ─── */}
+          {/* ─── 8. Budget willingness ─── */}
           <section className={styles.section}>
-            <h2 className={styles.sectionLabel}>08 — Contact details</h2>
+            <h2 className={styles.sectionLabel}>08 — How much are you willing to give?</h2>
+            <div className={styles.budgetSliderContainer}>
+              <input
+                type="range"
+                min="0"
+                max="1000000"
+                step="10000"
+                value={form.budgetCustom}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, budgetCustom: Number(e.target.value) }))
+                }
+                className={styles.budgetSlider}
+                aria-label="Budget range slider"
+              />
+              <div className={styles.budgetPreview}>
+                ${form.budgetCustom.toLocaleString("en-US")}
+              </div>
+            </div>
+          </section>
+
+          {/* ─── 9. Contact details ─── */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionLabel}>09 — Contact details</h2>
             <div className={styles.contactFields}>
               <label className={styles.fieldLabel}>
                 <span className={styles.fieldName}>Email</span>
