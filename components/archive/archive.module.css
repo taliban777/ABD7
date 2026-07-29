@@ -373,9 +373,26 @@
   transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform;
   transform-origin: center bottom;
+  position: relative;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 24px;
+  background: radial-gradient(ellipse 100% 100% at 50% 0%, var(--foreground), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.38s ease;
 }
 .card:hover {
   transform: scale(1.022);
+}
+.card:hover::before {
+  opacity: 0.08;
 }
 .imageFrame {
   aspect-ratio: 1 / 1;
