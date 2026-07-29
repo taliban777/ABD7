@@ -551,3 +551,35 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ─── Responsive ─── */
+
+@media (max-width: 540px) {
+  .pageHeader {
+    padding: 40px 20px 32px;
+  }
+  .pageTitle {
+    font-size: 26px;
+  }
+  .form {
+    padding: 0 20px;
+  }
+  .section {
+    padding: 36px 0;
+  }
+  .budgetSliderContainer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .budgetPreview {
+    min-width: 0;
+    text-align: left;
+  }
+  .budgetSlider {
+    width: 100%;
+  }
+  .confirmationWrap {
+    padding: 56px 20px;
+  }
+}

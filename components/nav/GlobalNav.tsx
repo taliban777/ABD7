@@ -39,17 +39,43 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileYear, setMobileYear] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const years = getUniqueYears(projects);
   const albumsInYear = selectedYear ? getProjectsByYear(projects, selectedYear) : [];
+  const mobileAlbumsInYear = mobileYear ? getProjectsByYear(projects, mobileYear) : [];
 
-  // Close dropdown on route change
+  // Close menus on route change
   useEffect(() => {
-    const handleRouteChange = () => setDropdownOpen(false);
+    const handleRouteChange = () => {
+      setDropdownOpen(false);
+      setMobileOpen(false);
+    };
     router.events.on("routeChangeStart", handleRouteChange);
     return () => router.events.off("routeChangeStart", handleRouteChange);
   }, [router.events]);
+
+  // Lock body scroll while the mobile menu is open
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileOpen]);
+
+  // Close mobile menu on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [mobileOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -212,7 +238,120 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             </li>
           ))}
         </ul>
+
+        {/* Mobile hamburger toggle */}
+        <button
+          type="button"
+          className={styles.mobileToggle}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-menu"
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          <span className={`${styles.hamburger} ${mobileOpen ? styles.hamburgerOpen : ""}`} aria-hidden="true">
+            <span />
+            <span />
+          </span>
+        </button>
       </div>
+
+      {/* Mobile menu overlay */}
+      {mobileOpen && (
+        <div
+          id="mobile-menu"
+          className={styles.mobileMenu}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site navigation"
+        >
+          <ul className={styles.mobileLinks} role="list">
+            {NAV_LINKS.map(({ label, href }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`${styles.mobileLink} ${isActive(href) ? styles.mobileLinkActive : ""}`}
+                  aria-current={isActive(href) ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+
+            {/* PROJECTS — expandable by year */}
+            <li className={styles.mobileGroup}>
+              <button
+                type="button"
+                className={styles.mobileLink}
+                aria-expanded={mobileYear !== null || years.length > 0}
+                onClick={() => setMobileYear((y) => (y === null ? (years[0] ?? null) : null))}
+              >
+                PROJECTS
+              </button>
+
+              {years.length === 0 ? (
+                <span className={styles.mobileEmpty}>No years available</span>
+              ) : (
+                <div className={styles.mobileYears}>
+                  <Link
+                    href="/test"
+                    className={styles.mobileSubLink}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    ALL YEARS
+                  </Link>
+                  <div className={styles.mobileYearTabs} role="tablist" aria-label="Filter projects by year">
+                    {years.map((year) => (
+                      <button
+                        key={year}
+                        type="button"
+                        role="tab"
+                        aria-selected={mobileYear === year}
+                        className={`${styles.mobileYearTab} ${mobileYear === year ? styles.mobileYearTabActive : ""}`}
+                        onClick={() => setMobileYear(year)}
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                  {mobileYear !== null && (
+                    mobileAlbumsInYear.length === 0 ? (
+                      <span className={styles.mobileEmpty}>No projects in {mobileYear}</span>
+                    ) : (
+                      <ul className={styles.mobileProjectList} role="list">
+                        {mobileAlbumsInYear.map((project) => (
+                          <li key={project.id}>
+                            <Link
+                              href={`/projects/${project.slug ?? project.title.toLowerCase().replace(/\s+/g, "-")}`}
+                              className={styles.mobileSubLink}
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              {project.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )
+                  )}
+                </div>
+              )}
+            </li>
+
+            {NAV_LINKS_RIGHT.map(({ label, href }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`${styles.mobileLink} ${isActive(href) ? styles.mobileLinkActive : ""}`}
+                  aria-current={isActive(href) ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </nav>
   );
 }
