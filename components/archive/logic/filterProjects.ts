@@ -5,35 +5,19 @@ export interface ArchiveQuery {
   selected: ArchiveSelection;
 }
 
-// Color family definitions - must match colorGrouping.ts
-interface ColorFamily {
-  name: string;
-  hueRange: [number, number];
-  lightnessRange?: [number, number];
-}
-
-const COLOR_FAMILIES: ColorFamily[] = [
-  { name: "black", hueRange: [0, 360], lightnessRange: [0, 20] },
-  { name: "white", hueRange: [0, 360], lightnessRange: [80, 100] },
-  { name: "grey", hueRange: [0, 360], lightnessRange: [20, 80] },
-  { name: "red", hueRange: [330, 30] },
-  { name: "orange", hueRange: [30, 60] },
-  { name: "yellow", hueRange: [60, 90] },
-  { name: "green", hueRange: [90, 180] },
-  { name: "blue", hueRange: [180, 270] },
-  { name: "purple", hueRange: [270, 300] },
-  { name: "pink", hueRange: [300, 330] },
-];
+// Color category definitions - must match colorGrouping.ts
+// Editorial taxonomy for art archives based on hue + tone
 
 /**
- * Categorize a hex color into a family name.
+ * Categorize a hex color into an editorial category.
  * Must match the logic in colorGrouping.ts.
+ * Prioritizes hue-based classification with tone refinement.
  */
-function categorizeHexToFamily(hex: string): string {
-  if (!hex || typeof hex !== "string") return "grey";
+function categorizeHexToCategory(hex: string): string {
+  if (!hex || typeof hex !== "string") return "neutral";
 
   const clean = hex.replace("#", "");
-  if (clean.length !== 6) return "grey";
+  if (clean.length !== 6) return "neutral";
 
   const r = parseInt(clean.substring(0, 2), 16) / 255;
   const g = parseInt(clean.substring(2, 4), 16) / 255;
@@ -61,33 +45,58 @@ function categorizeHexToFamily(hex: string): string {
 
   const lightness = l * 100;
 
-  // Check lightness first for achromatic colors
-  for (const family of COLOR_FAMILIES) {
-    if (family.lightnessRange) {
-      const [minL, maxL] = family.lightnessRange;
-      if (lightness >= minL && lightness <= maxL) {
-        return family.name;
-      }
-    }
+  // Check if near-black or very dark
+  if (lightness < 25) {
+    return "dark";
   }
 
-  // Then check chromatic colors by hue
-  if (s > 0.1) {
-    for (const family of COLOR_FAMILIES) {
-      if (!family.lightnessRange) {
-        const [startHue, endHue] = family.hueRange;
-        const inRange =
-          startHue <= endHue
-            ? hue >= startHue && hue < endHue
-            : hue >= startHue || hue < endHue;
-        if (inRange) {
-          return family.name;
-        }
-      }
-    }
+  // Check if near-white or very light
+  if (lightness > 85 && s < 0.15) {
+    return "neutral";
   }
 
-  return "grey";
+  // For greyish/desaturated colors
+  if (s < 0.15) {
+    return "neutral";
+  }
+
+  // Hue-based classification for saturated colors
+  if (hue < 15 || hue >= 345) {
+    return "red-pink";
+  }
+
+  if (hue >= 15 && hue < 45) {
+    if (lightness < 50) {
+      return "warm-earth";
+    }
+    return "gold-yellow";
+  }
+
+  if (hue >= 45 && hue < 75) {
+    return "gold-yellow";
+  }
+
+  if (hue >= 75 && hue < 165) {
+    return "green";
+  }
+
+  if (hue >= 165 && hue < 255) {
+    return "blue";
+  }
+
+  if (hue >= 255 && hue < 295) {
+    return "purple";
+  }
+
+  if (hue >= 295 && hue < 345) {
+    return "red-pink";
+  }
+
+  if (hue >= 15 && hue < 50 && s > 0.15) {
+    return "warm-earth";
+  }
+
+  return "neutral";
 }
 
 /**
@@ -121,14 +130,14 @@ export function projectValuesFor(project: CmsProject, key: ArchiveFilterKey): st
     case "years":
       return project.year != null ? [String(project.year)] : [];
     case "palette":
-      // Map each palette hex value to its color family, deduplicate
-      const families = new Set(
+      // Map each palette hex value to its editorial category, deduplicate
+      const categories = new Set(
         asArray(project.palette)
           .map(paletteValue)
           .filter(Boolean)
-          .map(categorizeHexToFamily)
+          .map(categorizeHexToCategory)
       );
-      return Array.from(families);
+      return Array.from(categories);
     default:
       return asArray(project[key]).map(valueLabel).filter(Boolean);
   }

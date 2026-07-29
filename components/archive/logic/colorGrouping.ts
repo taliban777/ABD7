@@ -1,34 +1,31 @@
 import { FilterOption } from "../types";
 
-interface ColorFamily {
+interface ColorCategory {
   name: string;
   label: string;
-  hueRange: [number, number]; // [start, end] in degrees
-  lightnessRange?: [number, number]; // [min, max] as 0-100
 }
 
-const COLOR_FAMILIES: ColorFamily[] = [
-  { name: "black", label: "Black", hueRange: [0, 360], lightnessRange: [0, 20] },
-  { name: "white", label: "White", hueRange: [0, 360], lightnessRange: [80, 100] },
-  { name: "grey", label: "Grey", hueRange: [0, 360], lightnessRange: [20, 80] },
-  { name: "red", label: "Red", hueRange: [330, 30] },
-  { name: "orange", label: "Orange", hueRange: [30, 60] },
-  { name: "yellow", label: "Yellow", hueRange: [60, 90] },
-  { name: "green", label: "Green", hueRange: [90, 180] },
-  { name: "blue", label: "Blue", hueRange: [180, 270] },
-  { name: "purple", label: "Purple", hueRange: [270, 300] },
-  { name: "pink", label: "Pink", hueRange: [300, 330] },
+const CATEGORIES: ColorCategory[] = [
+  { name: "dark", label: "Dark" },
+  { name: "neutral", label: "Neutral" },
+  { name: "warm-earth", label: "Warm Earth" },
+  { name: "red-pink", label: "Red / Pink" },
+  { name: "gold-yellow", label: "Gold / Yellow" },
+  { name: "green", label: "Green" },
+  { name: "blue", label: "Blue" },
+  { name: "purple", label: "Purple" },
 ];
 
 /**
- * Convert hex color to HSL and categorize into a color family.
- * Returns the family name that can be used for filtering.
+ * Editorial color taxonomy for art archives.
+ * Prioritizes hue-based classification with tone refinement.
+ * Maps hex values to meaningful visual categories for browsing.
  */
-function categorizeHexToFamily(hex: string): string {
-  if (!hex || typeof hex !== "string") return "grey";
+function categorizeHexToCategory(hex: string): string {
+  if (!hex || typeof hex !== "string") return "neutral";
 
   const clean = hex.replace("#", "");
-  if (clean.length !== 6) return "grey";
+  if (clean.length !== 6) return "neutral";
 
   const r = parseInt(clean.substring(0, 2), 16) / 255;
   const g = parseInt(clean.substring(2, 4), 16) / 255;
@@ -39,10 +36,9 @@ function categorizeHexToFamily(hex: string): string {
   const l = (max + min) / 2;
   const c = max - min;
 
-  // Calculate saturation
+  // Calculate saturation and hue
   const s = c === 0 ? 0 : c / (1 - Math.abs(2 * l - 1));
 
-  // Calculate hue
   let hue = 0;
   if (c !== 0) {
     if (max === r) {
@@ -58,112 +54,134 @@ function categorizeHexToFamily(hex: string): string {
 
   const lightness = l * 100;
 
-  // Check lightness first for achromatic colors
-  for (const family of COLOR_FAMILIES) {
-    if (family.lightnessRange) {
-      const [minL, maxL] = family.lightnessRange;
-      if (lightness >= minL && lightness <= maxL) {
-        return family.name;
-      }
-    }
+  // Check if near-black or very dark (prioritize this for all dark tones)
+  if (lightness < 25) {
+    return "dark";
   }
 
-  // Then check chromatic colors by hue
-  if (s > 0.1) {
-    for (const family of COLOR_FAMILIES) {
-      if (!family.lightnessRange) {
-        const [startHue, endHue] = family.hueRange;
-        const inRange =
-          startHue <= endHue
-            ? hue >= startHue && hue < endHue
-            : hue >= startHue || hue < endHue;
-        if (inRange) {
-          return family.name;
-        }
-      }
-    }
+  // Check if near-white or very light
+  if (lightness > 85 && s < 0.15) {
+    return "neutral";
   }
 
-  return "grey";
+  // For greyish/desaturated colors
+  if (s < 0.15) {
+    return "neutral";
+  }
+
+  // Hue-based classification for saturated colors
+  // Hue ranges: 0-360 degrees (Red: 0 | Yellow: 60 | Green: 120 | Cyan: 180 | Blue: 240 | Magenta: 300)
+
+  if (hue < 15 || hue >= 345) {
+    // Red/Pink range (0-15, 345-360)
+    return "red-pink";
+  }
+
+  if (hue >= 15 && hue < 45) {
+    // Orange/Gold transition - classify based on lightness
+    // Darker oranges → warm-earth, brighter → gold-yellow
+    if (lightness < 50) {
+      return "warm-earth";
+    }
+    return "gold-yellow";
+  }
+
+  if (hue >= 45 && hue < 75) {
+    // Yellow/Gold range
+    return "gold-yellow";
+  }
+
+  if (hue >= 75 && hue < 165) {
+    // Green range (even dark greens stay green)
+    return "green";
+  }
+
+  if (hue >= 165 && hue < 255) {
+    // Blue/Cyan range (even dark blues stay blue)
+    return "blue";
+  }
+
+  if (hue >= 255 && hue < 295) {
+    // Purple range (even dark purples stay purple)
+    return "purple";
+  }
+
+  if (hue >= 295 && hue < 345) {
+    // Pink/Magenta range
+    return "red-pink";
+  }
+
+  // Brown/tan fallback: classify by hue and saturation
+  if (hue >= 15 && hue < 50 && s > 0.15) {
+    return "warm-earth";
+  }
+
+  return "neutral";
 }
 
 /**
- * Calculate average color from a list of hex values for visual display.
+ * Calculate representative color from a list of hex values.
+ * For visual display, selects the median color by perceived brightness
+ * to avoid averaging making colors muddy.
  */
-function averageColor(hexColors: string[]): string {
+function representativeColor(hexColors: string[]): string {
   if (hexColors.length === 0) return "#888888";
+  if (hexColors.length === 1) return hexColors[0];
 
-  let totalR = 0,
-    totalG = 0,
-    totalB = 0;
-  let count = 0;
+  // Sort by perceived lightness and pick median
+  const sorted = hexColors
+    .map((hex) => {
+      const clean = hex.replace("#", "");
+      if (clean.length !== 6) return { hex, lightness: 50 };
+      const r = parseInt(clean.substring(0, 2), 16);
+      const g = parseInt(clean.substring(2, 4), 16);
+      const b = parseInt(clean.substring(4, 6), 16);
+      const lightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      return { hex, lightness };
+    })
+    .sort((a, b) => a.lightness - b.lightness);
 
-  for (const hex of hexColors) {
-    const clean = hex.replace("#", "");
-    if (clean.length === 6) {
-      totalR += parseInt(clean.substring(0, 2), 16);
-      totalG += parseInt(clean.substring(2, 4), 16);
-      totalB += parseInt(clean.substring(4, 6), 16);
-      count++;
-    }
-  }
-
-  if (count === 0) return "#888888";
-
-  const avgR = Math.round(totalR / count);
-  const avgG = Math.round(totalG / count);
-  const avgB = Math.round(totalB / count);
-
-  return `#${avgR.toString(16).padStart(2, "0")}${avgG.toString(16).padStart(2, "0")}${avgB.toString(16).padStart(2, "0")}`;
+  return sorted[Math.floor(sorted.length / 2)].hex;
 }
 
 /**
- * Group palette colors by hex value into color families.
- * Maps each hex value to its family name, then aggregates by family.
- * Returns FilterOptions where the value is the family name (for filtering),
- * and count is the number of individual hex colors in that family.
+ * Group palette colors by editorial category.
+ * Maps each hex value to a category, then aggregates projects per category.
+ * Returns FilterOptions for the category selector with project counts.
  */
 export function groupPaletteColors(colorOptions: FilterOption[]): FilterOption[] {
-  const familyMap = new Map<string, { hexes: string[]; count: number }>();
+  const categoryMap = new Map<string, { hexes: Set<string>; projectCount: number }>();
 
-  // Initialize all families
-  for (const family of COLOR_FAMILIES) {
-    familyMap.set(family.name, { hexes: [], count: 0 });
+  // Initialize all categories
+  for (const category of CATEGORIES) {
+    categoryMap.set(category.name, { hexes: new Set(), projectCount: 0 });
   }
 
-  // Map each color option to its family and aggregate
+  // Map each hex color to its category and tally projects
   for (const option of colorOptions) {
     const hex = option.color || option.value;
-    const family = categorizeHexToFamily(hex);
-    const existing = familyMap.get(family) || { hexes: [], count: 0 };
+    const category = categorizeHexToCategory(hex);
+    const existing = categoryMap.get(category) || { hexes: new Set(), projectCount: 0 };
 
-    // Store unique hex values and accumulate counts
-    if (!existing.hexes.includes(hex)) {
-      existing.hexes.push(hex);
-    }
-    existing.count += option.count;
+    existing.hexes.add(hex);
+    existing.projectCount += option.count;
 
-    familyMap.set(family, existing);
+    categoryMap.set(category, existing);
   }
 
   // Convert to FilterOption[] in display order
-  const displayOrder = ["black", "white", "grey", "red", "orange", "yellow", "green", "blue", "purple", "pink"];
+  return CATEGORIES.map((category) => {
+    const data = categoryMap.get(category.name);
 
-  return displayOrder
-    .map((familyName) => {
-      const family = COLOR_FAMILIES.find((f) => f.name === familyName);
-      const data = familyMap.get(familyName);
+    if (!data || data.projectCount === 0) return null;
 
-      if (!family || !data || data.count === 0) return null;
-
-      return {
-        label: family.label,
-        value: familyName,
-        count: data.count, // Total number of projects with colors in this family
-        color: averageColor(data.hexes), // Representative color from all hex values in family
-        // Internal: list of hex values for reference
-        _groupHexes: data.hexes,
-      };
-    })
-    .filter((opt) => opt !== null) as FilterOption[];
+    return {
+      label: category.label,
+      value: category.name,
+      count: data.projectCount, // Total number of projects with colors in this category
+      color: representativeColor(Array.from(data.hexes)), // Representative color from all hex values
+      // Internal: list of hex values for reference
+      _groupHexes: Array.from(data.hexes),
+    };
+  }).filter((opt) => opt !== null) as FilterOption[];
 }
