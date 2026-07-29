@@ -49,29 +49,31 @@ function injectTransformation(url: string, transformation: string): string {
 
 /**
  * Get archive thumbnail URL with optimization.
- * Parameters: w_500,h_500,c_fill,q_auto,f_auto
- * - w_500,h_500: 500x500 square
+ * Prioritizes artwork quality while optimizing delivery.
+ * Parameters: w_700,h_700,c_fill,q_auto:good,f_auto
+ * - w_700,h_700: 700x700 square (larger size preserves texture and detail)
  * - c_fill: fill the entire area, crop if needed
- * - q_auto: automatic quality based on device
+ * - q_auto:good: balanced quality tier (preserves gradients, print details)
  * - f_auto: automatic format selection (WebP, AVIF, etc.)
  */
 export function getArchiveImageUrl(url: string): string {
   if (!url) return "";
   if (!isCloudinaryUrl(url)) return url;
 
-  return injectTransformation(url, "w_500,h_500,c_fill,q_auto,f_auto");
+  return injectTransformation(url, "w_700,h_700,c_fill,q_auto:good,f_auto");
 }
 
 /**
  * Get project detail page URL with higher resolution.
- * Parameters: w_1600,q_auto,f_auto
- * - w_1600: up to 1600px width, maintains aspect ratio
- * - q_auto: automatic quality
+ * Emphasizes artwork quality at larger display sizes.
+ * Parameters: w_1800,q_auto:good,f_auto
+ * - w_1800: up to 1800px width, maintains aspect ratio (larger for detail viewing)
+ * - q_auto:good: balanced quality tier for artwork preservation
  * - f_auto: automatic format selection
  */
 export function getProjectImageUrl(url: string): string {
   if (!url) return "";
   if (!isCloudinaryUrl(url)) return url;
 
-  return injectTransformation(url, "w_1600,q_auto,f_auto");
+  return injectTransformation(url, "w_1800,q_auto:good,f_auto");
 }
