@@ -158,14 +158,16 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
     const testMeta = testData.entryCompMetas[0];
     const queryCache = await extractPlasmicQueryData(
-      <PlasmicRootProvider
-        loader={PLASMIC}
-        prefetchedData={testData}
-        pageRoute={testMeta.path}
-        pageParams={testMeta.params}
-      >
-        <PlasmicComponent component={testMeta.displayName} />
-      </PlasmicRootProvider>
+      React.createElement(
+        PlasmicRootProvider,
+        {
+          loader: PLASMIC,
+          prefetchedData: testData,
+          pageRoute: testMeta.path,
+          pageParams: testMeta.params,
+        },
+        React.createElement(PlasmicComponent, { component: testMeta.displayName })
+      )
     );
 
     const projects = collectProjects(queryCache);
@@ -182,14 +184,16 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const pageMeta = plasmicData.entryCompMetas[0];
   // Cache the necessary data fetched for the page
   const queryCache = await extractPlasmicQueryData(
-    <PlasmicRootProvider
-      loader={PLASMIC}
-      prefetchedData={plasmicData}
-      pageRoute={pageMeta.path}
-      pageParams={pageMeta.params}
-    >
-      <PlasmicComponent component={pageMeta.displayName} />
-    </PlasmicRootProvider>
+    React.createElement(
+      PlasmicRootProvider,
+      {
+        loader: PLASMIC,
+        prefetchedData: plasmicData,
+        pageRoute: pageMeta.path,
+        pageParams: pageMeta.params,
+      },
+      React.createElement(PlasmicComponent, { component: pageMeta.displayName })
+    )
   );
   // Use revalidate if you want incremental static regeneration
   return { props: { plasmicData, queryCache }, revalidate: 60 };
