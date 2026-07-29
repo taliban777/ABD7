@@ -34,6 +34,8 @@ export interface FilterOption {
   count: number;
   /** Present only for palette options — the resolved hex/colour value. */
   color?: string;
+  /** Internal: array of color hex values in a grouped palette. */
+  _groupColors?: string[];
 }
 
 export interface ArchiveFilterOptions {
