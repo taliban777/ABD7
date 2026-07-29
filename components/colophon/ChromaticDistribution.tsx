@@ -164,12 +164,8 @@ export function ChromaticDistribution({ projects = [] }: ChromaticDistributionPr
         </div>
       </div>
 
-      {/* Legend: Project count and span */}
+      {/* Legend: Timeline span only (project count already shown in Release Statistics) */}
       <div className={styles.legend}>
-        <div className={styles.legendItem}>
-          <span className={styles.legendLabel}>Projects:</span>
-          <span className={styles.legendValue}>{segments.length}</span>
-        </div>
         <div className={styles.legendItem}>
           <span className={styles.legendLabel}>Timeline:</span>
           <span className={styles.legendValue}>
