@@ -1,34 +1,45 @@
 import { FilterOption } from "../types";
 
+interface ColorCategory {
+  name: string;
+  label: string;
+}
+
+const CATEGORIES: ColorCategory[] = [
+  { name: "dark", label: "Dark" },
+  { name: "neutral", label: "Neutral" },
+  { name: "warm-earth", label: "Warm Earth" },
+  { name: "red-pink", label: "Red / Pink" },
+  { name: "gold-yellow", label: "Gold / Yellow" },
+  { name: "green", label: "Green" },
+  { name: "blue", label: "Blue" },
+  { name: "purple", label: "Purple" },
+];
+
 /**
- * Categorize a hex color into one of 6 groups based on HSL values.
+ * Editorial color taxonomy for art archives.
+ * Prioritizes hue-based classification with tone refinement.
+ * Maps hex values to meaningful visual categories for browsing.
  */
-function categorizeColor(hex: string): string {
+function categorizeHexToCategory(hex: string): string {
   if (!hex || typeof hex !== "string") return "neutral";
 
-  // Parse hex to RGB
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return "neutral";
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return "neutral";
 
-  const r = parseInt(h.substring(0, 2), 16) / 255;
-  const g = parseInt(h.substring(2, 4), 16) / 255;
-  const b = parseInt(h.substring(4, 6), 16) / 255;
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const l = (max + min) / 2;
-
-  // If achromatic (grayscale)
-  if (max === min) {
-    if (l < 0.2) return "dark";
-    if (l > 0.8) return "light";
-    return "monochrome";
-  }
-
-  // Calculate hue
   const c = max - min;
-  let hue = 0;
 
+  // Calculate saturation and hue
+  const s = c === 0 ? 0 : c / (1 - Math.abs(2 * l - 1));
+
+  let hue = 0;
   if (c !== 0) {
     if (max === r) {
       hue = (((g - b) / c) % 6 + 6) % 6;
@@ -38,57 +49,139 @@ function categorizeColor(hex: string): string {
       hue = (r - g) / c + 4;
     }
   }
-
   hue *= 60;
+  if (hue < 0) hue += 360;
 
-  // Categorize by hue
-  if (hue < 30 || hue >= 330) return "warm"; // reds, oranges, warm yellows
-  if (hue < 90) return "warm"; // yellows
-  if (hue < 150) return "cool"; // greens
-  if (hue < 270) return "cool"; // blues, cyans, purples
-  return "warm"; // magentas back to reds
+  const lightness = l * 100;
+
+  // Check if near-black or very dark (prioritize this for all dark tones)
+  if (lightness < 25) {
+    return "dark";
+  }
+
+  // Check if near-white or very light
+  if (lightness > 85 && s < 0.15) {
+    return "neutral";
+  }
+
+  // For greyish/desaturated colors
+  if (s < 0.15) {
+    return "neutral";
+  }
+
+  // Hue-based classification for saturated colors
+  // Hue ranges: 0-360 degrees (Red: 0 | Yellow: 60 | Green: 120 | Cyan: 180 | Blue: 240 | Magenta: 300)
+
+  if (hue < 15 || hue >= 345) {
+    // Red/Pink range (0-15, 345-360)
+    return "red-pink";
+  }
+
+  if (hue >= 15 && hue < 45) {
+    // Orange/Gold transition - classify based on lightness
+    // Darker oranges → warm-earth, brighter → gold-yellow
+    if (lightness < 50) {
+      return "warm-earth";
+    }
+    return "gold-yellow";
+  }
+
+  if (hue >= 45 && hue < 75) {
+    // Yellow/Gold range
+    return "gold-yellow";
+  }
+
+  if (hue >= 75 && hue < 165) {
+    // Green range (even dark greens stay green)
+    return "green";
+  }
+
+  if (hue >= 165 && hue < 255) {
+    // Blue/Cyan range (even dark blues stay blue)
+    return "blue";
+  }
+
+  if (hue >= 255 && hue < 295) {
+    // Purple range (even dark purples stay purple)
+    return "purple";
+  }
+
+  if (hue >= 295 && hue < 345) {
+    // Pink/Magenta range
+    return "red-pink";
+  }
+
+  // Brown/tan fallback: classify by hue and saturation
+  if (hue >= 15 && hue < 50 && s > 0.15) {
+    return "warm-earth";
+  }
+
+  return "neutral";
 }
 
 /**
- * Group palette colors into 6 curated categories and return as FilterOption[].
- * Each option becomes a group label (e.g. "Warm") that can be toggled to select
- * all colors in that category.
+ * Calculate representative color from a list of hex values.
+ * For visual display, selects the median color by perceived brightness
+ * to avoid averaging making colors muddy.
+ */
+function representativeColor(hexColors: string[]): string {
+  if (hexColors.length === 0) return "#888888";
+  if (hexColors.length === 1) return hexColors[0];
+
+  // Sort by perceived lightness and pick median
+  const sorted = hexColors
+    .map((hex) => {
+      const clean = hex.replace("#", "");
+      if (clean.length !== 6) return { hex, lightness: 50 };
+      const r = parseInt(clean.substring(0, 2), 16);
+      const g = parseInt(clean.substring(2, 4), 16);
+      const b = parseInt(clean.substring(4, 6), 16);
+      const lightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      return { hex, lightness };
+    })
+    .sort((a, b) => a.lightness - b.lightness);
+
+  return sorted[Math.floor(sorted.length / 2)].hex;
+}
+
+/**
+ * Group palette colors by editorial category.
+ * Maps each hex value to a category, then aggregates projects per category.
+ * Returns FilterOptions for the category selector with project counts.
  */
 export function groupPaletteColors(colorOptions: FilterOption[]): FilterOption[] {
-  const groups: Map<string, FilterOption[]> = new Map([
-    ["warm", []],
-    ["cool", []],
-    ["neutral", []],
-    ["dark", []],
-    ["light", []],
-    ["monochrome", []],
-  ]);
+  const categoryMap = new Map<string, { hexes: Set<string>; projectCount: number }>();
 
-  // Categorize each color
-  for (const option of colorOptions) {
-    const group = categorizeColor(option.color || option.value);
-    const list = groups.get(group) || [];
-    list.push(option);
-    groups.set(group, list);
+  // Initialize all categories
+  for (const category of CATEGORIES) {
+    categoryMap.set(category.name, { hexes: new Set(), projectCount: 0 });
   }
 
-  // Convert groups to FilterOption[] with combined counts
-  const groupLabels: Record<string, string> = {
-    warm: "Warm",
-    cool: "Cool",
-    neutral: "Neutral",
-    dark: "Dark",
-    light: "Light",
-    monochrome: "Monochrome",
-  };
+  // Map each hex color to its category and tally projects
+  for (const option of colorOptions) {
+    const hex = option.color || option.value;
+    const category = categorizeHexToCategory(hex);
+    const existing = categoryMap.get(category) || { hexes: new Set(), projectCount: 0 };
 
-  return Array.from(groups.entries())
-    .filter(([, colors]) => colors.length > 0)
-    .map(([key, colors]) => ({
-      label: groupLabels[key] || key,
-      value: key, // Use group key as value for filtering
-      count: colors.reduce((sum, c) => sum + c.count, 0),
-      // Store the actual color values for the group as a special property
-      _groupColors: colors.map((c) => c.value),
-    })) as unknown as FilterOption[];
+    existing.hexes.add(hex);
+    existing.projectCount += option.count;
+
+    categoryMap.set(category, existing);
+  }
+
+  // Convert to FilterOption[] in display order
+  return CATEGORIES.map((category) => {
+    const data = categoryMap.get(category.name);
+
+    if (!data || data.projectCount === 0) return null;
+
+    return {
+      label: category.label,
+      value: category.name,
+      count: data.projectCount, // Total number of projects with colors in this category
+      color: representativeColor(Array.from(data.hexes)), // Representative color from all hex values
+      // Internal: list of hex values for reference
+      _groupHexes: Array.from(data.hexes),
+    };
+  }).filter((opt) => opt !== null) as FilterOption[];
 }
