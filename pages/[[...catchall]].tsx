@@ -207,6 +207,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
       },
     }));
 
+  // Explicitly include /index as a static path
+  paths.push({
+    params: {
+      catchall: ["index"],
+    },
+  });
+
   return {
     paths,
     fallback: "blocking",
