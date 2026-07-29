@@ -123,38 +123,27 @@ export default function TestArchiveRoute({
 export const getServerSideProps: GetServerSideProps<{
   projects: CmsProject[];
 }> = async () => {
-  // Try to fetch a CMS page with archive content
-  // First try "/archive" as it may be configured in Plasmic
-  let plasmicData = await PLASMIC.maybeFetchComponentData("/archive");
-  
-  // If /archive doesn't exist, try a generic empty fetch to get CMS data
+  // Fetch the /test Plasmic page which should have archive component with CMS data
+  const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
   if (!plasmicData) {
-    // Try the homepage to extract CMS data if available
-    plasmicData = await PLASMIC.maybeFetchComponentData("/");
+    return { props: { projects: [] } };
   }
 
-  // Extract projects from whatever page we got
-  let projects: CmsProject[] = [];
-  
-  if (plasmicData) {
-    const pageMeta = plasmicData.entryCompMetas[0];
-    try {
-      const queryCache = await extractPlasmicQueryData(
-        <PlasmicRootProvider
-          loader={PLASMIC}
-          prefetchedData={plasmicData}
-          pageRoute={pageMeta.path}
-          pageParams={pageMeta.params}
-        >
-          <PlasmicComponent component={pageMeta.displayName} />
-        </PlasmicRootProvider>
-      );
-      projects = collectProjects(queryCache);
-    } catch {
-      // If extraction fails, return empty projects
-      projects = [];
-    }
-  }
+  const pageMeta = plasmicData.entryCompMetas[0];
+
+  // Extract query data to fetch CMS projects
+  const queryCache = await extractPlasmicQueryData(
+    <PlasmicRootProvider
+      loader={PLASMIC}
+      prefetchedData={plasmicData}
+      pageRoute={pageMeta.path}
+      pageParams={pageMeta.params}
+    >
+      <PlasmicComponent component={pageMeta.displayName} />
+    </PlasmicRootProvider>
+  );
+
+  const projects = collectProjects(queryCache);
 
   return { props: { projects } };
 };
