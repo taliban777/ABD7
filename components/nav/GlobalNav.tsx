@@ -12,7 +12,7 @@ export interface GlobalNavProps {
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
   { label: "COLLECTION", href: "/test" },
-  { label: "INDEX", href: "/index" },
+  { label: "INDEX", href: "/catalogue" },
   { label: "CURATIONS", href: "/curations" },
 ] as const;
 
