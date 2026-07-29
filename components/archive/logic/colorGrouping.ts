@@ -22,16 +22,17 @@ const COLOR_FAMILIES: ColorFamily[] = [
 
 /**
  * Convert hex color to HSL and categorize into a color family.
+ * Returns the family name that can be used for filtering.
  */
-function categorizeColorToFamily(hex: string): string {
+function categorizeHexToFamily(hex: string): string {
   if (!hex || typeof hex !== "string") return "grey";
 
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return "grey";
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return "grey";
 
-  const r = parseInt(h.substring(0, 2), 16) / 255;
-  const g = parseInt(h.substring(2, 4), 16) / 255;
-  const b = parseInt(h.substring(4, 6), 16) / 255;
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -57,23 +58,28 @@ function categorizeColorToFamily(hex: string): string {
 
   const lightness = l * 100;
 
-  // Find matching family
+  // Check lightness first for achromatic colors
   for (const family of COLOR_FAMILIES) {
-    // Check lightness first for achromatic colors
     if (family.lightnessRange) {
       const [minL, maxL] = family.lightnessRange;
       if (lightness >= minL && lightness <= maxL) {
         return family.name;
       }
-    } else if (s > 0.1) {
-      // Chromatic colors: check hue range
-      const [startHue, endHue] = family.hueRange;
-      const inRange =
-        startHue <= endHue
-          ? hue >= startHue && hue < endHue
-          : hue >= startHue || hue < endHue;
-      if (inRange) {
-        return family.name;
+    }
+  }
+
+  // Then check chromatic colors by hue
+  if (s > 0.1) {
+    for (const family of COLOR_FAMILIES) {
+      if (!family.lightnessRange) {
+        const [startHue, endHue] = family.hueRange;
+        const inRange =
+          startHue <= endHue
+            ? hue >= startHue && hue < endHue
+            : hue >= startHue || hue < endHue;
+        if (inRange) {
+          return family.name;
+        }
       }
     }
   }
@@ -82,7 +88,7 @@ function categorizeColorToFamily(hex: string): string {
 }
 
 /**
- * Calculate average color from a list of hex values.
+ * Calculate average color from a list of hex values for visual display.
  */
 function averageColor(hexColors: string[]): string {
   if (hexColors.length === 0) return "#888888";
@@ -90,62 +96,74 @@ function averageColor(hexColors: string[]): string {
   let totalR = 0,
     totalG = 0,
     totalB = 0;
+  let count = 0;
 
   for (const hex of hexColors) {
-    const h = hex.replace("#", "");
-    if (h.length === 6) {
-      totalR += parseInt(h.substring(0, 2), 16);
-      totalG += parseInt(h.substring(2, 4), 16);
-      totalB += parseInt(h.substring(4, 6), 16);
+    const clean = hex.replace("#", "");
+    if (clean.length === 6) {
+      totalR += parseInt(clean.substring(0, 2), 16);
+      totalG += parseInt(clean.substring(2, 4), 16);
+      totalB += parseInt(clean.substring(4, 6), 16);
+      count++;
     }
   }
 
-  const avgR = Math.round(totalR / hexColors.length);
-  const avgG = Math.round(totalG / hexColors.length);
-  const avgB = Math.round(totalB / hexColors.length);
+  if (count === 0) return "#888888";
+
+  const avgR = Math.round(totalR / count);
+  const avgG = Math.round(totalG / count);
+  const avgB = Math.round(totalB / count);
 
   return `#${avgR.toString(16).padStart(2, "0")}${avgG.toString(16).padStart(2, "0")}${avgB.toString(16).padStart(2, "0")}`;
 }
 
 /**
- * Group palette colors by actual HSL values into 11 color families.
- * Returns FilterOptions where each option represents a color family.
- * Clicking a category returns all projects with colors in that family.
+ * Group palette colors by hex value into color families.
+ * Maps each hex value to its family name, then aggregates by family.
+ * Returns FilterOptions where the value is the family name (for filtering),
+ * and count is the number of individual hex colors in that family.
  */
 export function groupPaletteColors(colorOptions: FilterOption[]): FilterOption[] {
-  const groups: Map<string, FilterOption[]> = new Map();
+  const familyMap = new Map<string, { hexes: string[]; count: number }>();
 
-  // Initialize all color families
+  // Initialize all families
   for (const family of COLOR_FAMILIES) {
-    groups.set(family.name, []);
+    familyMap.set(family.name, { hexes: [], count: 0 });
   }
 
-  // Categorize each color into a family
+  // Map each color option to its family and aggregate
   for (const option of colorOptions) {
-    const family = categorizeColorToFamily(option.color || option.value);
-    const list = groups.get(family) || [];
-    list.push(option);
-    groups.set(family, list);
+    const hex = option.color || option.value;
+    const family = categorizeHexToFamily(hex);
+    const existing = familyMap.get(family) || { hexes: [], count: 0 };
+
+    // Store unique hex values and accumulate counts
+    if (!existing.hexes.includes(hex)) {
+      existing.hexes.push(hex);
+    }
+    existing.count += option.count;
+
+    familyMap.set(family, existing);
   }
 
   // Convert to FilterOption[] in display order
   const displayOrder = ["black", "white", "grey", "red", "orange", "yellow", "green", "blue", "purple", "pink"];
 
   return displayOrder
-    .filter((name) => (groups.get(name) || []).length > 0)
-    .map((name) => {
-      const colors = groups.get(name) || [];
-      const family = COLOR_FAMILIES.find((f) => f.name === name);
-      const hexValues = colors.map((c) => c.color || c.value);
+    .map((familyName) => {
+      const family = COLOR_FAMILIES.find((f) => f.name === familyName);
+      const data = familyMap.get(familyName);
+
+      if (!family || !data || data.count === 0) return null;
 
       return {
-        label: family?.label || name,
-        value: name,
-        count: colors.reduce((sum, c) => sum + c.count, 0),
-        // Representative color for visual display (average of all colors in family)
-        color: averageColor(hexValues),
-        // Preserve original hex values for filtering
-        _groupColors: hexValues,
+        label: family.label,
+        value: familyName,
+        count: data.count, // Total number of projects with colors in this family
+        color: averageColor(data.hexes), // Representative color from all hex values in family
+        // Internal: list of hex values for reference
+        _groupHexes: data.hexes,
       };
-    }) as unknown as FilterOption[];
+    })
+    .filter((opt) => opt !== null) as FilterOption[];
 }

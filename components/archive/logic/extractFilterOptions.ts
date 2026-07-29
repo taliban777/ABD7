@@ -14,8 +14,12 @@ function projectOptions(project: CmsProject, key: ArchiveFilterKey): RawOption[]
     return project.year != null ? [{ label: String(project.year), value: String(project.year) }] : [];
   }
   if (key === "palette") {
+    // For palette, return raw hex values - these will be grouped later by color family
     return asArray(project.palette)
-      .map((item) => ({ value: paletteValue(item), label: valueLabel(item) || paletteValue(item), color: paletteValue(item) }))
+      .map((item) => {
+        const hex = paletteValue(item);
+        return { value: hex, label: valueLabel(item) || hex, color: hex };
+      })
       .filter((option) => option.value);
   }
   return asArray(project[key])
@@ -24,16 +28,46 @@ function projectOptions(project: CmsProject, key: ArchiveFilterKey): RawOption[]
 }
 
 /**
- * Tally options for one group. Counts are computed against the projects that
- * match search + every *other* active group, so numbers reflect what selecting
- * an option would actually yield and update live as the query changes.
+ * Tally options for one group. For palette, collect all unique hex values per project.
+ * Counts are computed against the projects that match search + every *other* active group.
  */
 function tally(projects: CmsProject[], key: ArchiveFilterKey): FilterOption[] {
+  if (key === "palette") {
+    // For palette: collect all unique hex values and count projects that contain them
+    const hexMap = new Map<string, { label: string; projects: Set<string> }>();
+
+    for (const project of projects) {
+      const projectHexes = new Set<string>();
+      for (const option of projectOptions(project, key)) {
+        projectHexes.add(option.value);
+      }
+
+      // Count each unique hex once per project
+      for (const hex of projectHexes) {
+        const existing = hexMap.get(hex);
+        if (existing) {
+          existing.projects.add(project.id || "");
+        } else {
+          hexMap.set(hex, { label: projectOptions(project, key).find((o) => o.value === hex)?.label || hex, projects: new Set([project.id || ""]) });
+        }
+      }
+    }
+
+    // Convert to FilterOptions with project counts
+    return Array.from(hexMap.entries()).map(([hex, data]) => ({
+      label: data.label,
+      value: hex,
+      color: hex,
+      count: data.projects.size,
+    }));
+  }
+
+  // Non-palette: standard tally
   const map = new Map<string, FilterOption>();
   for (const project of projects) {
     const seen = new Set<string>();
     for (const option of projectOptions(project, key)) {
-      if (seen.has(option.value)) continue; // count each project once per value
+      if (seen.has(option.value)) continue;
       seen.add(option.value);
       const existing = map.get(option.value);
       if (existing) {

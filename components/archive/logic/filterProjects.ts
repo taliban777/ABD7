@@ -5,6 +5,91 @@ export interface ArchiveQuery {
   selected: ArchiveSelection;
 }
 
+// Color family definitions - must match colorGrouping.ts
+interface ColorFamily {
+  name: string;
+  hueRange: [number, number];
+  lightnessRange?: [number, number];
+}
+
+const COLOR_FAMILIES: ColorFamily[] = [
+  { name: "black", hueRange: [0, 360], lightnessRange: [0, 20] },
+  { name: "white", hueRange: [0, 360], lightnessRange: [80, 100] },
+  { name: "grey", hueRange: [0, 360], lightnessRange: [20, 80] },
+  { name: "red", hueRange: [330, 30] },
+  { name: "orange", hueRange: [30, 60] },
+  { name: "yellow", hueRange: [60, 90] },
+  { name: "green", hueRange: [90, 180] },
+  { name: "blue", hueRange: [180, 270] },
+  { name: "purple", hueRange: [270, 300] },
+  { name: "pink", hueRange: [300, 330] },
+];
+
+/**
+ * Categorize a hex color into a family name.
+ * Must match the logic in colorGrouping.ts.
+ */
+function categorizeHexToFamily(hex: string): string {
+  if (!hex || typeof hex !== "string") return "grey";
+
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return "grey";
+
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const c = max - min;
+
+  const s = c === 0 ? 0 : c / (1 - Math.abs(2 * l - 1));
+
+  let hue = 0;
+  if (c !== 0) {
+    if (max === r) {
+      hue = (((g - b) / c) % 6 + 6) % 6;
+    } else if (max === g) {
+      hue = (b - r) / c + 2;
+    } else {
+      hue = (r - g) / c + 4;
+    }
+  }
+  hue *= 60;
+  if (hue < 0) hue += 360;
+
+  const lightness = l * 100;
+
+  // Check lightness first for achromatic colors
+  for (const family of COLOR_FAMILIES) {
+    if (family.lightnessRange) {
+      const [minL, maxL] = family.lightnessRange;
+      if (lightness >= minL && lightness <= maxL) {
+        return family.name;
+      }
+    }
+  }
+
+  // Then check chromatic colors by hue
+  if (s > 0.1) {
+    for (const family of COLOR_FAMILIES) {
+      if (!family.lightnessRange) {
+        const [startHue, endHue] = family.hueRange;
+        const inRange =
+          startHue <= endHue
+            ? hue >= startHue && hue < endHue
+            : hue >= startHue || hue < endHue;
+        if (inRange) {
+          return family.name;
+        }
+      }
+    }
+  }
+
+  return "grey";
+}
+
 /**
  * Flatten every searchable field of a project into one lowercase string.
  * Covers title, artist names, categories, style, year and palette values.
@@ -36,7 +121,14 @@ export function projectValuesFor(project: CmsProject, key: ArchiveFilterKey): st
     case "years":
       return project.year != null ? [String(project.year)] : [];
     case "palette":
-      return asArray(project.palette).map(paletteValue).filter(Boolean);
+      // Map each palette hex value to its color family, deduplicate
+      const families = new Set(
+        asArray(project.palette)
+          .map(paletteValue)
+          .filter(Boolean)
+          .map(categorizeHexToFamily)
+      );
+      return Array.from(families);
     default:
       return asArray(project[key]).map(valueLabel).filter(Boolean);
   }
