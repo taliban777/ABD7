@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import styles from "./colophon.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
+import { ChromaticDistribution } from "./ChromaticDistribution";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, paletteValue, valueLabel } from "@/components/archive/types";
 import { sortProjects } from "@/components/archive/logic/sortProjects";
@@ -236,6 +237,9 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
             </tbody>
           </table>
         </div>
+
+        {/* Chromatic Distribution Section */}
+        <ChromaticDistribution projects={safeProjects} />
 
         {/* Footer */}
         <footer className={styles.colophonFooter}>

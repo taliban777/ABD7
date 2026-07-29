@@ -196,6 +196,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                       type="button"
                       className={styles.dropdownLink}
                       role="option"
+                      aria-selected={selectedYear === null}
                       onClick={(e) => {
                         e.preventDefault();
                         setSelectedYear(null);
