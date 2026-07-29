@@ -148,10 +148,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   const plasmicPath = typeof catchall === "string" ? catchall : Array.isArray(catchall) ? `/${catchall.join("/")}` : "/";
 
-  const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
-
-  // Special handling for /index: render as IndexPage instead of Plasmic component
-  if (plasmicPath === "/index" && plasmicData) {
+  // Special handling for /index: always render as IndexPage, fetching projects from /test
+  if (plasmicPath === "/index") {
     // Fetch the "/test" (archive) page data to get projects
     const testData = await PLASMIC.maybeFetchComponentData("/test");
     if (!testData) {
@@ -173,6 +171,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
     const projects = collectProjects(queryCache);
     return { props: { isIndexPage: true, projects }, revalidate: 3600 };
   }
+
+  const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
 
   if (!plasmicData) {
     // non-Plasmic catch-all
@@ -197,6 +197,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pageModules = await PLASMIC.fetchPages();
+  // Exclude archive, test, contact, colophon — but keep /index since we override it
   const EXCLUDED = new Set(["/archive", "/test", "/contact", "/colophon"]);
   
   const paths = pageModules
