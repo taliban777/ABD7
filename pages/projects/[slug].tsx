@@ -10,6 +10,7 @@ import {
 import { PLASMIC } from "@/plasmic-init";
 import type { CmsProject, CmsListValue } from "@/components/archive/types";
 import { valueLabel, asArray, projectSlug } from "@/components/archive/types";
+import { getProjectImageUrl } from "@/components/images/cloudinary";
 import styles from "@/components/archive/archive.module.css";
 
 // ---------------------------------------------------------------------------
@@ -177,7 +178,7 @@ export default function ProjectDetailPage({
             {project.frontCover ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={project.frontCover}
+                src={getProjectImageUrl(project.frontCover)}
                 alt={project.title}
                 style={{
                   width: "100%",

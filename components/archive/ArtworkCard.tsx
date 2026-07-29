@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./archive.module.css";
 import { CmsProject, asArray, projectSlug, valueLabel } from "./types";
+import { getArchiveImageUrl } from "@/components/images/cloudinary";
 
 export interface ArtworkCardProps extends Partial<CmsProject> {
   /** Zero-padded catalogue number, e.g. "007". */
@@ -33,7 +34,7 @@ export function ArtworkCard({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setImageSrc(frontCover);
+            setImageSrc(getArchiveImageUrl(frontCover));
             observer.unobserve(entry.target);
           }
         });
