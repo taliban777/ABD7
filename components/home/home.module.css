@@ -167,6 +167,141 @@
   transform: translateY(-105%);
 }
 
+/* ─── Glitch effect overlay ─────────────────────────────── */
+
+.glitchOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 0, 0, 0.15) 2px,
+      rgba(255, 0, 0, 0.15) 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 255, 255, 0.1) 3px,
+      rgba(0, 255, 255, 0.1) 6px
+    );
+  animation: glitchFlicker 0.12s infinite;
+  mix-blend-mode: screen;
+}
+
+.glitchOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(0, 0, 0, 0.08) 10px,
+    rgba(0, 0, 0, 0.08) 20px
+  );
+  animation: glitchDiagonal 0.2s infinite;
+}
+
+.glitchOverlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 8px,
+    rgba(100, 200, 255, 0.08) 8px,
+    rgba(100, 200, 255, 0.08) 12px
+  );
+  animation: glitchScan 0.09s infinite;
+}
+
+@keyframes glitchFlicker {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  30% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.4;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  75% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes glitchDiagonal {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes glitchScan {
+  0% {
+    top: -10%;
+  }
+  50% {
+    top: 20%;
+  }
+  100% {
+    top: -10%;
+  }
+}
+
+.paper.glitching {
+  animation: glitchShift 0.07s infinite;
+  filter: blur(0.5px);
+}
+
+@keyframes glitchShift {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  14% {
+    transform: translateX(-4px) translateY(3px);
+  }
+  28% {
+    transform: translateX(3px) translateY(-2px);
+  }
+  42% {
+    transform: translateX(-2px) translateY(4px);
+  }
+  56% {
+    transform: translateX(4px) translateY(-1px);
+  }
+  70% {
+    transform: translateX(-3px) translateY(2px);
+  }
+  84% {
+    transform: translateX(2px) translateY(-3px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
 /* ─── Responsive ────────────────────────────────────────── */
 
 @media (max-width: 640px) {

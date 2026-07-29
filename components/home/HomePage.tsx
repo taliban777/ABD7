@@ -12,20 +12,38 @@ export interface HomePageProps {
   projects?: CmsProject[];
 }
 
-// Inspection-light geometry (elliptical + feathered).
-const LIGHT_RX = 210;
-const LIGHT_RY = 165;
-const EASE = 0.16; // inertia — lower feels heavier
+// Glitch reveal: create fragmented reveal with dynamic bands
+function buildGlitchMask(x: number, y: number, time: number): string {
+  // Build a more visible glitch using simpler gradients but more contrast
+  const centerY = y;
+  const glitchShift = Math.sin(time * 0.003) * 40;
+  
+  // Main central reveal band that's always visible
+  const main = `linear-gradient(90deg, #000 0%, #000 ${Math.max(0, x - 280)}px, transparent ${Math.max(0, x - 100)}px, transparent ${Math.max(0, x + 100)}px, #000 ${Math.max(0, x + 280)}px, #000 100%)`;
+  
+  // Top glitch band
+  const topBand = `linear-gradient(180deg, #000 0%, #000 ${Math.max(0, centerY - 200 + glitchShift)}px, transparent ${Math.max(0, centerY - 180 + glitchShift)}px, transparent ${Math.max(0, centerY - 160 + glitchShift)}px, #000 ${Math.max(0, centerY - 150 + glitchShift)}px)`;
+  
+  // Bottom glitch band
+  const bottomBand = `linear-gradient(180deg, #000 0%, #000 ${Math.max(0, centerY + 180 - glitchShift)}px, transparent ${Math.max(0, centerY + 200 - glitchShift)}px, transparent ${Math.max(0, centerY + 220 - glitchShift)}px, #000 ${Math.max(0, centerY + 240 - glitchShift)}px)`;
+  
+  // Left glitch strip
+  const leftStrip = `linear-gradient(90deg, #000 0%, #000 ${Math.max(0, x - 180 + Math.sin(time * 0.004) * 30)}px, transparent ${Math.max(0, x - 140 + Math.sin(time * 0.004) * 30)}px, transparent ${Math.max(0, x - 120 + Math.sin(time * 0.004) * 30)}px, #000 ${Math.max(0, x - 100 + Math.sin(time * 0.004) * 30)}px)`;
+  
+  // Right glitch strip
+  const rightStrip = `linear-gradient(90deg, #000 0%, #000 ${Math.max(0, x + 100 + Math.cos(time * 0.0035) * 35)}px, transparent ${Math.max(0, x + 120 + Math.cos(time * 0.0035) * 35)}px, transparent ${Math.max(0, x + 140 + Math.cos(time * 0.0035) * 35)}px, #000 ${Math.max(0, x + 180 + Math.cos(time * 0.0035) * 35)}px)`;
+  
+  // Random scanlines that pulse
+  const scanPhase = Math.sin(time * 0.005);
+  const scan1 = `linear-gradient(180deg, #000 0%, #000 ${Math.max(0, centerY - 100 + scanPhase * 25)}px, rgba(0,0,0,${0.4 + scanPhase * 0.4}) ${Math.max(0, centerY - 85 + scanPhase * 25)}px, rgba(0,0,0,${0.4 + scanPhase * 0.4}) ${Math.max(0, centerY - 70 + scanPhase * 25)}px, #000 ${Math.max(0, centerY - 65 + scanPhase * 25)}px)`;
+  const scan2 = `linear-gradient(180deg, #000 0%, #000 ${Math.max(0, centerY + 70 - scanPhase * 30)}px, rgba(0,0,0,${0.5 + scanPhase * 0.3}) ${Math.max(0, centerY + 85 - scanPhase * 30)}px, rgba(0,0,0,${0.5 + scanPhase * 0.3}) ${Math.max(0, centerY + 100 - scanPhase * 30)}px, #000 ${Math.max(0, centerY + 110 - scanPhase * 30)}px)`;
+  
+  // Pulse from center
+  const pulseRadius = 120 + Math.sin(time * 0.004) * 50;
+  const pulseX = x + Math.sin(time * 0.0025) * 30;
+  const pulse = `radial-gradient(circle ${pulseRadius}px at ${pulseX}px ${centerY}px, transparent 0%, transparent 40%, rgba(0,0,0,0.6) 60%, #000 85%)`;
 
-function buildMask(x: number, y: number): string {
-  // A soft, slightly elliptical hole: fully clear at the centre, feathering
-  // out to opaque paper. `transparent` hides the sheet (revealing the
-  // Collection); the solid colour keeps it in place.
-  return (
-    `radial-gradient(${LIGHT_RX}px ${LIGHT_RY}px at ${x}px ${y}px,` +
-    ` transparent 0%, transparent 32%,` +
-    ` rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.85) 72%, #000 88%)`
-  );
+  return [main, topBand, bottomBand, leftStrip, rightStrip, scan1, scan2, pulse].join(", ");
 }
 
 export default function HomePage({ projects = [] }: HomePageProps) {
@@ -38,6 +56,7 @@ export default function HomePage({ projects = [] }: HomePageProps) {
   const rafRef = useRef<number>(0);
   const revealingRef = useRef(false);
   const reducedRef = useRef(false);
+  const startTimeRef = useRef(Date.now());
 
   // ── Preload everything the Collection needs so the reveal hides loading ──
   useEffect(() => {
@@ -54,7 +73,7 @@ export default function HomePage({ projects = [] }: HomePageProps) {
     }
   }, [router, projects]);
 
-  // ── Inspection-light animation loop (skipped for reduced motion) ──
+  // ── Glitch animation loop (skipped for reduced motion) ──
   useEffect(() => {
     const reduce =
       typeof window !== "undefined" &&
@@ -67,9 +86,13 @@ export default function HomePage({ projects = [] }: HomePageProps) {
 
     const tick = () => {
       if (!revealingRef.current && primed.current) {
-        current.current.x += (target.current.x - current.current.x) * EASE;
-        current.current.y += (target.current.y - current.current.y) * EASE;
-        const mask = buildMask(current.current.x, current.current.y);
+        const time = Date.now() - startTimeRef.current;
+        // Gentle drift toward cursor with jitter
+        const targetX = target.current.x + (Math.sin(time * 0.004) * 12 - 6);
+        const targetY = target.current.y + (Math.cos(time * 0.003) * 10 - 5);
+        current.current.x += (targetX - current.current.x) * 0.08;
+        current.current.y += (targetY - current.current.y) * 0.08;
+        const mask = buildGlitchMask(current.current.x, current.current.y, time);
         paper.style.webkitMaskImage = mask;
         paper.style.maskImage = mask;
       }
@@ -86,6 +109,11 @@ export default function HomePage({ projects = [] }: HomePageProps) {
       // Snap on first contact so the light doesn't sweep in from the corner.
       current.current = { x, y };
       primed.current = true;
+      // Add glitch animation on first interaction
+      const paper = paperRef.current;
+      if (paper) {
+        paper.classList.add(styles.glitching);
+      }
     }
   }, []);
 
@@ -163,6 +191,7 @@ export default function HomePage({ projects = [] }: HomePageProps) {
         </div>
         <p className={styles.hint}>Lift the sheet</p>
         <div className={styles.curl} aria-hidden="true" />
+        <div className={styles.glitchOverlay} aria-hidden="true" />
       </div>
     </div>
   );
