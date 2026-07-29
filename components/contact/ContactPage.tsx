@@ -263,7 +263,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             />
           </section>
 
-          {/* ─── 4. Upload references ─── */}
+          {/* ─── 4. Upload references ���── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>04 — Upload references</h2>
             <div
@@ -409,32 +409,9 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             )}
           </section>
 
-          {/* ─── 6. Budget ─── */}
+          {/* ─── 6. Deadline ─── */}
           <section className={styles.section}>
-            <h2 className={styles.sectionLabel}>06 — Budget</h2>
-            <div className={styles.chipGrid}>
-              {BUDGET_RANGES.map((range) => (
-                <button
-                  key={range}
-                  type="button"
-                  className={`${styles.chip} ${form.budget === range ? styles.chipActive : ""}`}
-                  onClick={() =>
-                    setForm((f) => ({
-                      ...f,
-                      budget: f.budget === range ? "" : range,
-                    }))
-                  }
-                  aria-pressed={form.budget === range}
-                >
-                  {range}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* ─── 7. Deadline ─── */}
-          <section className={styles.section}>
-            <h2 className={styles.sectionLabel}>07 — Deadline</h2>
+            <h2 className={styles.sectionLabel}>06 — Deadline</h2>
             <div className={styles.chipGrid}>
               {DEADLINES.map((d) => (
                 <button
@@ -463,9 +440,9 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             )}
           </section>
 
-          {/* ─── 8. Budget willingness ─── */}
+          {/* ─── 7. Budget willingness ─── */}
           <section className={styles.section}>
-            <h2 className={styles.sectionLabel}>08 — How much are you willing to give?</h2>
+            <h2 className={styles.sectionLabel}>07 — How much are you willing to give?</h2>
             <div className={styles.budgetSliderContainer}>
               <input
                 type="range"
@@ -485,9 +462,9 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             </div>
           </section>
 
-          {/* ─── 9. Contact details ─── */}
+          {/* ─── 8. Contact details ─── */}
           <section className={styles.section}>
-            <h2 className={styles.sectionLabel}>09 — Contact details</h2>
+            <h2 className={styles.sectionLabel}>08 — Contact details</h2>
             <div className={styles.contactFields}>
               <label className={styles.fieldLabel}>
                 <span className={styles.fieldName}>Email</span>

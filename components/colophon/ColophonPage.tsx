@@ -200,52 +200,6 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
           <table className={styles.table} cellSpacing={0}>
             <tbody>
 
-              {/* ── Typography ── */}
-              <SectionHeader title="Typography" />
-              <Row label="Primary Typeface" value="Geist Sans" />
-              <Row label="Monospace Typeface" value="Geist Mono" />
-              <Row label="Supplier" value="Vercel, Inc." />
-              <Row label="Base Size" value="16px / 1rem" />
-              <Row label="Body Line Height" value="1.5" />
-              <Row label="Rendering" value="-webkit-font-smoothing: antialiased" />
-
-              {/* ── Grid ── */}
-              <SectionHeader title="Grid" />
-              <Row label="Archive Columns" value="4 (desktop) / 3 (tablet) / 2 (mobile)" />
-              <Row label="Column Gap" value="20px" />
-              <Row label="Page Horizontal Padding" value="24px" />
-              <Row label="Index Layout" value="CSS Grid — 5 columns" />
-
-              {/* ── Technology ── */}
-              <SectionHeader title="Technology" />
-              <Row label="Framework" value="Next.js (Pages Router)" />
-              <Row label="Language" value="TypeScript" />
-              <Row label="Styling" value="CSS Modules" />
-              <Row label="Package Manager" value="npm" />
-              <Row label="Runtime" value="Node.js" />
-
-              {/* ── CMS ── */}
-              <SectionHeader title="Content Management" />
-              <Row label="CMS" value="Plasmic" />
-              <Row label="Data Strategy" value="CMS-driven — no hardcoded project data" />
-              <Row label="Revalidation" value="Incremental Static Regeneration (ISR)" />
-              <Row label="Project Record Fields" value="title, artists, categories, style, palette, year, date, frontCover, slug" />
-
-              {/* ── Hosting ── */}
-              <SectionHeader title="Hosting" />
-              <Row label="Platform" value="Vercel" />
-              <Row label="Edge Network" value="Vercel Edge Network (global CDN)" />
-              <Row label="SSL" value="Automatic HTTPS via Vercel" />
-
-              {/* ── Image Delivery ── */}
-              <SectionHeader title="Image Delivery" />
-              <Row label="Provider" value="Cloudinary" />
-              <Row label="Archive Transformation" value="w_700, h_700, c_fill, q_auto:good, f_auto" />
-              <Row label="Detail Transformation" value="w_1800, q_auto:good, f_auto" />
-              <Row label="Thumbnail Transformation" value="w_700, h_700, c_fill, q_auto:good, f_auto" />
-              <Row label="Loading Strategy" value="Intersection Observer — lazy per card" />
-              <Row label="Format" value="Automatic (WebP / AVIF via f_auto)" />
-
               {/* ── Release Statistics ── */}
               <SectionHeader title="Release Statistics" />
               <Row label="Total Projects" value={stats.total} />

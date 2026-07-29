@@ -132,7 +132,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                 aria-label="Browse projects by year"
               >
                 {/* Primary level: ALL YEARS or year list */}
-                {!selectedYear ? (
+                {selectedYear === null ? (
                   <>
                     <Link
                       href="/test"
@@ -152,7 +152,10 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                           type="button"
                           className={styles.dropdownLink}
                           role="option"
-                          onClick={() => setSelectedYear(year)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedYear(year);
+                          }}
                           aria-selected={false}
                         >
                           {year}
@@ -167,7 +170,10 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                       type="button"
                       className={styles.dropdownLink}
                       role="option"
-                      onClick={() => setSelectedYear(null)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedYear(null);
+                      }}
                     >
                       <span className={styles.chevronLeft} aria-hidden="true">←</span> Back
                     </button>

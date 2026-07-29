@@ -113,7 +113,7 @@
 .tableHead,
 .rowLink {
   display: grid;
-  grid-template-columns: 100px 1fr 200px 80px;
+  grid-template-columns: minmax(100px, min-content) 1fr minmax(200px, min-content) minmax(80px, min-content);
   gap: 24px;
   align-items: center;
 }
