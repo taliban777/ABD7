@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import styles from "./archive.module.css";
 import { CmsProject, asArray, projectSlug, valueLabel } from "./types";
+import { getArchiveImageUrl } from "@/components/images/cloudinary";
 
 export interface ArtworkCardProps extends Partial<CmsProject> {
   /** Zero-padded catalogue number, e.g. "007". */
@@ -18,16 +20,47 @@ export function ArtworkCard({
   catalogueNumber = "",
   href,
 }: ArtworkCardProps) {
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const imageFrameRef = useRef<HTMLDivElement>(null);
+
   const artistNames = asArray(artists).map(valueLabel).filter(Boolean).join(", ");
   const destination = href || `/projects/${projectSlug({ slug, title, id })}`;
 
+  // Lazy load image when card enters viewport
+  useEffect(() => {
+    if (!frontCover || !imageFrameRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setImageSrc(getArchiveImageUrl(frontCover));
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "50px" }
+    );
+
+    observer.observe(imageFrameRef.current);
+    return () => observer.disconnect();
+  }, [frontCover]);
+
   return (
     <a className={styles.card} href={destination}>
-      <div className={styles.imageFrame}>
-        {frontCover ? (
+      <div className={styles.imageFrame} ref={imageFrameRef}>
+        {imageSrc && frontCover ? (
           // Plasmic CMS binding: projects.frontCover; host is intentionally CMS-defined.
           // eslint-disable-next-line @next/next/no-img-element
-          <img className={styles.cover} src={frontCover} alt={title} loading="lazy" />
+          <img
+            className={styles.cover}
+            src={imageSrc}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : frontCover ? (
+          <div className={styles.coverLoading} aria-hidden="true" />
         ) : (
           <div className={styles.coverFallback} aria-hidden="true">
             <span>No Image</span>
