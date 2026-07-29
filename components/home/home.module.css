@@ -1,192 +1,183 @@
-/* ─── Homepage ─────────────────────────────────────────── */
+/* =========================================================
+   ARTBYDANI7 — Archive Reveal
+   A translucent drafting sheet laid over the live Collection.
+   ========================================================= */
 
 .root {
   position: fixed;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f4f1ea;
   overflow: hidden;
-  cursor: default;
+  background: var(--background);
 }
 
-/* ─── Grain (CSS pseudo-element, no JS canvas needed) ────── */
+/* ─── Collection layer (the real archive, underneath) ───── */
 
-.root::before {
+.collectionLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* The live Collection is rendered here but not yet interactive —
+     the paper sheet on top captures all pointer input until the reveal. */
+  overflow: hidden;
+}
+
+/* ─── The drafting paper sheet (on top of the Collection) ─ */
+
+.paper {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--background);
+  cursor: default;
+  /* The feathered inspection hole is written to these two mask
+     properties from JS on every animation frame. */
+  will-change: transform, mask-image, -webkit-mask-image;
+  transform: translateY(0) rotate(0deg);
+}
+
+/* Very subtle archival paper texture + imperfections */
+.paper::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  opacity: 0.55;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
   mix-blend-mode: multiply;
-  animation: grainDrift 0.08s steps(1) infinite;
+  opacity: 0.5;
 }
 
-@keyframes grainDrift {
-  0%   { background-position: 0 0; }
-  10%  { background-position: -5% -10%; }
-  20%  { background-position: -15% 5%; }
-  30%  { background-position: 7% -25%; }
-  40%  { background-position: -5% 25%; }
-  50%  { background-position: -15% 10%; }
-  60%  { background-position: 15% 0%; }
-  70%  { background-position: 0 15%; }
-  80%  { background-position: 3% 35%; }
-  90%  { background-position: -18% 10%; }
-  100% { background-position: 0 0; }
-}
-
-/* ─── Slow ambient light shift ──────────────────────────── */
-
-.lightShift {
-  position: absolute;
-  inset: -20%;
-  width: 140%;
-  height: 140%;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    ellipse 70% 60% at 50% 50%,
-    rgba(255, 248, 230, 0.55) 0%,
-    transparent 70%
-  );
-  animation: lightDrift 18s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-@keyframes lightDrift {
-  0%   { transform: translate(-4%, -3%) scale(1); }
-  25%  { transform: translate(3%, 2%) scale(1.04); }
-  50%  { transform: translate(-2%, 4%) scale(0.97); }
-  75%  { transform: translate(4%, -2%) scale(1.02); }
-  100% { transform: translate(-3%, 3%) scale(1); }
-}
-
-/* ─── Particle canvas ───────────────────────────────────── */
-
-.particles {
+/* A whisper of warmth across the sheet — not a gradient feature, just tone */
+.paper::after {
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 2;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 42%,
+    rgba(255, 250, 238, 0.5) 0%,
+    rgba(244, 241, 234, 0) 72%
+  );
 }
 
-/* ─── Centre content ────────────────────────────────────── */
-
-.centre {
-  position: relative;
+/* Leading-edge curl shadow — only meaningful while the sheet lifts */
+.curl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 90px;
   z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  text-align: center;
-  animation: fadeUp 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: bottom center;
+  background: linear-gradient(
+    to top,
+    rgba(26, 24, 20, 0.18) 0%,
+    rgba(26, 24, 20, 0.06) 40%,
+    rgba(26, 24, 20, 0) 100%
+  );
 }
 
-@keyframes fadeUp {
+/* ─── The wordmark printed across the sheet ─────────────── */
+
+.wordmarkWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding: 0 4vw;
+}
+
+.wordmark {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(2.5rem, 12.8vw, 13rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+  text-align: center;
+  color: #201d18;
+  white-space: nowrap;
+  animation: settle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes settle {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(10px);
+    letter-spacing: 0.08em;
   }
   to {
     opacity: 1;
     transform: none;
+    letter-spacing: 0.01em;
   }
 }
 
-.wordmark {
-  font-family: var(--font-sans), Arial, sans-serif;
-  font-size: clamp(52px, 8vw, 110px);
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #1a1814;
-  line-height: 1;
-  text-indent: 0.22em; /* compensate for letter-spacing on last char */
-}
-
-.enterBtn {
-  appearance: none;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #1a1814;
-  padding: 0 0 6px;
-  font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #1a1814;
-  cursor: pointer !important;
-  position: relative;
-  transition: opacity 0.25s ease, letter-spacing 0.55s ease;
-}
-
-.enterBtn::after {
-  content: "";
+/* Quiet instruction line, catalogue-style */
+.hint {
   position: absolute;
   left: 0;
-  bottom: -1px;
-  width: 0;
-  height: 1px;
-  background: #1a1814;
-  transition: width 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.enterBtn:hover {
-  opacity: 0.6;
-  letter-spacing: 0.34em;
-}
-
-.enterBtn:hover::after {
-  width: 100%;
-}
-
-/* ─── Transition overlay ────────────────────────────────── */
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
+  right: 0;
+  bottom: 42px;
+  z-index: 2;
+  text-align: center;
   pointer-events: none;
-  background: #f4f1ea;
-  /* clip-path: circle starting at 0 from center, expanding to cover */
-  clip-path: circle(0% at 50% 50%);
-  opacity: 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(32, 29, 24, 0.55);
+  animation: hintFade 2.4s ease both;
 }
 
-.overlayExpand {
-  pointer-events: all;
-  animation: radialExpand 0.82s cubic-bezier(0.55, 0, 0.1, 1) forwards;
-}
-
-@keyframes radialExpand {
-  0% {
-    clip-path: circle(0% at 50% 50%);
-    opacity: 1;
+@keyframes hintFade {
+  0%,
+  40% {
+    opacity: 0;
   }
   100% {
-    clip-path: circle(150% at 50% 50%);
     opacity: 1;
   }
+}
+
+/* ─── The lift reveal — sheet leaves the screen ─────────── */
+
+.paperLift {
+  transition: transform 1.05s cubic-bezier(0.72, 0, 0.16, 1);
+  transform: translateY(-116%) rotate(-1.1deg);
+}
+
+.paperLift .curl {
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.paperLift .wordmark {
+  animation: none;
+}
+
+/* Reduced-motion: a quick, plain slide with no inspection light */
+.paperLiftReduced {
+  transition: transform 0.45s ease;
+  transform: translateY(-105%);
 }
 
 /* ─── Responsive ────────────────────────────────────────── */
 
-@media (max-width: 540px) {
-  .centre {
-    gap: 28px;
-  }
+@media (max-width: 640px) {
   .wordmark {
-    letter-spacing: 0.14em;
-    text-indent: 0.14em;
+    font-size: clamp(2rem, 13vw, 5rem);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 0.92;
   }
-  .enterBtn {
-    letter-spacing: 0.2em;
+  .hint {
+    bottom: 32px;
+    letter-spacing: 0.28em;
   }
 }
