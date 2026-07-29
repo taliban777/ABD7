@@ -15,17 +15,24 @@ import {
   catalogueNumber,
   projectSlug,
 } from "./types";
+import { GlobalNav } from "@/components/nav/GlobalNav";
 
 export interface ArchivePageProps {
   projects?: CmsProject[];
+  /** Optional year pre-filter passed from the PROJECTS nav dropdown. */
+  initialYear?: string | null;
 }
 
-export function ArchivePage({ projects = [] }: ArchivePageProps) {
+export function ArchivePage({ projects = [], initialYear }: ArchivePageProps) {
   const safeProjects = useMemo(() => (Array.isArray(projects) ? projects : []), [projects]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<ArchiveSelection>(EMPTY_SELECTION);
+  const [selected, setSelected] = useState<ArchiveSelection>(() =>
+    initialYear
+      ? { ...EMPTY_SELECTION, years: [initialYear] }
+      : EMPTY_SELECTION
+  );
   const [sort, setSort] = useState<SortKey>("newest");
 
   // Stable catalogue numbers, assigned chronologically (oldest = 001) so a
@@ -67,13 +74,9 @@ export function ArchivePage({ projects = [] }: ArchivePageProps) {
   const hasProjects = safeProjects.length > 0;
 
   return (
-    <main className={styles.archivePage}>
-      <header className={styles.siteHeader}>
-        <a href="/" className={styles.wordmark}>
-          ARTBYDANI7
-        </a>
-      </header>
-
+    <>
+      <GlobalNav projects={safeProjects} />
+      <main className={styles.archivePage}>
       <ArchiveToolbar
         isOpen={isOpen}
         search={search}
@@ -127,6 +130,7 @@ export function ArchivePage({ projects = [] }: ArchivePageProps) {
           hrefFor={(project) => `/projects/${projectSlug(project)}`}
         />
       )}
-    </main>
+      </main>
+    </>
   );
 }

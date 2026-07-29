@@ -1,0 +1,198 @@
+/* =========================================================
+   COLOPHON PAGE — technical documentation / museum credits
+   ========================================================= */
+
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 56px 0 120px; /* top = nav height */
+}
+
+/* Header */
+.pageHeader {
+  padding: 56px 24px 32px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.pageTitle {
+  font: 700 11px/1 var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+.pageSubtitle {
+  font: 400 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ─── Table ─── */
+
+.tableContainer {
+  padding: 0 24px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+}
+
+/* Section header rows */
+.sectionHeaderRow {
+  border-top: 2px solid var(--foreground);
+}
+
+.sectionHeader {
+  padding: 20px 0 10px;
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  text-align: left;
+}
+
+/* Data rows */
+.table tr:not(.sectionHeaderRow) {
+  border-bottom: 1px solid var(--line);
+}
+
+.table tr:not(.sectionHeaderRow):hover td {
+  background: var(--surface);
+}
+
+/* Label column */
+.rowLabel {
+  padding: 11px 24px 11px 0;
+  font: 400 11px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+  vertical-align: top;
+  width: 300px;
+  user-select: none;
+}
+
+/* Value column */
+.rowValue {
+  padding: 11px 0;
+  font: 400 11px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+  vertical-align: top;
+}
+
+/* Palette section */
+.paletteSection {
+  margin-bottom: 40px;
+  border-bottom: 2px solid var(--foreground);
+  padding-bottom: 32px;
+}
+
+.paletteTitle {
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  margin-bottom: 20px;
+}
+
+/* Palette graphic */
+.paletteGraphic {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 200px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  padding: 16px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+
+.paletteBar {
+  flex: 1;
+  min-height: 8px;
+  border-radius: 1px;
+  transition: opacity 0.18s ease;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.paletteBar:hover {
+  opacity: 1;
+}
+
+.paletteEmpty {
+  font: 400 11px/1.4 var(--font-mono);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin: auto;
+}
+
+.paletteLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 24px;
+  font: 400 10px/1.4 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.paletteLegendItem {
+  display: block;
+}
+
+/* Footer */
+.colophonFooter {
+  padding: 48px 24px 0;
+  border-top: 1px solid var(--line);
+  margin-top: 48px;
+}
+
+.colophonFooter p {
+  font: 400 10px/1.5 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 700px) {
+  .table,
+  .table tbody,
+  .table tr,
+  .table td,
+  .table th {
+    display: block;
+  }
+
+  .sectionHeaderRow {
+    margin-top: 8px;
+  }
+
+  .rowLabel {
+    width: auto;
+    padding: 12px 0 2px;
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+  }
+
+  .rowValue {
+    padding: 2px 0 12px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -84,9 +84,10 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pageModules = await PLASMIC.fetchPages();
+  const EXCLUDED = new Set(["/archive", "/test", "/index", "/contact", "/colophon"]);
   return {
     paths: pageModules
-      .filter((mod) => mod.path !== "/archive" && mod.path !== "/test")
+      .filter((mod) => !EXCLUDED.has(mod.path))
       .map((mod) => ({
         params: {
           catchall: mod.path.substring(1).split("/"),

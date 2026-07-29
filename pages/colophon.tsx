@@ -1,20 +1,14 @@
-import * as React from "react";
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import type { GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
+import * as React from "react";
+import { ColophonPage } from "@/components/colophon/ColophonPage";
+import { PLASMIC } from "@/plasmic-init";
 import {
   PlasmicComponent,
   PlasmicRootProvider,
   extractPlasmicQueryData,
 } from "@plasmicapp/loader-nextjs";
-import { PLASMIC } from "@/plasmic-init";
-import { ArchivePage } from "@/components/archive/ArchivePage";
-import type { CmsProject } from "@/components/archive/types";
-import type { CmsListValue } from "@/components/archive/types";
-
-// ---------------------------------------------------------------------------
-// Helpers — run server-side only
-// ---------------------------------------------------------------------------
+import type { CmsProject, CmsListValue } from "@/components/archive/types";
 
 function resolveImageUrl(value: unknown): string {
   if (typeof value === "string" && value.length > 0) return value;
@@ -36,36 +30,29 @@ function resolveListField(value: unknown): CmsListValue[] {
   }
   if (typeof value === "object") {
     const o = value as Record<string, unknown>;
-    // Single object that is itself a list-value shape
-    if (o.name || o.title || o.label || o.value || o.hex || o.color) {
-      return [o as CmsListValue];
-    }
+    if (o.name || o.title || o.label || o.value || o.hex || o.color) return [o as CmsListValue];
   }
   return [];
 }
 
-/**
- * Depth-first walk of the queryCache object tree. A node is recognised as a
- * project row when it has BOTH a non-empty `title` string AND a `frontCover`
- * that resolves to a non-empty image URL. This makes the extraction resilient
- * to any change in the CMS query key structure without touching code.
- */
 function collectProjects(
   node: unknown,
   seen = new Set<object>()
 ): CmsProject[] {
-  const results: CmsProject[] = [];
-  if (!node || typeof node !== "object") return results;
-  if (seen.has(node as object)) return results;
+  if (!node || typeof node !== "object") return [];
+  if (seen.has(node as object)) return [];
   seen.add(node as object);
 
   const o = node as Record<string, unknown>;
+  const results: CmsProject[] = [];
+
   const title = typeof o.title === "string" ? o.title.trim() : "";
   const frontCover = resolveImageUrl(o.frontCover);
 
   if (title && frontCover) {
+    const id = typeof o.id === "string" ? o.id : title;
     results.push({
-      id: typeof o.id === "string" ? o.id : title,
+      id,
       title,
       slug: typeof o.slug === "string" ? o.slug : null,
       frontCover,
@@ -81,61 +68,55 @@ function collectProjects(
           : null,
       date: typeof o.date === "string" ? o.date : null,
       createdAt: typeof o.createdAt === "string" ? o.createdAt : null,
-    } as CmsProject);
-    // Do NOT recurse into a recognised project row — avoids double-counting
-    // nested fields that might themselves match the heuristic.
-    return results;
+    });
   }
 
-  // Recurse into every value
   if (Array.isArray(node)) {
     for (const item of node) results.push(...collectProjects(item, seen));
   } else {
-    for (const val of Object.values(o))
-      results.push(...collectProjects(val, seen));
+    for (const val of Object.values(o)) results.push(...collectProjects(val, seen));
   }
 
-  return results;
+  const deduped = new Set<string>();
+  return results.filter((p) => {
+    if (deduped.has(p.id)) return false;
+    deduped.add(p.id);
+    return true;
+  });
 }
 
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
-
-export default function TestArchiveRoute({
+export default function ColophonRoute({
   projects,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter();
-  const yearParam = typeof router.query.year === "string" ? router.query.year : null;
-
+  lastUpdated,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <>
       <Head>
-        <title>Collection — ARTBYDANI7</title>
-        <meta name="description" content="The ARTBYDANI7 project archive." />
+        <title>Colophon — ARTBYDANI7</title>
+        <meta
+          name="description"
+          content="Technical notes and archive statistics for ARTBYDANI7."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <ArchivePage projects={projects} initialYear={yearParam} />
+      <ColophonPage projects={projects} lastUpdated={lastUpdated} />
     </>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Data fetching — real Plasmic CMS, no hardcoded projects
-// ---------------------------------------------------------------------------
-
-export const getServerSideProps: GetServerSideProps<{
+export const getStaticProps: GetStaticProps<{
   projects: CmsProject[];
+  lastUpdated: string | null;
 }> = async () => {
-  // Fetch the /test Plasmic page which should have archive component with CMS data
   const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
   if (!plasmicData) {
-    return { props: { projects: [] } };
+    return {
+      props: { projects: [], lastUpdated: null },
+      revalidate: 3600,
+    };
   }
 
   const pageMeta = plasmicData.entryCompMetas[0];
-
-  // Extract query data to fetch CMS projects
   const queryCache = await extractPlasmicQueryData(
     <PlasmicRootProvider
       loader={PLASMIC}
@@ -148,6 +129,7 @@ export const getServerSideProps: GetServerSideProps<{
   );
 
   const projects = collectProjects(queryCache);
+  const lastUpdated = new Date().toISOString();
 
-  return { props: { projects } };
+  return { props: { projects, lastUpdated }, revalidate: 3600 };
 };
