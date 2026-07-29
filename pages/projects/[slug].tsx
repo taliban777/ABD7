@@ -12,6 +12,7 @@ import type { CmsProject, CmsListValue } from "@/components/archive/types";
 import { valueLabel, asArray, projectSlug } from "@/components/archive/types";
 import { getProjectImageUrl } from "@/components/images/cloudinary";
 import styles from "@/components/archive/archive.module.css";
+import { GlobalNav } from "@/components/nav/GlobalNav";
 
 // ---------------------------------------------------------------------------
 // Helpers — run server-side only
@@ -122,12 +123,8 @@ export default function ProjectDetailPage({
         <Head>
           <title>Not Found — ARTBYDANI7</title>
         </Head>
+        <GlobalNav />
         <div className={styles.archivePage}>
-          <header className={styles.siteHeader}>
-            <Link href="/" className={styles.wordmark}>
-              ARTBYDANI7
-            </Link>
-          </header>
           <p className={styles.empty}>Project not found.</p>
         </div>
       </>
@@ -150,13 +147,8 @@ export default function ProjectDetailPage({
         <meta name="description" content={`${project.title} by ${artistNames || "ARTBYDANI7"}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+      <GlobalNav />
       <div className={styles.archivePage}>
-        <header className={styles.siteHeader}>
-          <Link href="/" className={styles.wordmark}>
-            ARTBYDANI7
-          </Link>
-        </header>
-
         <main style={{ maxWidth: "900px", margin: "0 auto", paddingTop: "40px" }}>
           <div style={{ marginBottom: "48px" }}>
             <Link href="/" style={{ color: "var(--muted)", textDecoration: "none", fontSize: "12px" }}>
