@@ -48,13 +48,6 @@ const SERVICE_TYPES: ServiceType[] = [
   "Creative Direction",
   "Other",
 ];
-const BUDGET_RANGES: BudgetRange[] = [
-  "Under $500",
-  "$500 – $1,500",
-  "$1,500 – $5,000",
-  "$5,000 – $15,000",
-  "$15,000+",
-];
 const DEADLINES: Deadline[] = [
   "Flexible",
   "2 Weeks",
@@ -263,7 +256,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             />
           </section>
 
-          {/* ─── 4. Upload references ���── */}
+          {/* ─── 4. Upload references �����── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>04 — Upload references</h2>
             <div

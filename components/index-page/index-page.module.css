@@ -276,8 +276,18 @@
 @media (max-width: 600px) {
   .tableHead,
   .rowLink {
-    grid-template-columns: 60px 1fr 50px;
+    grid-template-columns: 62px 1fr 46px;
     gap: 12px;
+  }
+  .tableHead {
+    letter-spacing: 0.06em;
+  }
+  .tableHead .colCatalogue,
+  .rowLink .colCatalogue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
   }
   .colArtist {
     display: none;

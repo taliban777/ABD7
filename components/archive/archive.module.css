@@ -560,7 +560,7 @@
 
 @media (max-width: 540px) {
   .archivePage {
-    padding: 0 14px 48px;
+    padding: 56px 14px 48px; /* keep top clear of the fixed nav */
   }
   .toolbarTop {
     height: 68px;
