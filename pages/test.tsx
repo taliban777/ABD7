@@ -123,27 +123,38 @@ export default function TestArchiveRoute({
 export const getServerSideProps: GetServerSideProps<{
   projects: CmsProject[];
 }> = async () => {
-  const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
+  // Try to fetch a CMS page with archive content
+  // First try "/archive" as it may be configured in Plasmic
+  let plasmicData = await PLASMIC.maybeFetchComponentData("/archive");
+  
+  // If /archive doesn't exist, try a generic empty fetch to get CMS data
   if (!plasmicData) {
-    return { props: { projects: [] } };
+    // Try the homepage to extract CMS data if available
+    plasmicData = await PLASMIC.maybeFetchComponentData("/");
   }
 
-  const pageMeta = plasmicData.entryCompMetas[0];
-
-  // extractPlasmicQueryData expects a React element — this is valid in a .tsx
-  // file; Next.js compiles it with the JSX transform before execution.
-  const queryCache = await extractPlasmicQueryData(
-    <PlasmicRootProvider
-      loader={PLASMIC}
-      prefetchedData={plasmicData}
-      pageRoute={pageMeta.path}
-      pageParams={pageMeta.params}
-    >
-      <PlasmicComponent component={pageMeta.displayName} />
-    </PlasmicRootProvider>
-  );
-
-  const projects = collectProjects(queryCache);
+  // Extract projects from whatever page we got
+  let projects: CmsProject[] = [];
+  
+  if (plasmicData) {
+    const pageMeta = plasmicData.entryCompMetas[0];
+    try {
+      const queryCache = await extractPlasmicQueryData(
+        <PlasmicRootProvider
+          loader={PLASMIC}
+          prefetchedData={plasmicData}
+          pageRoute={pageMeta.path}
+          pageParams={pageMeta.params}
+        >
+          <PlasmicComponent component={pageMeta.displayName} />
+        </PlasmicRootProvider>
+      );
+      projects = collectProjects(queryCache);
+    } catch {
+      // If extraction fails, return empty projects
+      projects = [];
+    }
+  }
 
   return { props: { projects } };
 };
