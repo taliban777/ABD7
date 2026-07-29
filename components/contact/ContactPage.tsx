@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
-import { asArray, projectSlug, valueLabel } from "@/components/archive/types";
+import { asArray, valueLabel } from "@/components/archive/types";
 
 export interface ContactPageProps {
   projects?: CmsProject[];
