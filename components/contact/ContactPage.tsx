@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
@@ -344,12 +345,12 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                           disabled={isAdded}
                         >
                           {thumbUrl && (
-                            <img
+                            <Image
                               src={thumbUrl}
                               alt={`${p.title} thumbnail`}
                               className={styles.suggestionThumb}
-                              loading="lazy"
-                              decoding="async"
+                              width={80}
+                              height={80}
                             />
                           )}
                           <span className={styles.suggestionContent}>

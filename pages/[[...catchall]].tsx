@@ -152,7 +152,6 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   // Special handling for /index: render as IndexPage instead of Plasmic component
   if (plasmicPath === "/index" && plasmicData) {
-    const pageMeta = plasmicData.entryCompMetas[0];
     // Fetch the "/test" (archive) page data to get projects
     const testData = await PLASMIC.maybeFetchComponentData("/test");
     if (!testData) {
