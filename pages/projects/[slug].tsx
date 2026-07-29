@@ -151,7 +151,7 @@ export default function ProjectDetailPage({
       <div className={styles.archivePage}>
         <main style={{ maxWidth: "900px", margin: "0 auto", paddingTop: "40px" }}>
           <div style={{ marginBottom: "48px" }}>
-            <Link href="/test" style={{ color: "var(--muted)", textDecoration: "none", fontSize: "12px" }}>
+            <Link href="/collection" style={{ color: "var(--muted)", textDecoration: "none", fontSize: "12px" }}>
               ← Back to Archive
             </Link>
           </div>

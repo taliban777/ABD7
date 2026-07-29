@@ -11,7 +11,7 @@ export interface GlobalNavProps {
 
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
-  { label: "COLLECTION", href: "/test" },
+  { label: "COLLECTION", href: "/collection" },
   { label: "INDEX", href: "/catalogue" },
   { label: "CURATIONS", href: "/curations" },
 ] as const;
@@ -139,7 +139,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             <button
               ref={triggerRef}
               type="button"
-              className={`${styles.navLink} ${styles.navLinkBtn} ${isActive("/projects") || isActive("/test") ? styles.navLinkActive : ""}`}
+              className={`${styles.navLink} ${styles.navLinkBtn} ${isActive("/projects") || isActive("/collection") ? styles.navLinkActive : ""}`}
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen}
               onClick={() => setDropdownOpen((v) => !v)}
@@ -161,7 +161,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                 {selectedYear === null ? (
                   <>
                     <Link
-                      href="/test"
+                      href="/collection"
                       className={styles.dropdownLink}
                       role="option"
                       aria-selected={false}
@@ -295,7 +295,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
               ) : (
                 <div className={styles.mobileYears}>
                   <Link
-                    href="/test"
+                    href="/collection"
                     className={styles.mobileSubLink}
                     onClick={() => setMobileOpen(false)}
                   >

@@ -102,7 +102,7 @@ export default function PlasmicLoaderPage(props: {
           <meta name="description" content="Independent art direction and visual archive." />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Head>
-        <HomePage />
+        <HomePage projects={projects} />
       </>
     );
   }
@@ -143,7 +143,29 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
 
   if (isHomepage) {
-    return { props: { isHomepage: true }, revalidate: 3600 };
+    // The homepage renders the live Collection underneath the reveal layer,
+    // so it needs the same CMS-driven projects the archive uses.
+    const testData = await PLASMIC.maybeFetchComponentData("/test");
+    if (!testData) {
+      return { props: { isHomepage: true, projects: [] }, revalidate: 3600 };
+    }
+
+    const testMeta = testData.entryCompMetas[0];
+    const queryCache = await extractPlasmicQueryData(
+      React.createElement(
+        PlasmicRootProvider,
+        {
+          loader: PLASMIC,
+          prefetchedData: testData,
+          pageRoute: testMeta.path,
+          pageParams: testMeta.params,
+        },
+        React.createElement(PlasmicComponent, { component: testMeta.displayName })
+      )
+    );
+
+    const projects = collectProjects(queryCache);
+    return { props: { isHomepage: true, projects }, revalidate: 3600 };
   }
 
   const plasmicPath = typeof catchall === "string" ? catchall : Array.isArray(catchall) ? `/${catchall.join("/")}` : "/";

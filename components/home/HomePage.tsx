@@ -1,193 +1,169 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import { ArchivePage } from "@/components/archive/ArchivePage";
+import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import type { CmsProject } from "@/components/archive/types";
 import styles from "./home.module.css";
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  opacity: number;
-  size: number;
-  born: number;
-  lifetime: number;
+export interface HomePageProps {
+  /** Live CMS projects — the same data the Collection renders. */
+  projects?: CmsProject[];
 }
 
-const POOL_MAX = 14;
-const SPAWN_THROTTLE = 90; // ms
-const GLYPH_SIZE = 14;
+// Inspection-light geometry (elliptical + feathered).
+const LIGHT_RX = 210;
+const LIGHT_RY = 165;
+const EASE = 0.16; // inertia — lower feels heavier
 
-export default function HomePage() {
+function buildMask(x: number, y: number): string {
+  // A soft, slightly elliptical hole: fully clear at the centre, feathering
+  // out to opaque paper. `transparent` hides the sheet (revealing the
+  // Collection); the solid colour keeps it in place.
+  return (
+    `radial-gradient(${LIGHT_RX}px ${LIGHT_RY}px at ${x}px ${y}px,` +
+    ` transparent 0%, transparent 32%,` +
+    ` rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.85) 72%, #000 88%)`
+  );
+}
+
+export default function HomePage({ projects = [] }: HomePageProps) {
   const router = useRouter();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  const target = useRef({ x: -9999, y: -9999 });
+  const current = useRef({ x: -9999, y: -9999 });
+  const primed = useRef(false); // has the pointer entered at least once
   const rafRef = useRef<number>(0);
-  const lastSpawnRef = useRef(0);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const transitioningRef = useRef(false);
-  // Pre-rendered glyph cached on an offscreen canvas
-  const glyphRef = useRef<HTMLCanvasElement | null>(null);
+  const revealingRef = useRef(false);
+  const reducedRef = useRef(false);
 
-  // Pre-render "7" once to an offscreen canvas — avoids repeated fillText calls
+  // ── Preload everything the Collection needs so the reveal hides loading ──
   useEffect(() => {
-    const off = document.createElement("canvas");
-    const pad = 4;
-    off.width = GLYPH_SIZE + pad * 2;
-    off.height = GLYPH_SIZE + pad * 2;
-    const ctx = off.getContext("2d")!;
-    ctx.font = `${GLYPH_SIZE}px Georgia, serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#3a3630";
-    ctx.fillText("7", off.width / 2, off.height / 2);
-    glyphRef.current = off;
-  }, []);
+    router.prefetch("/collection");
 
-  const spawnParticle = useCallback((x: number, y: number) => {
-    const now = performance.now();
-    if (now - lastSpawnRef.current < SPAWN_THROTTLE) return;
-    lastSpawnRef.current = now;
-
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;
-    const speed = 0.4 + Math.random() * 0.5;
-
-    if (particlesRef.current.length >= POOL_MAX) {
-      particlesRef.current.shift();
+    const covers = projects
+      .map((p) => p.frontCover)
+      .filter(Boolean)
+      .slice(0, 10);
+    for (const cover of covers) {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = getArchiveImageUrl(cover);
     }
-    particlesRef.current.push({
-      x: x + (Math.random() - 0.5) * 10,
-      y: y + (Math.random() - 0.5) * 10,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      opacity: 0.45 + Math.random() * 0.35,
-      size: 0.6 + Math.random() * 0.7,
-      born: now,
-      lifetime: 1400 + Math.random() * 800,
-    });
-  }, []);
+  }, [router, projects]);
 
-  // Particle render loop — only runs when particles are alive
+  // ── Inspection-light animation loop (skipped for reduced motion) ──
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    reducedRef.current = !!reduce;
+    if (reduce) return;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
+    const paper = paperRef.current;
+    if (!paper) return;
 
-    const tick = (now: number) => {
-      const particles = particlesRef.current;
-
-      if (particles.length === 0) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+    const tick = () => {
+      if (!revealingRef.current && primed.current) {
+        current.current.x += (target.current.x - current.current.x) * EASE;
+        current.current.y += (target.current.y - current.current.y) * EASE;
+        const mask = buildMask(current.current.x, current.current.y);
+        paper.style.webkitMaskImage = mask;
+        paper.style.maskImage = mask;
       }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const glyph = glyphRef.current;
-      const gw = glyph ? glyph.width : 0;
-      const gh = glyph ? glyph.height : 0;
-
-      particlesRef.current = particles.filter((p) => {
-        const age = now - p.born;
-        if (age > p.lifetime) return false;
-
-        const t = age / p.lifetime;
-        // Smooth fade: quick in, slow out
-        const fade = t < 0.12 ? t / 0.12 : 1 - ((t - 0.12) / 0.88) ** 1.5;
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.012; // gravity
-        p.vx *= 0.997;
-
-        if (!glyph) return true;
-
-        ctx.save();
-        ctx.globalAlpha = p.opacity * fade;
-        // drawImage is ~10x faster than fillText per frame
-        ctx.drawImage(
-          glyph,
-          p.x - (gw * p.size) / 2,
-          p.y - (gh * p.size) / 2,
-          gw * p.size,
-          gh * p.size
-        );
-        ctx.restore();
-        return true;
-      });
-
       rafRef.current = requestAnimationFrame(tick);
     };
-
     rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("resize", resize);
-    };
+    return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    spawnParticle(e.clientX, e.clientY);
-  }, [spawnParticle]);
+  const setTargetFromPoint = useCallback((x: number, y: number) => {
+    if (reducedRef.current || revealingRef.current) return;
+    target.current = { x, y };
+    if (!primed.current) {
+      // Snap on first contact so the light doesn't sweep in from the corner.
+      current.current = { x, y };
+      primed.current = true;
+    }
+  }, []);
 
-  const handleEnter = useCallback(() => {
-    if (transitioningRef.current) return;
-    transitioningRef.current = true;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => setTargetFromPoint(e.clientX, e.clientY),
+    [setTargetFromPoint]
+  );
 
-    const overlay = overlayRef.current;
-    if (!overlay) {
-      router.push("/test");
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      if (t) setTargetFromPoint(t.clientX, t.clientY);
+    },
+    [setTargetFromPoint]
+  );
+
+  const reveal = useCallback(() => {
+    if (revealingRef.current) return;
+    revealingRef.current = true;
+
+    const paper = paperRef.current;
+    if (!paper) {
+      router.push("/collection");
       return;
     }
 
-    overlay.classList.add(styles.overlayExpand);
+    // Drop the inspection hole so the sheet lifts as one solid piece.
+    paper.style.webkitMaskImage = "none";
+    paper.style.maskImage = "none";
 
-    const tid = setTimeout(() => {
-      router.push("/test");
-    }, 820);
+    if (reducedRef.current) {
+      paper.classList.add(styles.paperLiftReduced);
+      window.setTimeout(() => router.push("/collection"), 420);
+      return;
+    }
 
-    return () => clearTimeout(tid);
+    paper.classList.add(styles.paperLift);
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      router.push("/collection");
+    };
+    paper.addEventListener("transitionend", go, { once: true });
+    // Safety net in case transitionend doesn't fire.
+    window.setTimeout(go, 1150);
   }, [router]);
 
   return (
-    <main
-      className={styles.root}
-      onMouseMove={handleMouseMove}
-      aria-label="ARTBYDANI7 — Enter Gallery"
-    >
-      {/* Particle canvas */}
-      <canvas
-        ref={canvasRef}
-        className={styles.particles}
-        aria-hidden="true"
-      />
-
-      {/* Slow light shift */}
-      <div className={styles.lightShift} aria-hidden="true" />
-
-      {/* Centre content */}
-      <div className={styles.centre}>
-        <h1 className={styles.wordmark}>ARTBYDANI7</h1>
-        <button
-          type="button"
-          className={styles.enterBtn}
-          onClick={handleEnter}
-          aria-label="Enter the gallery archive"
-        >
-          ENTER GALLERY
-        </button>
+    <div className={styles.root}>
+      {/* The real, live, CMS-driven Collection sits underneath. */}
+      <div className={styles.collectionLayer} aria-hidden="true">
+        <ArchivePage projects={projects} />
       </div>
 
-      {/* Transition overlay */}
-      <div ref={overlayRef} className={styles.overlay} aria-hidden="true" />
-    </main>
+      {/* The archival drafting sheet laid over the Collection. */}
+      <div
+        ref={paperRef}
+        className={styles.paper}
+        onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
+        onClick={reveal}
+        role="button"
+        tabIndex={0}
+        aria-label="Lift the sheet to enter the ARTBYDANI7 collection"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            reveal();
+          }
+        }}
+      >
+        <div className={styles.wordmarkWrap}>
+          <h1 className={styles.wordmark}>ARTBYDANI7</h1>
+        </div>
+        <p className={styles.hint}>Lift the sheet</p>
+        <div className={styles.curl} aria-hidden="true" />
+      </div>
+    </div>
   );
 }
