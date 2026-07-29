@@ -1,5 +1,6 @@
 import { ArchiveFilterKey, ArchiveFilterOptions, ArchiveSelection, CmsProject, FilterOption, asArray, paletteValue, valueLabel } from "../types";
 import { matchesFilters, matchesSearch } from "./filterProjects";
+import { groupPaletteColors } from "./colorGrouping";
 
 interface RawOption {
   label: string;
@@ -73,11 +74,15 @@ export function extractFilterOptions(projects: CmsProject[], selected: ArchiveSe
     (a, b) => Number(b.value) - Number(a.value)
   );
 
+  // Group palette colors into 6 categories
+  const paletteRaw = build("palette");
+  const paletteGrouped = groupPaletteColors(paletteRaw);
+
   return {
     artists: build("artists"),
     categories: build("categories"),
     style: build("style"),
     years,
-    palette: build("palette"),
+    palette: paletteGrouped,
   };
 }
