@@ -148,8 +148,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   const plasmicPath = typeof catchall === "string" ? catchall : Array.isArray(catchall) ? `/${catchall.join("/")}` : "/";
 
-  // Special handling for /index: render as IndexPage instead of Plasmic component
-  if (plasmicPath === "/index") {
+  // Special handling for /catalogue: render as IndexPage instead of Plasmic component
+  if (plasmicPath === "/catalogue") {
     // Fetch the "/test" (archive) page data to get projects
     const testData = await PLASMIC.maybeFetchComponentData("/test");
     if (!testData) {
@@ -207,10 +207,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
       },
     }));
 
-  // Explicitly include /index as a static path
+  // Explicitly include /catalogue as a static path
   paths.push({
     params: {
-      catchall: ["index"],
+      catchall: ["catalogue"],
     },
   });
 
