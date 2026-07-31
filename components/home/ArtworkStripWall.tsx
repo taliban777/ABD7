@@ -3,102 +3,120 @@
 /**
  * ArtworkStripWall
  *
- * Renders 6 horizontal strips of CMS artwork thumbnails.
- * Each row drifts almost imperceptibly (different directions & speeds).
- * Hovering an artwork lifts and focuses it; everything else dims gently.
+ * Six horizontal strips of CMS artwork thumbnails drifting via pure CSS
+ * @keyframes — no requestAnimationFrame, no JS per-frame work.
+ *
+ * Distribution rules:
+ *  - Each row is shuffled independently from the full CMS collection.
+ *  - No artwork repeats within the same row (until the full set is exhausted).
+ *  - Adjacent rows are seeded with a different shuffle so obvious repetition
+ *    across neighbours is minimised.
+ *  - The shuffled list is duplicated enough times to fill the CSS keyframe
+ *    loop without a visible seam.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { getStripThumbnailUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
 
-interface ArtworkStripWallProps {
-  projects: CmsProject[];
+// ─── Strip configuration ──────────────────────────────────────────────────────
+// tile px + gap = unit step. Duration is derived from desired speed.
+const TILE_SIZE = 140; // px (visual size of each tile)
+const GAP       = 4;   // px gap between tiles
+const UNIT      = TILE_SIZE + GAP; // 144 px per step
+
+// Each row: direction and target drift speed in px/second.
+// 2–4 px/s gives barely-perceptible motion — premium, museum-quality.
+const ROW_CONFIG = [
+  { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest
+  { dir: -1 as const, speed: 3.4 },  // row 1 — leftward
+  { dir:  1 as const, speed: 2.2 },  // row 2 — rightward, very slow
+  { dir: -1 as const, speed: 3.8 },  // row 3 — leftward
+  { dir:  1 as const, speed: 2.9 },  // row 4 — rightward
+  { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
+] as const;
+
+// Number of CMS-copy repetitions so the seamless loop is wide enough.
+// 5 copies × (n tiles × 144px) covers any realistic viewport comfortably.
+const COPIES = 5;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Fisher-Yates shuffle — returns a new array, does not mutate the input. */
+function shuffle<T>(arr: T[], seed: number): T[] {
+  const out = [...arr];
+  // Deterministic seeded shuffle so SSR and client produce the same order.
+  let s = seed;
+  for (let i = out.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff;
+    const j = s % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
-// How many rows to render and their individual drift parameters.
-// speed: px/s  direction: 1=right, -1=left  offset: initial %
-const ROW_CONFIG = [
-  { speed: 8,  dir:  1, offset: 0   },
-  { speed: 5,  dir: -1, offset: 8   },
-  { speed: 10, dir:  1, offset: 4   },
-  { speed: 6,  dir: -1, offset: 12  },
-  { speed: 9,  dir:  1, offset: 2   },
-  { speed: 7,  dir: -1, offset: 16  },
-];
-
-const THUMBNAIL_SIZE = 140; // px — visual size of each square
-const GAP = 4;              // px — gap between tiles
-
 /**
- * Build a repeated, extended tile list so the strip can loop seamlessly.
- * We duplicate the list enough times to fill (viewport + extra) width.
+ * Build the tile list for one row.
+ * - Shuffles the full project list with a row-specific seed.
+ * - Repeats COPIES times to ensure the CSS loop never shows a gap.
  */
-function buildStrip(projects: CmsProject[], copies = 6): CmsProject[] {
+function buildRowTiles(projects: CmsProject[], rowIndex: number): CmsProject[] {
   if (projects.length === 0) return [];
+  // Use a prime-offset seed so adjacent rows never start identically.
+  const seed = 0x1a3b5c7d + rowIndex * 0x9e3779b9;
+  const shuffled = shuffle(projects, seed);
   const result: CmsProject[] = [];
-  for (let i = 0; i < copies; i++) result.push(...projects);
+  for (let i = 0; i < COPIES; i++) result.push(...shuffled);
   return result;
 }
 
+// ─── StripRow ─────────────────────────────────────────────────────────────────
+
 interface StripRowProps {
-  projects: CmsProject[];
-  speed: number;       // px per second
-  dir: number;         // 1 or -1
-  initialOffset: number; // % nudge so rows don't align
+  tiles: CmsProject[];
+  rowIndex: number;
+  dir: 1 | -1;
+  speed: number; // px/s
   focusedId: string | null;
   onFocus: (id: string | null) => void;
 }
 
-function StripRow({ projects, speed, dir, initialOffset, focusedId, onFocus }: StripRowProps) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const posRef = useRef<number>(0);
-  const rafRef = useRef<number>(0);
-  const lastTimeRef = useRef<number | null>(null);
+function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowProps) {
+  // The CSS animation shifts the track by exactly one full copy width.
+  // duration = (n_projects × UNIT) / speed
+  const projectCount = tiles.length / COPIES; // original count before repeating
+  const loopWidth    = projectCount * UNIT;    // px — one full copy
+  const duration     = loopWidth / speed;      // seconds
 
-  const tiles = buildStrip(projects);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track || tiles.length === 0) return;
-
-    // The unit width is one full copy of the original projects list.
-    const unitWidth = projects.length * (THUMBNAIL_SIZE + GAP);
-
-    // Seed initial position so rows don't all start at 0.
-    posRef.current = -(initialOffset / 100) * unitWidth;
-
-    const tick = (now: number) => {
-      if (lastTimeRef.current === null) lastTimeRef.current = now;
-      const dt = (now - lastTimeRef.current) / 1000; // seconds
-      lastTimeRef.current = now;
-
-      posRef.current += dir * speed * dt;
-
-      // Loop seamlessly: when we've scrolled one full unit, reset.
-      if (dir > 0 && posRef.current >= 0) posRef.current -= unitWidth;
-      if (dir < 0 && posRef.current <= -unitWidth) posRef.current += unitWidth;
-
-      track.style.transform = `translateX(${posRef.current}px)`;
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [tiles.length, projects.length, speed, dir, initialOffset]);
+  const animClass = dir === 1 ? styles.driftRight : styles.driftLeft;
 
   return (
     <div className={styles.row} aria-hidden="true">
-      <div ref={trackRef} className={styles.track}>
+      <div
+        className={`${styles.track} ${animClass}`}
+        style={{
+          // Expose the loop width and duration as CSS custom properties
+          // so a single pair of @keyframes can handle any row.
+          ["--loop-width" as string]: `${loopWidth}px`,
+          ["--duration"   as string]: `${duration}s`,
+          // Stagger start time so rows don't all align on load.
+          animationDelay: `${-(rowIndex * 3.7)}s`,
+        }}
+      >
         {tiles.map((project, idx) => {
-          const src = getStripThumbnailUrl(project.frontCover);
+          const src       = getStripThumbnailUrl(project.frontCover);
           const isFocused = focusedId === project.id;
-          const isDimmed = focusedId !== null && !isFocused;
+          const isDimmed  = focusedId !== null && !isFocused;
+
           return (
             <div
               key={`${project.id}-${idx}`}
-              className={`${styles.tile} ${isFocused ? styles.tileFocused : ""} ${isDimmed ? styles.tileDimmed : ""}`}
+              className={[
+                styles.tile,
+                isFocused ? styles.tileFocused : "",
+                isDimmed  ? styles.tileDimmed  : "",
+              ].join(" ")}
               onMouseEnter={() => onFocus(project.id)}
               onMouseLeave={() => onFocus(null)}
             >
@@ -106,8 +124,8 @@ function StripRow({ projects, speed, dir, initialOffset, focusedId, onFocus }: S
               <img
                 src={src}
                 alt=""
-                width={THUMBNAIL_SIZE}
-                height={THUMBNAIL_SIZE}
+                width={TILE_SIZE}
+                height={TILE_SIZE}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
@@ -120,6 +138,12 @@ function StripRow({ projects, speed, dir, initialOffset, focusedId, onFocus }: S
   );
 }
 
+// ─── ArtworkStripWall ─────────────────────────────────────────────────────────
+
+interface ArtworkStripWallProps {
+  projects: CmsProject[];
+}
+
 export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
@@ -127,21 +151,26 @@ export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
     setFocusedId(id);
   }, []);
 
-  if (projects.length === 0) return null;
+  // Build each row's tile list once — stable across renders.
+  const rows = useMemo(
+    () => ROW_CONFIG.map((cfg, i) => ({
+      ...cfg,
+      tiles: buildRowTiles(projects, i),
+    })),
+    [projects],
+  );
 
-  // Check reduced-motion preference — strips are static if reduced.
-  // We can't use a hook here directly, so the CSS media query handles
-  // the animation-play-state, and JS speed becomes irrelevant.
+  if (projects.length === 0) return null;
 
   return (
     <div className={styles.wall} aria-hidden="true">
-      {ROW_CONFIG.map((cfg, i) => (
+      {rows.map((row, i) => (
         <StripRow
           key={i}
-          projects={projects}
-          speed={cfg.speed}
-          dir={cfg.dir}
-          initialOffset={cfg.offset}
+          rowIndex={i}
+          tiles={row.tiles}
+          dir={row.dir}
+          speed={row.speed}
           focusedId={focusedId}
           onFocus={handleFocus}
         />

@@ -1,8 +1,9 @@
 /* =========================================================
-   ArtworkStripWall — archive strip rows behind the homepage title
+   ArtworkStripWall — pure-CSS drifting artwork strips
+   No JS per-frame work. GPU-composited transform only.
    ========================================================= */
 
-/* Full-bleed wall that sits behind the hero layer */
+/* Full-bleed wall behind the hero layer */
 .wall {
   position: absolute;
   inset: 0;
@@ -11,42 +12,73 @@
   flex-direction: column;
   justify-content: space-evenly;
   align-items: stretch;
-  pointer-events: none; /* hero layer captures events by default */
+  pointer-events: none;
   z-index: 1;
 }
 
-/* One horizontal row */
+/* One horizontal row — clips the drifting track */
 .row {
   flex: 0 0 auto;
   height: 140px;
   overflow: hidden;
-  pointer-events: auto; /* rows need hover events */
+  pointer-events: auto;
 }
 
-/* Sliding inner track — positioned by JS transform */
+/* ── Track: the sliding container ────────────────────────
+   Layout only. Motion is added via .driftRight / .driftLeft.
+   will-change: transform tells the compositor to promote
+   this layer — no paint, no layout on each frame.
+   ─────────────────────────────────────────────────────── */
 .track {
   display: flex;
   flex-direction: row;
   gap: 4px;
   height: 100%;
-  /* start far enough left that no gap is visible on first paint */
-  transform: translateX(-100%);
   will-change: transform;
+  /* Pause on reduced-motion — handled by the @media below */
 }
 
-/* Individual tile */
+/* ── CSS keyframe drift — uses custom props set inline ───
+   The @keyframes shift by exactly one full copy-set width
+   so the loop is seamless. Duration and loop width come
+   from --duration and --loop-width set by StripRow.
+   ─────────────────────────────────────────────────────── */
+
+@keyframes driftRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--loop-width)); }
+}
+
+@keyframes driftLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--loop-width))); }
+}
+
+.driftRight {
+  animation: driftRight var(--duration) linear infinite;
+}
+
+.driftLeft {
+  animation: driftLeft var(--duration) linear infinite;
+}
+
+/* ── Tile ────────────────────────────────────────────────
+   Fixed square. Transitions are unhurried (600ms) —
+   elegant, never snappy.
+   ─────────────────────────────────────────────────────── */
 .tile {
   flex: 0 0 140px;
   width: 140px;
   height: 140px;
   overflow: hidden;
-  cursor: default;
   position: relative;
+  cursor: default;
+
+  /* All state changes animate at the same speed and easing */
   transition:
-    transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    opacity 0.38s ease,
-    box-shadow 0.38s ease,
-    filter 0.38s ease;
+    transform  600ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity    600ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    box-shadow 600ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .tile img {
@@ -54,9 +86,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Start slightly desaturated and dark so the title dominates */
-  filter: saturate(0.6) brightness(0.72);
-  transition: filter 0.38s ease;
+  /* Desaturated & slightly dark at rest — title stays dominant */
+  filter: saturate(0.55) brightness(0.68);
+  transition: filter 600ms cubic-bezier(0.25, 0.1, 0.25, 1);
   user-select: none;
   pointer-events: none;
 }
@@ -64,44 +96,45 @@
 /* ── Focused tile ─────────────────────────────────────── */
 
 .tileFocused {
-  transform: scale(1.08);
+  /* Subtle lift — 1.08× scale + a whisper of shadow */
+  transform: scale(1.08) translateY(-3px);
   z-index: 10;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 6px 28px rgba(17, 17, 15, 0.22);
+  opacity: 1;
 }
 
 .tileFocused img {
-  filter: saturate(1) brightness(0.92) contrast(1.06);
+  /* Restore full saturation and near-natural brightness */
+  filter: saturate(1) brightness(0.94);
 }
 
-/* ── Dimmed tiles (when another tile is focused) ──────── */
+/* ── Dimmed tiles (sibling of a focused tile) ─────────── */
 
 .tileDimmed {
-  opacity: 0.62;
+  opacity: 0.38;
 }
 
 .tileDimmed img {
-  filter: saturate(0.4) brightness(0.6);
+  filter: saturate(0.2) brightness(0.55);
 }
 
-/* ── Reduced motion: pause all drift ─────────────────── */
+/* ── Reduced motion: freeze all drift ────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .track {
-    /* JS still runs but at 0 speed this has no visible effect.
-       Belt-and-suspenders: freeze the CSS animation too. */
+  .driftRight,
+  .driftLeft {
     animation-play-state: paused;
   }
 }
 
-/* ── Mobile: fewer rows, smaller tiles ───────────────── */
+/* ── Mobile: smaller tiles ───────────────────────────── */
 
 @media (max-width: 640px) {
   .row {
     height: 96px;
   }
 
-  .tile,
-  .track {
+  .tile {
     flex: 0 0 96px;
     width: 96px;
     height: 96px;
