@@ -1,9 +1,9 @@
 /* =========================================================
    ARTBYDANI7 — Homepage
-   Artwork strips behind a centred hero panel overlay.
+   Museum catalogue cover. Calm, expensive, timeless.
    ========================================================= */
 
-/* ── Root: fixed viewport, no scroll ────────────────────────────────────── */
+/* ── Root: full viewport, no scroll ──────────────────────────────────── */
 .root {
   position: fixed;
   inset: 0;
@@ -11,7 +11,7 @@
   background: var(--background);
 }
 
-/* ── Strip wall layer (behind the hero) ────────────────────────────────── */
+/* ── Strip wall layer ────────────────────────────────────────────────── */
 .stripLayer {
   position: absolute;
   inset: 0;
@@ -20,8 +20,9 @@
 }
 
 /* ── Hero panel ──────────────────────────────────────────────────────────
-   Fixed overlay centred on viewport. On click, lifts upward to reveal
-   the collection archive underneath.
+   A solid paper rectangle that lifts out of the way on click.
+   No radial glow — clean, editorial separation between the
+   moving artwork and the typography.
    ─────────────────────────────────────────────────────────────────────── */
 .panel {
   position: fixed;
@@ -47,8 +48,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-  padding: 24px 40px 20px;
+  gap: 36px;
+  padding: 48px 64px 44px;
   pointer-events: auto;
   /* Gentle fade-in on mount */
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -70,13 +71,28 @@
   margin: 0;
   font-family: Georgia, "Times New Roman", Times, serif;
   font-weight: 400;
-  font-size: clamp(2.6rem, 11vw, 13rem);
+  font-size: clamp(3.4rem, 12vw, 13rem);
   line-height: 0.92;
   letter-spacing: 0.015em;
   text-align: center;
   color: var(--foreground);
-  /* Allow wrapping on narrow screens but keep compact on desktop */
-  word-spacing: -0.05em;
+  white-space: nowrap;
+  /* No separate animation — the paperBlock animation carries it */
+}
+
+/* ── Catalogue sub-label ─────────────────────────────────────────────────
+   Optional small label beneath the title — reinforces the
+   catalogue-cover reading without competing with the title. */
+.subLabel {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -20px; /* pull closer to title baseline */
 }
 
 /* ── Enter Collection button ─────────────────────────────────────────── */
@@ -122,20 +138,31 @@
 /* ── Panel lift transition (ENTER COLLECTION click) ─────────────────── */
 .panelLift {
   transition: transform 1.05s cubic-bezier(0.72, 0, 0.16, 1);
-  transform: translateY(-110%) !important;
+  transform: translateY(-112%) !important;
   pointer-events: none;
 }
 
 .panelLiftReduced {
   transition: transform 0.42s ease;
-  transform: translateY(-110%) !important;
+  transform: translateY(-104%) !important;
   pointer-events: none;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .title {
+    font-size: clamp(2.8rem, 16vw, 6rem);
+    white-space: normal;
+    word-break: break-word;
+  }
+
   .paperBlock {
-    padding: 16px 24px 14px;
-    gap: 12px;
+    padding: 36px 28px 32px;
+    gap: 28px;
+    /* Full width on mobile so artwork can't peek left/right — 
+       the vertical bleed is enough to preserve the effect */
+    width: 100%;
+    border-left:  none;
+    border-right: none;
   }
 }

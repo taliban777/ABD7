@@ -69,10 +69,19 @@ export default function HomePage({ projects = [] }: HomePageProps) {
 
   return (
     <div className={styles.root}>
-      {/* ── Hero panel (centered title + button) ─────────────────── */}
+      {/* ── Strip wall layer (CMS artwork behind the paper block) ── */}
+      <div className={styles.stripLayer}>
+        <ArtworkStripWall projects={projects} />
+      </div>
+
+      {/* ── Hero panel (opaque paper block + typography) ─────────── */}
       <div ref={panelRef} className={styles.panel}>
         <div className={styles.paperBlock}>
           <h1 className={styles.title}>ARTBYDANI7</h1>
+
+          <span className={styles.subLabel} aria-hidden="true">
+            Living Archive
+          </span>
 
           <button
             type="button"
@@ -89,11 +98,6 @@ export default function HomePage({ projects = [] }: HomePageProps) {
             Enter Collection
           </button>
         </div>
-      </div>
-
-      {/* ── Strip wall layer (below the hero, own dedicated space) ── */}
-      <div className={styles.stripLayer}>
-        <ArtworkStripWall projects={projects} />
       </div>
     </div>
   );

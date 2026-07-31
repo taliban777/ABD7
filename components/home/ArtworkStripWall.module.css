@@ -3,39 +3,25 @@
    No JS per-frame work. GPU-composited transform only.
    ========================================================= */
 
-/* Full-bleed artwork wall behind the hero panel */
+/* Full-bleed wall behind the hero layer */
 .wall {
-  position: fixed;
+  position: absolute;
   inset: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: stretch;
   pointer-events: none;
   z-index: 1;
 }
 
 /* One horizontal row — clips the drifting track */
 .row {
-  position: absolute;
-  width: 100%;
+  flex: 0 0 auto;
   height: 140px;
   overflow: hidden;
   pointer-events: auto;
-}
-
-/* Position top two rows (rows 0 and 1) */
-.row:nth-child(1) {
-  top: 0;
-}
-
-.row:nth-child(2) {
-  top: 140px;
-}
-
-/* Position bottom two rows (rows 2 and 3) — with 100vh center buffer */
-.row:nth-child(3) {
-  top: calc(100vh - 280px);
-}
-
-.row:nth-child(4) {
-  top: calc(100vh - 140px);
 }
 
 /* ── Track: the sliding container ────────────────────────
@@ -146,22 +132,6 @@
 @media (max-width: 640px) {
   .row {
     height: 96px;
-  }
-
-  .row:nth-child(1) {
-    top: 0;
-  }
-
-  .row:nth-child(2) {
-    top: 96px;
-  }
-
-  .row:nth-child(3) {
-    top: calc(100vh - 192px);
-  }
-
-  .row:nth-child(4) {
-    top: calc(100vh - 96px);
   }
 
   .tile {
