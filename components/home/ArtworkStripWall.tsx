@@ -38,8 +38,9 @@ const ROW_CONFIG = [
 ] as const;
 
 // Number of CMS-copy repetitions so the seamless loop is wide enough.
-// 5 copies × (n tiles × 144px) covers any realistic viewport comfortably.
-const COPIES = 5;
+// 8 copies × (n tiles × 144px) ensures the loop always has content,
+// never exhausts, and cycles endlessly without visible gaps.
+const COPIES = 8;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
