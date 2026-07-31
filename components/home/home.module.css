@@ -1,38 +1,38 @@
 /* =========================================================
    ARTBYDANI7 — Homepage
-   Centred hero panel with title + button, artwork strips below.
+   Artwork strips behind a centred hero panel overlay.
    ========================================================= */
 
-/* ── Root: scrollable page layout ────────────────────────────────────── */
+/* ── Root: fixed viewport, no scroll ────────────────────────────────────── */
 .root {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   background: var(--background);
-  overflow-x: hidden;
+}
+
+/* ── Strip wall layer (behind the hero) ────────────────────────────────── */
+.stripLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
 }
 
 /* ── Hero panel ──────────────────────────────────────────────────────────
-   Full viewport height, centred. On click, lifts upward to reveal
+   Fixed overlay centred on viewport. On click, lifts upward to reveal
    the collection archive underneath.
    ─────────────────────────────────────────────────────────────────────── */
 .panel {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   pointer-events: none;
   will-change: transform;
   transform: translateY(0);
-}
-
-/* ── Strip wall layer (below hero, full width, separate section) ──────── */
-.stripLayer {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  overflow: hidden;
-  z-index: 1;
 }
 
 /* The opaque paper block — sits exactly centred, width proportional
@@ -122,13 +122,13 @@
 /* ── Panel lift transition (ENTER COLLECTION click) ─────────────────── */
 .panelLift {
   transition: transform 1.05s cubic-bezier(0.72, 0, 0.16, 1);
-  transform: translateY(-100vh) !important;
+  transform: translateY(-110%) !important;
   pointer-events: none;
 }
 
 .panelLiftReduced {
   transition: transform 0.42s ease;
-  transform: translateY(-100vh) !important;
+  transform: translateY(-110%) !important;
   pointer-events: none;
 }
 

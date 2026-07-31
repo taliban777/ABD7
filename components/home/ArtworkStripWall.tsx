@@ -6,13 +6,8 @@
  * Six horizontal strips of CMS artwork thumbnails drifting via pure CSS
  * @keyframes — no requestAnimationFrame, no JS per-frame work.
  *
- * Distribution rules:
- *  - Each row is shuffled independently from the full CMS collection.
- *  - No artwork repeats within the same row (until the full set is exhausted).
- *  - Adjacent rows are seeded with a different shuffle so obvious repetition
- *    across neighbours is minimised.
- *  - The shuffled list is duplicated enough times to fill the CSS keyframe
- *    loop without a visible seam.
+ * Each row selects tiles completely at random from the CMS collection.
+ * Truly random per-tile (not shuffled-and-repeated), so no visible patterns.
  */
 
 import { useMemo, useState, useCallback } from "react";
@@ -21,7 +16,7 @@ import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
 
 // ─── Strip configuration ──────────────────────────────────────────────────────
-// tile px + gap = unit step. Duration is derived from desired speed.
+// tile px + gap = unit step
 const TILE_SIZE = 140; // px (visual size of each tile)
 const GAP       = 4;   // px gap between tiles
 const UNIT      = TILE_SIZE + GAP; // 144 px per step
@@ -37,38 +32,30 @@ const ROW_CONFIG = [
   { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
 ] as const;
 
-// Number of CMS-copy repetitions so the seamless loop is wide enough.
-// 8 copies × (n tiles × 144px) ensures the loop always has content,
-// never exhausts, and cycles endlessly without visible gaps.
-const COPIES = 8;
+// Number of tiles per row. Each is truly random-picked from the CMS.
+// More tiles = longer before a repeat cycles back into view.
+const TILES_PER_ROW = 28;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Fisher-Yates shuffle — returns a new array, does not mutate the input. */
-function shuffle<T>(arr: T[], seed: number): T[] {
-  const out = [...arr];
-  // Deterministic seeded shuffle so SSR and client produce the same order.
-  let s = seed;
-  for (let i = out.length - 1; i > 0; i--) {
-    s = (s * 1664525 + 1013904223) & 0x7fffffff;
-    const j = s % (i + 1);
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
 /**
- * Build the tile list for one row.
- * - Shuffles the full project list with a row-specific seed.
- * - Repeats COPIES times to ensure the CSS loop never shows a gap.
+ * Build the tile list for one row — each tile is truly random-picked
+ * from the full project list. No shuffling, no pattern repetition.
  */
 function buildRowTiles(projects: CmsProject[], rowIndex: number): CmsProject[] {
   if (projects.length === 0) return [];
-  // Use a prime-offset seed so adjacent rows never start identically.
-  const seed = 0x1a3b5c7d + rowIndex * 0x9e3779b9;
-  const shuffled = shuffle(projects, seed);
+  
+  // Seed the random number generator deterministically per row
+  // so SSR and client produce the same tiles.
+  let seed = 0x1a3b5c7d + rowIndex * 0x9e3779b9;
+  
   const result: CmsProject[] = [];
-  for (let i = 0; i < COPIES; i++) result.push(...shuffled);
+  for (let i = 0; i < TILES_PER_ROW; i++) {
+    // Linear congruential generator for deterministic randomness
+    seed = (seed * 1664525 + 1013904223) & 0x7fffffff;
+    const idx = seed % projects.length;
+    result.push(projects[idx]);
+  }
   return result;
 }
 
@@ -84,11 +71,10 @@ interface StripRowProps {
 }
 
 function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowProps) {
-  // The CSS animation shifts the track by exactly one full copy width.
-  // duration = (n_projects × UNIT) / speed
-  const projectCount = tiles.length / COPIES; // original count before repeating
-  const loopWidth    = projectCount * UNIT;    // px — one full copy
-  const duration     = loopWidth / speed;      // seconds
+  // The CSS animation shifts the track by exactly one tile width.
+  // This way the loop is seamless and tiles slide continuously.
+  const loopWidth    = tiles.length * UNIT;  // px — full row width
+  const duration     = loopWidth / speed;    // seconds
 
   const animClass = dir === 1 ? styles.driftRight : styles.driftLeft;
 
@@ -97,43 +83,44 @@ function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowP
       <div
         className={`${styles.track} ${animClass}`}
         style={{
-          // Expose the loop width and duration as CSS custom properties
-          // so a single pair of @keyframes can handle any row.
           ["--loop-width" as string]: `${loopWidth}px`,
           ["--duration"   as string]: `${duration}s`,
           // Stagger start time so rows don't all align on load.
           animationDelay: `${-(rowIndex * 3.7)}s`,
         }}
       >
-        {tiles.map((project, idx) => {
-          const src       = getStripThumbnailUrl(project.frontCover);
-          const isFocused = focusedId === project.id;
-          const isDimmed  = focusedId !== null && !isFocused;
+        {/* Render tiles doubled so the loop is seamless */}
+        {Array(2).fill(null).map((_, copy) => (
+          tiles.map((project, idx) => {
+            const src       = getStripThumbnailUrl(project.frontCover);
+            const isFocused = focusedId === project.id;
+            const isDimmed  = focusedId !== null && !isFocused;
 
-          return (
-            <div
-              key={`${project.id}-${idx}`}
-              className={[
-                styles.tile,
-                isFocused ? styles.tileFocused : "",
-                isDimmed  ? styles.tileDimmed  : "",
-              ].join(" ")}
-              onMouseEnter={() => onFocus(project.id)}
-              onMouseLeave={() => onFocus(null)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt=""
-                width={TILE_SIZE}
-                height={TILE_SIZE}
-                loading="lazy"
-                decoding="async"
-                draggable={false}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={`${copy}-${project.id}-${idx}`}
+                className={[
+                  styles.tile,
+                  isFocused ? styles.tileFocused : "",
+                  isDimmed  ? styles.tileDimmed  : "",
+                ].join(" ")}
+                onMouseEnter={() => onFocus(project.id)}
+                onMouseLeave={() => onFocus(null)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt=""
+                  width={TILE_SIZE}
+                  height={TILE_SIZE}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+              </div>
+            );
+          })
+        ))}
       </div>
     </div>
   );
@@ -153,6 +140,7 @@ export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
   }, []);
 
   // Build each row's tile list once — stable across renders.
+  // Each row gets completely random tiles.
   const rows = useMemo(
     () => ROW_CONFIG.map((cfg, i) => ({
       ...cfg,
