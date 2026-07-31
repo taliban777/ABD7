@@ -69,15 +69,19 @@
 /* ── Title ────────────────────────────────────────────────────────────── */
 .title {
   margin: 0;
-  font-family: Georgia, "Times New Roman", Times, serif;
-  font-weight: 400;
+  /* Cormorant — luxury editorial serif, exceptional numeral alignment.
+     The "7" sits flush on the baseline alongside "ARTBYDANI". */
+  font-family: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
   font-size: clamp(3.4rem, 12vw, 13rem);
   line-height: 0.92;
-  letter-spacing: 0.015em;
+  letter-spacing: 0.04em;
   text-align: center;
   color: var(--foreground);
   white-space: nowrap;
-  /* No separate animation — the paperBlock animation carries it */
+  /* Optical refinements for display-size serifs */
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
 }
 
 /* ── Catalogue sub-label ─────────────────────────────────────────────────

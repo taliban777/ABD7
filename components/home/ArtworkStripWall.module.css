@@ -1,6 +1,20 @@
 /* =========================================================
    ArtworkStripWall — pure-CSS drifting artwork strips
    No JS per-frame work. GPU-composited transform only.
+
+   SEAMLESS LOOP TECHNIQUE
+   -----------------------
+   The track holds N copies of the shuffled artwork list.
+   For leftward drift  (driftLeft):
+     Start at translateX(0), end at translateX(-loopWidth).
+     The loop resets instantly at the keyframe boundary — because
+     one full copy width brings you back to an identical visual
+     state, the jump is imperceptible.
+   For rightward drift (driftRight):
+     The track starts pre-shifted by -loopWidth so artwork fills
+     the viewport immediately. It drifts toward 0 then jumps
+     back — again visually seamless.
+   This means dead space never appears at either edge.
    ========================================================= */
 
 /* Full-bleed wall behind the hero layer */
@@ -25,46 +39,51 @@
 }
 
 /* ── Track: the sliding container ────────────────────────
-   Layout only. Motion is added via .driftRight / .driftLeft.
-   will-change: transform tells the compositor to promote
-   this layer — no paint, no layout on each frame.
+   No gap — tiles are flush contact-sheet style.
+   will-change: transform promotes to its own compositor layer
+   so animation never triggers paint or layout.
    ─────────────────────────────────────────────────────── */
 .track {
   display: flex;
   flex-direction: row;
-  gap: 4px;
+  gap: 0;
   height: 100%;
   will-change: transform;
-  /* Pause on reduced-motion — handled by the @media below */
 }
 
-/* ── CSS keyframe drift — uses custom props set inline ───
-   The @keyframes shift by exactly one full copy-set width
-   so the loop is seamless. Duration and loop width come
-   from --duration and --loop-width set by StripRow.
+/* ── CSS keyframe drift ──────────────────────────────────
+   Both keyframes use --loop-width (one copy's pixel width)
+   and --duration (seconds) injected as inline CSS vars.
+
+   driftLeft: 0 → -loopWidth  (track moves left, content drifts left)
+   driftRight: -loopWidth → 0 (track starts left, drifts right to origin)
+
+   In both cases the loop wraps at a point that is visually
+   identical to the start — no seam, no jump, no dead space.
    ─────────────────────────────────────────────────────── */
 
-@keyframes driftRight {
-  from { transform: translateX(0); }
-  to   { transform: translateX(var(--loop-width)); }
-}
-
 @keyframes driftLeft {
-  from { transform: translateX(0); }
-  to   { transform: translateX(calc(-1 * var(--loop-width))); }
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(calc(-1 * var(--loop-width)), 0, 0); }
 }
 
-.driftRight {
-  animation: driftRight var(--duration) linear infinite;
+@keyframes driftRight {
+  from { transform: translate3d(calc(-1 * var(--loop-width)), 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
 }
 
 .driftLeft {
   animation: driftLeft var(--duration) linear infinite;
 }
 
+.driftRight {
+  animation: driftRight var(--duration) linear infinite;
+}
+
 /* ── Tile ────────────────────────────────────────────────
-   Fixed square. Transitions are unhurried (600ms) —
-   elegant, never snappy.
+   No margins. Tiles are flush with each other.
+   Hover is handled entirely in CSS — no JS state, no
+   re-renders, no compositor layer promotions mid-animation.
    ─────────────────────────────────────────────────────── */
 .tile {
   flex: 0 0 140px;
@@ -73,12 +92,11 @@
   overflow: hidden;
   position: relative;
   cursor: default;
+  margin: 0;
 
-  /* All state changes animate at the same speed and easing */
-  transition:
-    transform  600ms cubic-bezier(0.25, 0.1, 0.25, 1),
-    opacity    600ms cubic-bezier(0.25, 0.1, 0.25, 1),
-    box-shadow 600ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Only transition opacity — skip transform/box-shadow to
+     avoid triggering stacking context changes during animation. */
+  transition: opacity 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .tile img {
@@ -86,36 +104,36 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Desaturated & slightly dark at rest — title stays dominant */
+  /* Desaturated at rest */
   filter: saturate(0.55) brightness(0.68);
-  transition: filter 600ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: filter 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
   user-select: none;
   pointer-events: none;
 }
 
-/* ── Focused tile ─────────────────────────────────────── */
+/* ── Pure-CSS hover: row acts as the hover context ───────
+   PERFORMANCE: siblings dim using ONLY opacity — a compositor-
+   friendly property that needs no repaint. We deliberately do
+   NOT transition `filter` on the non-hovered tiles: animating
+   saturate/brightness across hundreds of images at once forces
+   a full repaint every frame and causes the hover lag.
 
-.tileFocused {
-  /* Subtle lift — 1.08× scale + a whisper of shadow */
-  transform: scale(1.08) translateY(-3px);
-  z-index: 10;
-  box-shadow: 0 6px 28px rgba(17, 17, 15, 0.22);
+   The expensive `filter` change is scoped to the single tile
+   the pointer is actually over, so only one image ever repaints.
+   ─────────────────────────────────────────────────────── */
+
+/* When any tile in the row is hovered, dim the others (opacity only) */
+.row:has(.tile:hover) .tile {
+  opacity: 0.4;
+}
+
+/* The directly hovered tile stays fully opaque and gets colour back */
+.row:has(.tile:hover) .tile:hover {
   opacity: 1;
 }
 
-.tileFocused img {
-  /* Restore full saturation and near-natural brightness */
+.tile:hover img {
   filter: saturate(1) brightness(0.94);
-}
-
-/* ── Dimmed tiles (sibling of a focused tile) ─────────── */
-
-.tileDimmed {
-  opacity: 0.38;
-}
-
-.tileDimmed img {
-  filter: saturate(0.2) brightness(0.55);
 }
 
 /* ── Reduced motion: freeze all drift ────────────────── */

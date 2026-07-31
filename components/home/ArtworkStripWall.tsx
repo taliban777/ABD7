@@ -15,19 +15,19 @@
  *    loop without a visible seam.
  */
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo } from "react";
 import { getStripThumbnailUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
 
 // ─── Strip configuration ──────────────────────────────────────────────────────
-// tile px + gap = unit step. Duration is derived from desired speed.
-const TILE_SIZE = 140; // px (visual size of each tile)
-const GAP       = 4;   // px gap between tiles
-const UNIT      = TILE_SIZE + GAP; // 144 px per step
+// Tiles are flush — no gap. UNIT = tile width.
+const TILE_SIZE = 140; // px
+const UNIT      = TILE_SIZE; // 140 px per step (zero gap)
 
 // Each row: direction and target drift speed in px/second.
-// 2–4 px/s gives barely-perceptible motion — premium, museum-quality.
+// dir  1 = rightward (CSS: driftRight — starts at -loopWidth, ends at 0)
+// dir -1 = leftward  (CSS: driftLeft  — starts at 0, ends at -loopWidth)
 const ROW_CONFIG = [
   { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest
   { dir: -1 as const, speed: 3.4 },  // row 1 — leftward
@@ -37,9 +37,12 @@ const ROW_CONFIG = [
   { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
 ] as const;
 
-// Number of CMS-copy repetitions so the seamless loop is wide enough.
-// 5 copies × (n tiles × 144px) covers any realistic viewport comfortably.
-const COPIES = 5;
+// Number of CMS-copy repetitions inside the track.
+// The animation loops by shifting exactly one copy-set width —
+// so we need at least: ceil(viewportWidth / (n × TILE_SIZE)) + 2 copies.
+// Using 8 copies covers up to ~7680 px wide viewports with ≥1 project.
+// With many projects (e.g. 20+) this is already ~40 000 px — plenty.
+const COPIES = 8;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -78,17 +81,17 @@ interface StripRowProps {
   rowIndex: number;
   dir: 1 | -1;
   speed: number; // px/s
-  focusedId: string | null;
-  onFocus: (id: string | null) => void;
 }
 
-function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowProps) {
-  // The CSS animation shifts the track by exactly one full copy width.
-  // duration = (n_projects × UNIT) / speed
+function StripRow({ tiles, rowIndex, dir, speed }: StripRowProps) {
+  // loopWidth = one full copy-set width (no gap — tiles are flush).
+  // The CSS keyframe shifts by exactly this distance so the reset is invisible.
   const projectCount = tiles.length / COPIES; // original count before repeating
-  const loopWidth    = projectCount * UNIT;    // px — one full copy
+  const loopWidth    = projectCount * UNIT;    // px — one full copy (no gap)
   const duration     = loopWidth / speed;      // seconds
 
+  // dir  1 → driftRight: track starts at -loopWidth, ends at 0
+  // dir -1 → driftLeft:  track starts at 0, ends at -loopWidth
   const animClass = dir === 1 ? styles.driftRight : styles.driftLeft;
 
   return (
@@ -105,20 +108,12 @@ function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowP
         }}
       >
         {tiles.map((project, idx) => {
-          const src       = getStripThumbnailUrl(project.frontCover);
-          const isFocused = focusedId === project.id;
-          const isDimmed  = focusedId !== null && !isFocused;
+          const src = getStripThumbnailUrl(project.frontCover);
 
           return (
             <div
               key={`${project.id}-${idx}`}
-              className={[
-                styles.tile,
-                isFocused ? styles.tileFocused : "",
-                isDimmed  ? styles.tileDimmed  : "",
-              ].join(" ")}
-              onMouseEnter={() => onFocus(project.id)}
-              onMouseLeave={() => onFocus(null)}
+              className={styles.tile}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -145,12 +140,6 @@ interface ArtworkStripWallProps {
 }
 
 export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
-  const [focusedId, setFocusedId] = useState<string | null>(null);
-
-  const handleFocus = useCallback((id: string | null) => {
-    setFocusedId(id);
-  }, []);
-
   // Build each row's tile list once — stable across renders.
   const rows = useMemo(
     () => ROW_CONFIG.map((cfg, i) => ({
@@ -171,8 +160,6 @@ export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
           tiles={row.tiles}
           dir={row.dir}
           speed={row.speed}
-          focusedId={focusedId}
-          onFocus={handleFocus}
         />
       ))}
     </div>
