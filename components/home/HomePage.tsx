@@ -79,10 +79,6 @@ export default function HomePage({ projects = [] }: HomePageProps) {
         <div className={styles.paperBlock}>
           <h1 className={styles.title}>ARTBYDANI7</h1>
 
-          <span className={styles.subLabel} aria-hidden="true">
-            Living Archive
-          </span>
-
           <button
             type="button"
             className={styles.enterBtn}
