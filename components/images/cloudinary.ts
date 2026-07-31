@@ -77,3 +77,18 @@ export function getProjectImageUrl(url: string): string {
 
   return injectTransformation(url, "w_1800,q_auto:good,f_auto");
 }
+
+/**
+ * Get a small square thumbnail for use in the homepage strip wall.
+ * Parameters: w_240,h_240,c_fill,q_auto:eco,f_auto
+ * - w_240,h_240: tiny square, sufficient for strip wall density
+ * - c_fill: fill the square, crop if needed
+ * - q_auto:eco: lower quality tier — keeps the page very fast
+ * - f_auto: automatic format selection (WebP, AVIF)
+ */
+export function getStripThumbnailUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_240,h_240,c_fill,q_auto:eco,f_auto");
+}

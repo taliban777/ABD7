@@ -1,8 +1,9 @@
 /* =========================================================
-   ARTBYDANI7 — Archive Reveal
-   A translucent drafting sheet laid over the live Collection.
+   ARTBYDANI7 — Homepage
+   Artwork strips behind a centred hero panel overlay.
    ========================================================= */
 
+/* ── Root: fixed viewport, no scroll ────────────────────────────────────── */
 .root {
   position: fixed;
   inset: 0;
@@ -10,309 +11,131 @@
   background: var(--background);
 }
 
-/* ─── Collection layer (the real archive, underneath) ───── */
-
-.collectionLayer {
+/* ── Strip wall layer (behind the hero) ────────────────────────────────── */
+.stripLayer {
   position: absolute;
   inset: 0;
   z-index: 1;
-  /* The live Collection is rendered here but not yet interactive —
-     the paper sheet on top captures all pointer input until the reveal. */
   overflow: hidden;
 }
 
-/* ─── The drafting paper sheet (on top of the Collection) ─ */
-
-.paper {
+/* ── Hero panel ──────────────────────────────────────────────────────────
+   Fixed overlay centred on viewport. On click, lifts upward to reveal
+   the collection archive underneath.
+   ─────────────────────────────────────────────────────────────────────── */
+.panel {
   position: fixed;
   inset: 0;
-  z-index: 200;
-  background: var(--background);
-  cursor: default;
-  /* The feathered inspection hole is written to these two mask
-     properties from JS on every animation frame. */
-  will-change: transform, mask-image, -webkit-mask-image;
-  transform: translateY(0) rotate(0deg);
-}
-
-/* Very subtle archival paper texture + imperfections */
-.paper::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-  background-size: 220px 220px;
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-}
-
-/* A whisper of warmth across the sheet — not a gradient feature, just tone */
-.paper::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 80% 70% at 50% 42%,
-    rgba(255, 250, 238, 0.5) 0%,
-    rgba(244, 241, 234, 0) 72%
-  );
-}
-
-/* Leading-edge curl shadow — only meaningful while the sheet lifts */
-.curl {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 90px;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0;
-  transform-origin: bottom center;
-  background: linear-gradient(
-    to top,
-    rgba(26, 24, 20, 0.18) 0%,
-    rgba(26, 24, 20, 0.06) 40%,
-    rgba(26, 24, 20, 0) 100%
-  );
-}
-
-/* ─── The wordmark printed across the sheet ─────────────── */
-
-.wordmarkWrap {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  padding: 0 4vw;
+  will-change: transform;
+  transform: translateY(0);
 }
 
-.wordmark {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 400;
-  font-size: clamp(2.5rem, 12.8vw, 13rem);
-  line-height: 0.9;
-  letter-spacing: 0;
-  text-align: center;
-  color: #201d18;
-  white-space: nowrap;
-  animation: settle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* The opaque paper block — sits exactly centred, width proportional
+   to the title length. Artwork peeks out on all four sides. */
+.paperBlock {
+  position: relative;
+  z-index: 2;
+  background: var(--background);
+  /* Thin top and bottom border in the muted line colour — catalogue feel */
+  border-top:    1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 40px 20px;
+  pointer-events: auto;
+  /* Gentle fade-in on mount */
+  animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes settle {
+@keyframes blockSettle {
   from {
     opacity: 0;
     transform: translateY(10px);
-    letter-spacing: 0.08em;
   }
   to {
     opacity: 1;
     transform: none;
-    letter-spacing: 0.01em;
   }
 }
 
-/* Quiet instruction line, catalogue-style */
-.hint {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 42px;
-  z-index: 2;
+/* ── Title ────────────────────────────────────────────────────────────── */
+.title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 11vw, 13rem);
+  line-height: 0.92;
+  letter-spacing: 0.015em;
   text-align: center;
-  pointer-events: none;
+  color: var(--foreground);
+  /* Allow wrapping on narrow screens but keep compact on desktop */
+  word-spacing: -0.05em;
+}
+
+/* ── Enter Collection button ─────────────────────────────────────────── */
+.enterBtn {
+  pointer-events: auto;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--foreground);
+  color: var(--foreground);
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
-  letter-spacing: 0.34em;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
-  color: rgba(32, 29, 24, 0.55);
-  animation: hintFade 2.4s ease both;
+  padding: 13px 30px;
+  line-height: 1;
+  border-radius: 0;
+  outline: none;
+  /* Smooth inversion — no jump */
+  transition:
+    background 0.28s ease,
+    color      0.28s ease,
+    transform  0.18s ease;
+  /* Delayed fade after block appears */
+  animation: btnFade 2.2s ease both;
 }
 
-@keyframes hintFade {
-  0%,
-  40% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+@keyframes btnFade {
+  0%, 40% { opacity: 0; transform: translateY(5px); }
+  100%     { opacity: 1; transform: none; }
 }
 
-/* ─── The lift reveal — sheet leaves the screen ─────────── */
+.enterBtn:hover,
+.enterBtn:focus-visible {
+  background: var(--foreground);
+  color: var(--background);
+}
 
-.paperLift {
+.enterBtn:active {
+  transform: translateY(1px);
+}
+
+/* ── Panel lift transition (ENTER COLLECTION click) ─────────────────── */
+.panelLift {
   transition: transform 1.05s cubic-bezier(0.72, 0, 0.16, 1);
-  transform: translateY(-116%) rotate(-1.1deg);
-}
-
-.paperLift .curl {
-  opacity: 1;
-  transition: opacity 0.35s ease;
-}
-
-.paperLift .wordmark {
-  animation: none;
-}
-
-/* Reduced-motion: a quick, plain slide with no inspection light */
-.paperLiftReduced {
-  transition: transform 0.45s ease;
-  transform: translateY(-105%);
-}
-
-/* ─── Glitch effect overlay ─────────────────────────────── */
-
-.glitchOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
+  transform: translateY(-110%) !important;
   pointer-events: none;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(255, 0, 0, 0.15) 2px,
-      rgba(255, 0, 0, 0.15) 3px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0, 255, 255, 0.1) 3px,
-      rgba(0, 255, 255, 0.1) 6px
-    );
-  animation: glitchFlicker 0.12s infinite;
-  mix-blend-mode: screen;
 }
 
-.glitchOverlay::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(0, 0, 0, 0.08) 10px,
-    rgba(0, 0, 0, 0.08) 20px
-  );
-  animation: glitchDiagonal 0.2s infinite;
+.panelLiftReduced {
+  transition: transform 0.42s ease;
+  transform: translateY(-110%) !important;
+  pointer-events: none;
 }
 
-.glitchOverlay::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60%;
-  background: repeating-linear-gradient(
-    180deg,
-    transparent 0,
-    transparent 8px,
-    rgba(100, 200, 255, 0.08) 8px,
-    rgba(100, 200, 255, 0.08) 12px
-  );
-  animation: glitchScan 0.09s infinite;
-}
-
-@keyframes glitchFlicker {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.6;
-  }
-  30% {
-    opacity: 0;
-  }
-  45% {
-    opacity: 0.4;
-  }
-  60% {
-    opacity: 0.2;
-  }
-  75% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes glitchDiagonal {
-  0% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(8px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@keyframes glitchScan {
-  0% {
-    top: -10%;
-  }
-  50% {
-    top: 20%;
-  }
-  100% {
-    top: -10%;
-  }
-}
-
-.paper.glitching {
-  animation: glitchShift 0.07s infinite;
-  filter: blur(0.5px);
-}
-
-@keyframes glitchShift {
-  0% {
-    transform: translateX(0) translateY(0);
-  }
-  14% {
-    transform: translateX(-4px) translateY(3px);
-  }
-  28% {
-    transform: translateX(3px) translateY(-2px);
-  }
-  42% {
-    transform: translateX(-2px) translateY(4px);
-  }
-  56% {
-    transform: translateX(4px) translateY(-1px);
-  }
-  70% {
-    transform: translateX(-3px) translateY(2px);
-  }
-  84% {
-    transform: translateX(2px) translateY(-3px);
-  }
-  100% {
-    transform: translateX(0) translateY(0);
-  }
-}
-
-/* ─── Responsive ────────────────────────────────────────── */
-
+/* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .wordmark {
-    font-size: clamp(2rem, 13vw, 5rem);
-    white-space: normal;
-    word-break: break-word;
-    line-height: 0.92;
-  }
-  .hint {
-    bottom: 32px;
-    letter-spacing: 0.28em;
+  .paperBlock {
+    padding: 16px 24px 14px;
+    gap: 12px;
   }
 }
