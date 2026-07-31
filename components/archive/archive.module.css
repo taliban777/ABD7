@@ -362,23 +362,76 @@
   column-gap: 20px;
   row-gap: 40px;
   padding-top: 28px;
+  /* Shallow perspective so the per-card tilt reads as a real object turning
+     in space rather than a flat skew. Applied here so every card shares
+     the same vanishing point. */
+  perspective: 1400px;
 }
 
-/* Card */
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARD — an archive object under inspection
+   Motion budget: transform + opacity only. No filters on non-hovered cards,
+   no drop-shadow (which forces a repaint of the whole subtree), no keyframe
+   loops. Everything below stays on the compositor at 60fps.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .card {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
   animation: cardIn 0.4s ease both;
-  transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease, box-shadow 0.5s ease;
-  will-change: transform;
-  transform-origin: center bottom;
-  filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0));
+
+  /* Cursor-driven values, written by ArtworkCard's pointermove handler */
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --shift-x: 0px;
+  --shift-y: 0px;
+  --spec-x: 50%;
+  --spec-y: 50%;
+  --lift: 0px;
+
+  transform-origin: center center;
+  transform: translate3d(0, var(--lift), 0) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transform-style: preserve-3d;
+
+  /* Transform tracks the cursor, so it must stay responsive — a long duration
+     here would make the tilt visibly trail the pointer. The slower 700ms
+     easing lives on the state properties (shadow, veil, sheen, weight). */
+  transition:
+    transform 380ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* A refined inspection cursor rather than the default pointer */
+  cursor: crosshair;
 }
+
 .card:hover {
-  transform: scale(1.022);
-  filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
+  --lift: -5px;
+  /* Soft, large, low-contrast — light diffusing behind a mounted object */
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.16),
+    0 18px 48px rgba(0, 0, 0, 0.3);
+  z-index: 2;
 }
+
+.card:focus-visible {
+  outline: 1px solid var(--foreground);
+  outline-offset: 4px;
+}
+
+/* ── Focus: neighbouring objects recede ───────────────────────────────────
+   Opacity only. Saturation is reduced with a neutral veil overlay instead of
+   a `filter`, because animating filter across every card in the grid forces
+   a full repaint each frame and drops frames. */
+.grid:has(.card:hover) .card {
+  opacity: 0.68;
+}
+.grid:has(.card:hover) .card:hover {
+  opacity: 1;
+}
+
 .imageFrame {
   aspect-ratio: 1 / 1;
   background: var(--surface);
@@ -388,39 +441,61 @@
   justify-content: center;
   position: relative;
 }
-.imageFrame::after {
-  content: " ";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(245, 240, 220, 0.04) 30%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(245, 240, 220, 0.04) 70%,
-    transparent 100%
-  );
-  opacity: 0;
-  mix-blend-mode: overlay;
-  pointer-events: none;
-}
-.card:hover .imageFrame::after {
-  opacity: 1;
-  animation: galleryReflection var(--reflection-duration, 1000ms) ease-in-out forwards;
-}
+
+/* ── Artwork: subtle inner parallax + a touch more clarity ──────────────── */
 .cover {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: contain;
+  transform: translate3d(var(--shift-x), var(--shift-y), 0) scale(1.012);
+  transition:
+    transform 380ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.card:hover .labelTitle {
-  text-shadow:
-    0 0 0.4px currentColor,
-    0 0 0.4px currentColor;
+/* Scoped to the single hovered image, so only one element ever repaints */
+.card:hover .cover {
+  filter: contrast(1.05) saturate(1.04);
+}
+
+/* ── Specular sheen ───────────────────────────────────────────────────────
+   A single soft, neutral highlight that follows the cursor. No hue rotation,
+   no iridescence — this is a sheet of glazed paper catching gallery lighting.
+   Position comes from --spec-x/--spec-y; only `opacity` transitions. */
+.specular {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 55% 45% at var(--spec-x) var(--spec-y),
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.07) 34%,
+    rgba(255, 255, 255, 0.02) 62%,
+    transparent 78%
+  );
+  transition: opacity 760ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.card:hover .specular {
+  opacity: 1;
+}
+
+/* ── Neutral veil ─────────────────────────────────────────────────────────
+   Desaturates neighbouring artwork perceptually without touching `filter`.
+   Compositing a flat colour layer is far cheaper than a saturate() pass. */
+.veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--background);
+  opacity: 0;
+  transition: opacity 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.grid:has(.card:hover) .veil {
+  opacity: 0.22;
+}
+.grid:has(.card:hover) .card:hover .veil {
+  opacity: 0;
 }
 .coverLoading {
   width: 100%;
@@ -434,17 +509,6 @@
   }
   50% {
     opacity: 0.9;
-  }
-}
-@keyframes galleryReflection {
-  0% {
-    transform: translateX(var(--reflection-start, -100%)) translateY(var(--reflection-y-start, -50%));
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(var(--reflection-end, 100%)) translateY(var(--reflection-y-end, 50%));
   }
 }
 .coverFallback {
@@ -482,17 +546,28 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+/* ── Catalogue number ─────────────────────────────────────────────────────
+   Keeps the existing letter-spacing tracking, now paired with a slight gain
+   in weight and a small horizontal shift. No flash, no scale. */
 .catNumber {
-  transition: letter-spacing 0.7s ease;
+  display: inline-block;
+  transform: translate3d(0, 0, 0);
+  transition:
+    letter-spacing 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    font-weight 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .card:hover .catNumber {
   letter-spacing: 0.4em;
+  font-weight: 700;
+  transform: translate3d(2px, 0, 0);
+  color: var(--label-foreground);
 }
 .labelTitle {
   font: 700 13px/1.35 var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: text-shadow 0.38s ease;
 }
 .labelArtist {
   margin-top: 8px;
@@ -543,6 +618,44 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* ── Reduced motion: keep the state changes, drop the movement ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cover,
+  .catNumber {
+    transition-duration: 1ms;
+  }
+  .card {
+    transform: none;
+  }
+  .cover {
+    transform: none;
+  }
+  .card:hover .catNumber {
+    transform: none;
+  }
+}
+
+/* ── Touch devices: no cursor to track, so skip tilt and sheen entirely ─── */
+@media (hover: none) {
+  .grid {
+    perspective: none;
+  }
+  .card {
+    transform: none;
+    cursor: pointer;
+  }
+  .cover {
+    transform: none;
+  }
+  .specular {
+    display: none;
+  }
+  .veil {
+    display: none;
   }
 }
 
