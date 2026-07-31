@@ -13,11 +13,11 @@ export interface HomePageProps {
 
 export default function HomePage({ projects = [] }: HomePageProps) {
   const router = useRouter();
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef    = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
-  const reducedRef = useRef(false);
+  const reducedRef  = useRef(false);
 
-  // ── Prefetch Collection + preload top covers ───────────────────────────
+  // ── Prefetch Collection + preload top covers ─────────────────────────
   useEffect(() => {
     router.prefetch("/collection");
 
@@ -27,18 +27,19 @@ export default function HomePage({ projects = [] }: HomePageProps) {
       .slice(0, 12);
     for (const cover of covers) {
       const img = new window.Image();
+      img.crossOrigin = "anonymous";
       img.decoding = "async";
       img.src = getArchiveImageUrl(cover);
     }
   }, [router, projects]);
 
-  // ── Detect reduced motion once ─────────────────────────────────────────
+  // ── Detect reduced motion once ───────────────────────────────────────
   useEffect(() => {
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     reducedRef.current = !!mq?.matches;
   }, []);
 
-  // ── Reveal: panel lifts upward, Collection underneath ─────────────────
+  // ── Reveal: panel lifts upward, Collection underneath ───────────────
   const reveal = useCallback(() => {
     if (revealingRef.current) return;
     revealingRef.current = true;
@@ -68,18 +69,19 @@ export default function HomePage({ projects = [] }: HomePageProps) {
 
   return (
     <div className={styles.root}>
-      {/* ── Strip wall layer (CMS artwork behind the hero) ── */}
+      {/* ── Strip wall layer (CMS artwork behind the paper block) ── */}
       <div className={styles.stripLayer}>
         <ArtworkStripWall projects={projects} />
       </div>
 
-      {/* ── Hero panel (title + button) ────────────────────── */}
+      {/* ── Hero panel (opaque paper block + typography) ─────────── */}
       <div ref={panelRef} className={styles.panel}>
-        {/* Subtle veil so the title always reads clearly */}
-        <div className={styles.veil} aria-hidden="true" />
-
-        <div className={styles.hero}>
+        <div className={styles.paperBlock}>
           <h1 className={styles.title}>ARTBYDANI7</h1>
+
+          <span className={styles.subLabel} aria-hidden="true">
+            Living Archive
+          </span>
 
           <button
             type="button"
@@ -93,7 +95,7 @@ export default function HomePage({ projects = [] }: HomePageProps) {
             }}
             aria-label="Enter the ARTBYDANI7 collection"
           >
-            ENTER COLLECTION
+            Enter Collection
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 /* =========================================================
    ARTBYDANI7 — Homepage
-   Entrance foyer to the living archive.
+   Museum catalogue cover. Calm, expensive, timeless.
    ========================================================= */
 
 /* ── Root: full viewport, no scroll ──────────────────────────────────── */
@@ -19,7 +19,11 @@
   overflow: hidden;
 }
 
-/* ── Hero panel: sits above the strip wall ──────────────────────────── */
+/* ── Hero panel ──────────────────────────────────────────────────────────
+   A solid paper rectangle that lifts out of the way on click.
+   No radial glow — clean, editorial separation between the
+   moving artwork and the typography.
+   ─────────────────────────────────────────────────────────────────────── */
 .panel {
   position: fixed;
   inset: 0;
@@ -27,34 +31,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none; /* children opt-in with pointer-events: auto */
+  pointer-events: none;
   will-change: transform;
   transform: translateY(0);
 }
 
-/* Soft centred veil — not a gradient background, just a radial tone
-   so the title always reads clearly against moving artwork. */
-.veil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 70% 60% at 50% 50%,
-    var(--background) 28%,
-    rgba(242, 240, 233, 0.72) 58%,
-    rgba(242, 240, 233, 0) 90%
-  );
-}
-
-/* ── Hero content ─────────────────────────────────────────────────────── */
-.hero {
+/* The opaque paper block — sits exactly centred, width proportional
+   to the title length. Artwork peeks out on all four sides. */
+.paperBlock {
   position: relative;
   z-index: 2;
+  background: var(--background);
+  /* Thin top and bottom border in the muted line colour — catalogue feel */
+  border-top:    1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
-  pointer-events: none;
+  gap: 36px;
+  padding: 48px 64px 44px;
+  pointer-events: auto;
+  /* Gentle fade-in on mount */
+  animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes blockSettle {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ── Title ────────────────────────────────────────────────────────────── */
@@ -62,27 +71,28 @@
   margin: 0;
   font-family: Georgia, "Times New Roman", Times, serif;
   font-weight: 400;
-  font-size: clamp(3.2rem, 13.5vw, 14rem);
+  font-size: clamp(3.4rem, 12vw, 13rem);
   line-height: 0.92;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.015em;
   text-align: center;
   color: var(--foreground);
   white-space: nowrap;
-  text-balance: balance;
-  animation: titleSettle 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* No separate animation — the paperBlock animation carries it */
 }
 
-@keyframes titleSettle {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-    letter-spacing: 0.06em;
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    letter-spacing: 0.01em;
-  }
+/* ── Catalogue sub-label ─────────────────────────────────────────────────
+   Optional small label beneath the title — reinforces the
+   catalogue-cover reading without competing with the title. */
+.subLabel {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -20px; /* pull closer to title baseline */
 }
 
 /* ── Enter Collection button ─────────────────────────────────────────── */
@@ -93,40 +103,32 @@
   border: 1px solid var(--foreground);
   color: var(--foreground);
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 400;
-  letter-spacing: 0.34em;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
-  padding: 12px 28px;
+  padding: 13px 30px;
   line-height: 1;
-  /* No border-radius — angular, archival */
   border-radius: 0;
   outline: none;
+  /* Smooth inversion — no jump */
   transition:
-    background 0.22s ease,
-    color 0.22s ease,
-    transform 0.18s ease,
-    box-shadow 0.22s ease;
-  animation: btnFade 2s ease both;
+    background 0.28s ease,
+    color      0.28s ease,
+    transform  0.18s ease;
+  /* Delayed fade after block appears */
+  animation: btnFade 2.2s ease both;
 }
 
 @keyframes btnFade {
-  0%,
-  45% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
+  0%, 40% { opacity: 0; transform: translateY(5px); }
+  100%     { opacity: 1; transform: none; }
 }
 
 .enterBtn:hover,
 .enterBtn:focus-visible {
   background: var(--foreground);
   color: var(--background);
-  box-shadow: 0 2px 18px rgba(17, 17, 15, 0.18);
 }
 
 .enterBtn:active {
@@ -140,7 +142,6 @@
   pointer-events: none;
 }
 
-/* Reduced-motion variant */
 .panelLiftReduced {
   transition: transform 0.42s ease;
   transform: translateY(-104%) !important;
@@ -155,17 +156,13 @@
     word-break: break-word;
   }
 
-  .hero {
-    gap: 32px;
-    padding: 0 24px;
-  }
-
-  .veil {
-    background: radial-gradient(
-      ellipse 90% 55% at 50% 50%,
-      var(--background) 26%,
-      rgba(242, 240, 233, 0.7) 52%,
-      rgba(242, 240, 233, 0) 86%
-    );
+  .paperBlock {
+    padding: 36px 28px 32px;
+    gap: 28px;
+    /* Full width on mobile so artwork can't peek left/right — 
+       the vertical bleed is enough to preserve the effect */
+    width: 100%;
+    border-left:  none;
+    border-right: none;
   }
 }
