@@ -23,13 +23,12 @@ const UNIT      = TILE_SIZE + GAP; // 144 px per step
 
 // Each row: direction and target drift speed in px/second.
 // 2–4 px/s gives barely-perceptible motion — premium, museum-quality.
+// 4 rows total: 2 above the title, 2 below.
 const ROW_CONFIG = [
-  { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest
-  { dir: -1 as const, speed: 3.4 },  // row 1 — leftward
-  { dir:  1 as const, speed: 2.2 },  // row 2 — rightward, very slow
-  { dir: -1 as const, speed: 3.8 },  // row 3 — leftward
-  { dir:  1 as const, speed: 2.9 },  // row 4 — rightward
-  { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
+  { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest (above)
+  { dir: -1 as const, speed: 3.4 },  // row 1 — leftward (above)
+  { dir:  1 as const, speed: 2.9 },  // row 2 — rightward (below)
+  { dir: -1 as const, speed: 3.1 },  // row 3 — leftward (below)
 ] as const;
 
 // Number of tiles per row. Each is truly random-picked from the CMS.
