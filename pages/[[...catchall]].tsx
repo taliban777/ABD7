@@ -13,76 +13,8 @@ import Head from "next/head";
 import HomePage from "@/components/home/HomePage";
 import { IndexPage } from "@/components/index-page/IndexPage";
 import { PLASMIC } from "@/plasmic-init";
-import type { CmsProject, CmsListValue } from "@/components/archive/types";
-
-// Helper to resolve image URLs from CMS
-function resolveImageUrl(value: unknown): string {
-  if (typeof value === "string" && value.length > 0) return value;
-  if (Array.isArray(value) && value.length > 0) return resolveImageUrl(value[0]);
-  if (value !== null && typeof value === "object") {
-    const o = value as Record<string, unknown>;
-    return resolveImageUrl(o.url ?? o.src ?? o.imageUrl ?? o.uri ?? "");
-  }
-  return "";
-}
-
-function resolveListField(value: unknown): CmsListValue[] {
-  if (!value) return [];
-  if (typeof value === "string") return value.length ? [value] : [];
-  if (Array.isArray(value)) {
-    return value.filter(
-      (v) => typeof v === "string" || (typeof v === "object" && v !== null)
-    ) as CmsListValue[];
-  }
-  if (typeof value === "object") {
-    const o = value as Record<string, unknown>;
-    if (o.name || o.title || o.label || o.value || o.hex || o.color) return [o as CmsListValue];
-  }
-  return [];
-}
-
-function collectProjects(node: unknown, seen = new Set<object>()): CmsProject[] {
-  if (!node || typeof node !== "object") return [];
-  if (seen.has(node as object)) return [];
-  seen.add(node as object);
-
-  const o = node as Record<string, unknown>;
-  const results: CmsProject[] = [];
-
-  const title = typeof o.title === "string" ? o.title.trim() : "";
-  const frontCover = resolveImageUrl(o.frontCover);
-
-  if (title && frontCover) {
-    const id = typeof o.id === "string" ? o.id : title;
-    results.push({
-      id,
-      title,
-      slug: typeof o.slug === "string" ? o.slug : null,
-      frontCover,
-      artists: resolveListField(o.artists),
-      categories: resolveListField(o.categories),
-      style: resolveListField(o.style),
-      palette: resolveListField(o.palette),
-      year: typeof o.year === "number" ? o.year : o.year ? Number(o.year) || null : null,
-      date: typeof o.date === "string" ? o.date : null,
-      createdAt: typeof o.createdAt === "string" ? o.createdAt : null,
-    });
-  }
-
-  if (Array.isArray(node)) {
-    for (const item of node) results.push(...collectProjects(item, seen));
-  } else {
-    for (const val of Object.values(o)) results.push(...collectProjects(val, seen));
-  }
-
-  // Deduplicate by id
-  const seen2 = new Set<string>();
-  return results.filter((p) => {
-    if (seen2.has(p.id)) return false;
-    seen2.add(p.id);
-    return true;
-  });
-}
+import { fetchCmsProjects } from "@/lib/cms";
+import type { CmsProject } from "@/components/archive/types";
 
 export default function PlasmicLoaderPage(props: {
   plasmicData?: ComponentRenderData;
@@ -119,7 +51,7 @@ export default function PlasmicLoaderPage(props: {
       </>
     );
   }
-  
+
   if (!plasmicData || plasmicData.entryCompMetas.length === 0) {
     return <Error statusCode={404} />;
   }
@@ -143,68 +75,30 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
 
   if (isHomepage) {
-    // The homepage renders the live Collection underneath the reveal layer,
-    // so it needs the same CMS-driven projects the archive uses.
-    const testData = await PLASMIC.maybeFetchComponentData("/test");
-    if (!testData) {
-      return { props: { isHomepage: true, projects: [] }, revalidate: 3600 };
-    }
-
-    const testMeta = testData.entryCompMetas[0];
-    const queryCache = await extractPlasmicQueryData(
-      React.createElement(
-        PlasmicRootProvider,
-        {
-          loader: PLASMIC,
-          prefetchedData: testData,
-          pageRoute: testMeta.path,
-          pageParams: testMeta.params,
-        },
-        React.createElement(PlasmicComponent, { component: testMeta.displayName })
-      )
-    );
-
-    const projects = collectProjects(queryCache);
+    const projects = await fetchCmsProjects();
     return { props: { isHomepage: true, projects }, revalidate: 3600 };
   }
 
-  const plasmicPath = typeof catchall === "string" ? catchall : Array.isArray(catchall) ? `/${catchall.join("/")}` : "/";
+  const plasmicPath =
+    typeof catchall === "string"
+      ? catchall
+      : Array.isArray(catchall)
+      ? `/${catchall.join("/")}`
+      : "/";
 
   // Special handling for /catalogue: render as IndexPage instead of Plasmic component
   if (plasmicPath === "/catalogue") {
-    // Fetch the "/test" (archive) page data to get projects
-    const testData = await PLASMIC.maybeFetchComponentData("/test");
-    if (!testData) {
-      return { props: { isIndexPage: true, projects: [] }, revalidate: 3600 };
-    }
-
-    const testMeta = testData.entryCompMetas[0];
-    const queryCache = await extractPlasmicQueryData(
-      React.createElement(
-        PlasmicRootProvider,
-        {
-          loader: PLASMIC,
-          prefetchedData: testData,
-          pageRoute: testMeta.path,
-          pageParams: testMeta.params,
-        },
-        React.createElement(PlasmicComponent, { component: testMeta.displayName })
-      )
-    );
-
-    const projects = collectProjects(queryCache);
+    const projects = await fetchCmsProjects();
     return { props: { isIndexPage: true, projects }, revalidate: 3600 };
   }
 
   const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
 
   if (!plasmicData) {
-    // non-Plasmic catch-all
     return { props: {} };
   }
-  
+
   const pageMeta = plasmicData.entryCompMetas[0];
-  // Cache the necessary data fetched for the page
   const queryCache = await extractPlasmicQueryData(
     React.createElement(
       PlasmicRootProvider,
@@ -217,14 +111,13 @@ export const getStaticProps: GetStaticProps = async (context) => {
       React.createElement(PlasmicComponent, { component: pageMeta.displayName })
     )
   );
-  // Use revalidate if you want incremental static regeneration
   return { props: { plasmicData, queryCache }, revalidate: 60 };
-}
+};
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pageModules = await PLASMIC.fetchPages();
   const EXCLUDED = new Set(["/archive", "/test", "/contact", "/colophon"]);
-  
+
   const paths = pageModules
     .filter((mod) => !EXCLUDED.has(mod.path))
     .map((mod) => ({
@@ -234,14 +127,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }));
 
   // Explicitly include /catalogue as a static path
-  paths.push({
-    params: {
-      catchall: ["catalogue"],
-    },
-  });
+  paths.push({ params: { catchall: ["catalogue"] } });
 
-  return {
-    paths,
-    fallback: "blocking",
-  };
-}
+  return { paths, fallback: "blocking" };
+};
