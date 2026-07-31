@@ -3,24 +3,22 @@
    No JS per-frame work. GPU-composited transform only.
    ========================================================= */
 
-/* Full-bleed artwork wall — dedicated section on the page */
+/* Full-bleed wall behind the hero layer */
 .wall {
   position: absolute;
   inset: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-evenly;
   align-items: stretch;
   pointer-events: none;
   z-index: 1;
-  padding-top: 40px;
-  gap: 24px;
 }
 
 /* One horizontal row — clips the drifting track */
 .row {
-  flex: 0 0 140px;
+  flex: 0 0 auto;
   height: 140px;
   overflow: hidden;
   pointer-events: auto;
@@ -132,13 +130,7 @@
 /* ── Mobile: smaller tiles ───────────────────────────── */
 
 @media (max-width: 640px) {
-  .wall {
-    padding-top: 24px;
-    gap: 16px;
-  }
-
   .row {
-    flex: 0 0 96px;
     height: 96px;
   }
 
