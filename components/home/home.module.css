@@ -1,39 +1,38 @@
 /* =========================================================
    ARTBYDANI7 — Homepage
-   Museum catalogue cover. Calm, expensive, timeless.
+   Centred hero panel with title + button, artwork strips below.
    ========================================================= */
 
-/* ── Root: full viewport, no scroll ──────────────────────────────────── */
+/* ── Root: scrollable page layout ────────────────────────────────────── */
 .root {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
+  position: relative;
   background: var(--background);
-}
-
-/* ── Strip wall layer ────────────────────────────────────────────────── */
-.stripLayer {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* ── Hero panel ──────────────────────────────────────────────────────────
-   A solid paper rectangle that lifts out of the way on click.
-   No radial glow — clean, editorial separation between the
-   moving artwork and the typography.
+   Full viewport height, centred. On click, lifts upward to reveal
+   the collection archive underneath.
    ─────────────────────────────────────────────────────────────────────── */
 .panel {
-  position: fixed;
-  inset: 0;
+  position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
   pointer-events: none;
   will-change: transform;
   transform: translateY(0);
+}
+
+/* ── Strip wall layer (below hero, full width, separate section) ──────── */
+.stripLayer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  z-index: 1;
 }
 
 /* The opaque paper block — sits exactly centred, width proportional
@@ -71,28 +70,13 @@
   margin: 0;
   font-family: Georgia, "Times New Roman", Times, serif;
   font-weight: 400;
-  font-size: clamp(3.4rem, 12vw, 13rem);
+  font-size: clamp(2.6rem, 11vw, 13rem);
   line-height: 0.92;
   letter-spacing: 0.015em;
   text-align: center;
   color: var(--foreground);
-  white-space: nowrap;
-  /* No separate animation — the paperBlock animation carries it */
-}
-
-/* ── Catalogue sub-label ─────────────────────────────────────────────────
-   Optional small label beneath the title — reinforces the
-   catalogue-cover reading without competing with the title. */
-.subLabel {
-  display: block;
-  font-family: var(--font-mono), monospace;
-  font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: center;
-  margin-top: -20px; /* pull closer to title baseline */
+  /* Allow wrapping on narrow screens but keep compact on desktop */
+  word-spacing: -0.05em;
 }
 
 /* ── Enter Collection button ─────────────────────────────────────────── */
@@ -138,31 +122,20 @@
 /* ── Panel lift transition (ENTER COLLECTION click) ─────────────────── */
 .panelLift {
   transition: transform 1.05s cubic-bezier(0.72, 0, 0.16, 1);
-  transform: translateY(-112%) !important;
+  transform: translateY(-100vh) !important;
   pointer-events: none;
 }
 
 .panelLiftReduced {
   transition: transform 0.42s ease;
-  transform: translateY(-104%) !important;
+  transform: translateY(-100vh) !important;
   pointer-events: none;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .title {
-    font-size: clamp(2.8rem, 16vw, 6rem);
-    white-space: normal;
-    word-break: break-word;
-  }
-
   .paperBlock {
-    padding: 36px 28px 32px;
-    gap: 28px;
-    /* Full width on mobile so artwork can't peek left/right — 
-       the vertical bleed is enough to preserve the effect */
-    width: 100%;
-    border-left:  none;
-    border-right: none;
+    padding: 32px 20px 28px;
+    gap: 24px;
   }
 }
