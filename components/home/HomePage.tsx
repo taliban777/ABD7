@@ -1,142 +1,79 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import styles from "./home.module.css";
+import { getArchiveImageUrl } from "@/components/images/cloudinary";
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  opacity: number;
-  size: number;
-  born: number;
-  lifetime: number;
+interface SimpleProject {
+  id: string;
+  title: string;
+  frontCover: string;
 }
 
-const POOL_MAX = 14;
-const SPAWN_THROTTLE = 90; // ms
-const GLYPH_SIZE = 14;
+// Number of rows and items per row
+const STRIP_ROWS = 6;
+const ITEMS_PER_ROW = 24;
+
+interface HoverState {
+  projectId: string | null;
+  rowIndex: number | null;
+}
 
 export default function HomePage() {
   const router = useRouter();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const rafRef = useRef<number>(0);
-  const lastSpawnRef = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
   const transitioningRef = useRef(false);
-  // Pre-rendered glyph cached on an offscreen canvas
-  const glyphRef = useRef<HTMLCanvasElement | null>(null);
+  const [projects, setProjects] = useState<SimpleProject[]>([]);
+  const [hover, setHover] = useState<HoverState>({ projectId: null, rowIndex: null });
+  const [loading, setLoading] = useState(true);
 
-  // Pre-render "7" once to an offscreen canvas — avoids repeated fillText calls
+  // Fetch projects from CMS on mount
   useEffect(() => {
-    const off = document.createElement("canvas");
-    const pad = 4;
-    off.width = GLYPH_SIZE + pad * 2;
-    off.height = GLYPH_SIZE + pad * 2;
-    const ctx = off.getContext("2d")!;
-    ctx.font = `${GLYPH_SIZE}px Georgia, serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#3a3630";
-    ctx.fillText("7", off.width / 2, off.height / 2);
-    glyphRef.current = off;
-  }, []);
-
-  const spawnParticle = useCallback((x: number, y: number) => {
-    const now = performance.now();
-    if (now - lastSpawnRef.current < SPAWN_THROTTLE) return;
-    lastSpawnRef.current = now;
-
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;
-    const speed = 0.4 + Math.random() * 0.5;
-
-    if (particlesRef.current.length >= POOL_MAX) {
-      particlesRef.current.shift();
-    }
-    particlesRef.current.push({
-      x: x + (Math.random() - 0.5) * 10,
-      y: y + (Math.random() - 0.5) * 10,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      opacity: 0.45 + Math.random() * 0.35,
-      size: 0.6 + Math.random() * 0.7,
-      born: now,
-      lifetime: 1400 + Math.random() * 800,
-    });
-  }, []);
-
-  // Particle render loop — only runs when particles are alive
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const tick = (now: number) => {
-      const particles = particlesRef.current;
-
-      if (particles.length === 0) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/projects");
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setProjects(data);
+        } else {
+          throw new Error("No projects returned");
+        }
+      } catch (error) {
+        console.error("[v0] Failed to fetch projects from CMS, using placeholders:", error);
+        // Use solid color placeholders for visual testing
+        const placeholders: SimpleProject[] = Array.from({ length: 144 }, (_, i) => {
+          const colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#F7DC6F"];
+          const color = colors[i % colors.length];
+          return {
+            id: `placeholder-${i}`,
+            title: `Project ${i + 1}`,
+            frontCover: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Crect fill='${encodeURIComponent(color)}' width='700' height='700'/%3E%3C/svg%3E`,
+          };
+        });
+        setProjects(placeholders);
+      } finally {
+        setLoading(false);
       }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const glyph = glyphRef.current;
-      const gw = glyph ? glyph.width : 0;
-      const gh = glyph ? glyph.height : 0;
-
-      particlesRef.current = particles.filter((p) => {
-        const age = now - p.born;
-        if (age > p.lifetime) return false;
-
-        const t = age / p.lifetime;
-        // Smooth fade: quick in, slow out
-        const fade = t < 0.12 ? t / 0.12 : 1 - ((t - 0.12) / 0.88) ** 1.5;
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.012; // gravity
-        p.vx *= 0.997;
-
-        if (!glyph) return true;
-
-        ctx.save();
-        ctx.globalAlpha = p.opacity * fade;
-        // drawImage is ~10x faster than fillText per frame
-        ctx.drawImage(
-          glyph,
-          p.x - (gw * p.size) / 2,
-          p.y - (gh * p.size) / 2,
-          gw * p.size,
-          gh * p.size
-        );
-        ctx.restore();
-        return true;
-      });
-
-      rafRef.current = requestAnimationFrame(tick);
     };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("resize", resize);
-    };
+    fetchProjects();
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    spawnParticle(e.clientX, e.clientY);
-  }, [spawnParticle]);
+  // Generate rows of projects with different offsets
+  const strips = useCallback(() => {
+    const rows: SimpleProject[][] = [];
+    for (let i = 0; i < STRIP_ROWS; i++) {
+      const start = (i * ITEMS_PER_ROW) % projects.length;
+      const row: SimpleProject[] = [];
+      for (let j = 0; j < ITEMS_PER_ROW; j++) {
+        const idx = (start + j) % projects.length;
+        row.push(projects[idx]);
+      }
+      rows.push(row);
+    }
+    return rows;
+  }, [projects]);
 
   const handleEnter = useCallback(() => {
     if (transitioningRef.current) return;
@@ -148,7 +85,7 @@ export default function HomePage() {
       return;
     }
 
-    overlay.classList.add(styles.overlayExpand);
+    overlay.classList.add(styles.overlaySlideUp);
 
     const tid = setTimeout(() => {
       router.push("/test");
@@ -157,32 +94,66 @@ export default function HomePage() {
     return () => clearTimeout(tid);
   }, [router]);
 
+  const stripRows = loading || projects.length === 0 ? [] : strips();
+
   return (
-    <main
-      className={styles.root}
-      onMouseMove={handleMouseMove}
-      aria-label="ARTBYDANI7 — Enter Gallery"
-    >
-      {/* Particle canvas */}
-      <canvas
-        ref={canvasRef}
-        className={styles.particles}
-        aria-hidden="true"
-      />
+    <main className={styles.root} aria-label="ARTBYDANI7 — Enter the Archive">
+      {/* Artwork strips background */}
+      <div className={styles.stripsContainer} aria-hidden="true">
+        {stripRows.map((row, rowIdx) => (
+          <div
+            key={rowIdx}
+            className={styles.strip}
+            style={
+              {
+                "--row-index": rowIdx,
+                "--drift-direction": rowIdx % 2 === 0 ? -1 : 1,
+              } as React.CSSProperties
+            }
+            onMouseLeave={() => setHover({ projectId: null, rowIndex: null })}
+          >
+            {row.map((project, itemIdx) => {
+              if (!project || !project.id) return null;
+              return (
+                <div
+                  key={`${rowIdx}-${itemIdx}-${project.id}`}
+                  className={`${styles.stripItem} ${
+                    hover.projectId === project.id ? styles.stripItemHover : ""
+                  } ${hover.projectId !== null && hover.projectId !== project.id ? styles.stripItemDimmed : ""}`}
+                  onMouseEnter={() => setHover({ projectId: project.id, rowIndex: rowIdx })}
+                  style={{
+                    "--hover-state": hover.projectId === project.id ? "1" : "0",
+                  } as React.CSSProperties}
+                >
+                  <img
+                    src={getArchiveImageUrl(project.frontCover)}
+                    alt={project.title}
+                    className={styles.stripImage}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
 
-      {/* Slow light shift */}
-      <div className={styles.lightShift} aria-hidden="true" />
+      {/* Dimming overlay when hovering */}
+      {hover.projectId !== null && (
+        <div className={styles.hoverDim} aria-hidden="true" />
+      )}
 
-      {/* Centre content */}
+      {/* Centre content — always on top */}
       <div className={styles.centre}>
         <h1 className={styles.wordmark}>ARTBYDANI7</h1>
         <button
           type="button"
           className={styles.enterBtn}
           onClick={handleEnter}
-          aria-label="Enter the gallery archive"
+          aria-label="Enter the collection"
         >
-          ENTER GALLERY
+          ENTER COLLECTION
         </button>
       </div>
 
