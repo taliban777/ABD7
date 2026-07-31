@@ -112,24 +112,23 @@
 }
 
 /* ── Pure-CSS hover: row acts as the hover context ───────
-   When any tile in the row is hovered:
-     - All tiles dim via the row:has(:hover) selector
-     - The directly-hovered tile reverts to full colour
-   This runs entirely on the CSS engine — zero JS, zero
-   re-renders, zero React state updates.
+   PERFORMANCE: siblings dim using ONLY opacity — a compositor-
+   friendly property that needs no repaint. We deliberately do
+   NOT transition `filter` on the non-hovered tiles: animating
+   saturate/brightness across hundreds of images at once forces
+   a full repaint every frame and causes the hover lag.
+
+   The expensive `filter` change is scoped to the single tile
+   the pointer is actually over, so only one image ever repaints.
    ─────────────────────────────────────────────────────── */
 
-/* When a sibling tile is hovered, dim this tile */
+/* When any tile in the row is hovered, dim the others (opacity only) */
 .row:has(.tile:hover) .tile {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
-.row:has(.tile:hover) .tile img {
-  filter: saturate(0.15) brightness(0.5);
-}
-
-/* The directly hovered tile stays vivid */
-.tile:hover {
+/* The directly hovered tile stays fully opaque and gets colour back */
+.row:has(.tile:hover) .tile:hover {
   opacity: 1;
 }
 
