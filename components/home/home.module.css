@@ -47,8 +47,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 36px;
-  padding: 48px 64px 44px;
+  gap: 18px;
+  padding: 24px 40px 20px;
   pointer-events: auto;
   /* Gentle fade-in on mount */
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -135,7 +135,7 @@
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .paperBlock {
-    padding: 32px 20px 28px;
-    gap: 24px;
+    padding: 16px 24px 14px;
+    gap: 12px;
   }
 }
