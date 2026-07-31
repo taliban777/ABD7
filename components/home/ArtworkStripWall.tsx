@@ -15,7 +15,7 @@
  *    loop without a visible seam.
  */
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo } from "react";
 import { getStripThumbnailUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
@@ -81,11 +81,9 @@ interface StripRowProps {
   rowIndex: number;
   dir: 1 | -1;
   speed: number; // px/s
-  focusedId: string | null;
-  onFocus: (id: string | null) => void;
 }
 
-function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowProps) {
+function StripRow({ tiles, rowIndex, dir, speed }: StripRowProps) {
   // loopWidth = one full copy-set width (no gap — tiles are flush).
   // The CSS keyframe shifts by exactly this distance so the reset is invisible.
   const projectCount = tiles.length / COPIES; // original count before repeating
@@ -110,20 +108,12 @@ function StripRow({ tiles, rowIndex, dir, speed, focusedId, onFocus }: StripRowP
         }}
       >
         {tiles.map((project, idx) => {
-          const src       = getStripThumbnailUrl(project.frontCover);
-          const isFocused = focusedId === project.id;
-          const isDimmed  = focusedId !== null && !isFocused;
+          const src = getStripThumbnailUrl(project.frontCover);
 
           return (
             <div
               key={`${project.id}-${idx}`}
-              className={[
-                styles.tile,
-                isFocused ? styles.tileFocused : "",
-                isDimmed  ? styles.tileDimmed  : "",
-              ].join(" ")}
-              onMouseEnter={() => onFocus(project.id)}
-              onMouseLeave={() => onFocus(null)}
+              className={styles.tile}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -150,12 +140,6 @@ interface ArtworkStripWallProps {
 }
 
 export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
-  const [focusedId, setFocusedId] = useState<string | null>(null);
-
-  const handleFocus = useCallback((id: string | null) => {
-    setFocusedId(id);
-  }, []);
-
   // Build each row's tile list once — stable across renders.
   const rows = useMemo(
     () => ROW_CONFIG.map((cfg, i) => ({
@@ -176,8 +160,6 @@ export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
           tiles={row.tiles}
           dir={row.dir}
           speed={row.speed}
-          focusedId={focusedId}
-          onFocus={handleFocus}
         />
       ))}
     </div>
