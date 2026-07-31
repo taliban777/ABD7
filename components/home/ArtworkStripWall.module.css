@@ -1,0 +1,109 @@
+/* =========================================================
+   ArtworkStripWall — archive strip rows behind the homepage title
+   ========================================================= */
+
+/* Full-bleed wall that sits behind the hero layer */
+.wall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: stretch;
+  pointer-events: none; /* hero layer captures events by default */
+  z-index: 1;
+}
+
+/* One horizontal row */
+.row {
+  flex: 0 0 auto;
+  height: 140px;
+  overflow: hidden;
+  pointer-events: auto; /* rows need hover events */
+}
+
+/* Sliding inner track — positioned by JS transform */
+.track {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  height: 100%;
+  /* start far enough left that no gap is visible on first paint */
+  transform: translateX(-100%);
+  will-change: transform;
+}
+
+/* Individual tile */
+.tile {
+  flex: 0 0 140px;
+  width: 140px;
+  height: 140px;
+  overflow: hidden;
+  cursor: default;
+  position: relative;
+  transition:
+    transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.38s ease,
+    box-shadow 0.38s ease,
+    filter 0.38s ease;
+}
+
+.tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Start slightly desaturated and dark so the title dominates */
+  filter: saturate(0.6) brightness(0.72);
+  transition: filter 0.38s ease;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Focused tile ─────────────────────────────────────── */
+
+.tileFocused {
+  transform: scale(1.08);
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+}
+
+.tileFocused img {
+  filter: saturate(1) brightness(0.92) contrast(1.06);
+}
+
+/* ── Dimmed tiles (when another tile is focused) ──────── */
+
+.tileDimmed {
+  opacity: 0.62;
+}
+
+.tileDimmed img {
+  filter: saturate(0.4) brightness(0.6);
+}
+
+/* ── Reduced motion: pause all drift ─────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    /* JS still runs but at 0 speed this has no visible effect.
+       Belt-and-suspenders: freeze the CSS animation too. */
+    animation-play-state: paused;
+  }
+}
+
+/* ── Mobile: fewer rows, smaller tiles ───────────────── */
+
+@media (max-width: 640px) {
+  .row {
+    height: 96px;
+  }
+
+  .tile,
+  .track {
+    flex: 0 0 96px;
+    width: 96px;
+    height: 96px;
+  }
+}
