@@ -23,9 +23,12 @@ import { projectSlug } from "@/components/archive/types";
 const FETCH_LIMIT = 100;
 const FETCH_TIMEOUT_MS = 30000;
 
-// Plasmic API configuration from environment
-const PLASMIC_PROJECT_ID = process.env.PLASMIC_PROJECT_ID || "";
-const PLASMIC_API_TOKEN = process.env.PLASMIC_API_TOKEN || "";
+// Plasmic CMS Data API configuration from environment.
+// These are the CMS *database* ID and CMS *public* token — NOT the loader
+// project ID/token in plasmic-init.ts. Find them in Plasmic Studio under
+// the CMS's "Settings" → "API tokens".
+const PLASMIC_CMS_ID = process.env.PLASMIC_CMS_ID || "";
+const PLASMIC_CMS_PUBLIC_TOKEN = process.env.PLASMIC_CMS_PUBLIC_TOKEN || "";
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -176,40 +179,44 @@ export function findProjectBySlug(
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch all CMS rows for a given model using offset pagination.
+ * Fetch all CMS rows for a given model using offset pagination against the
+ * Plasmic CMS Data API.
  *
- * Plasmic CMS API defaults to a limit of 100 records per request. This helper
- * attempts to use the direct REST API with offset pagination; if that fails,
- * it falls back to fetching and extracting via the Plasmic loader, which also
- * supports pagination through multiple data fetches.
+ * The Plasmic CMS Data API caps each request at 100 rows (`q.limit`), so this
+ * helper loops with an increasing `q.offset` until a short page is returned,
+ * guaranteeing that ALL rows are retrieved (not just the first 100).
  *
- * @param modelId - The Plasmic CMS model ID (e.g. "projects")
+ * Endpoint:
+ *   GET https://data.plasmic.app/api/v1/cms/databases/{CMS_ID}/tables/{model}/query
+ *   Header: x-plasmic-api-cms-tokens: {CMS_ID}:{PUBLIC_TOKEN}
+ *
+ * Requires env vars PLASMIC_CMS_ID and PLASMIC_CMS_PUBLIC_TOKEN. When they are
+ * absent, falls back to a single Plasmic loader fetch (which may be limited to
+ * 100 items by the page's data query).
+ *
+ * @param modelId - The Plasmic CMS table/model identifier (e.g. "projects")
  * @returns Array of all CMS row objects retrieved from Plasmic
  */
 export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
   const allRows: unknown[] = [];
-  let offset = 0;
-  let hasMore = true;
-  let usingDirectApi = false;
 
-  // Attempt direct CMS API if credentials are configured
-  if (PLASMIC_PROJECT_ID && PLASMIC_API_TOKEN) {
-    usingDirectApi = true;
+  // Preferred path: direct CMS Data API with offset pagination.
+  if (PLASMIC_CMS_ID && PLASMIC_CMS_PUBLIC_TOKEN) {
+    let offset = 0;
+    let hasMore = true;
+
     while (hasMore) {
       try {
-        // Query the Plasmic CMS API directly with offset pagination
         const url = new URL(
-          `https://api.plasmic.app/api/v1/cms/rows/${modelId}`
+          `https://data.plasmic.app/api/v1/cms/databases/${PLASMIC_CMS_ID}/tables/${modelId}/query`
         );
-        url.searchParams.set("projectId", PLASMIC_PROJECT_ID);
-        url.searchParams.set("limit", String(FETCH_LIMIT));
-        url.searchParams.set("offset", String(offset));
+        url.searchParams.set("q.limit", String(FETCH_LIMIT));
+        url.searchParams.set("q.offset", String(offset));
 
         const response = await Promise.race([
           fetch(url.toString(), {
             headers: {
-              "x-plasmic-api-token": PLASMIC_API_TOKEN,
-              "Content-Type": "application/json",
+              "x-plasmic-api-cms-tokens": `${PLASMIC_CMS_ID}:${PLASMIC_CMS_PUBLIC_TOKEN}`,
             },
           }),
           new Promise<Response>((_, reject) =>
@@ -223,127 +230,66 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
 
         if (!response.ok) {
           throw new Error(
-            `API error: ${response.status} ${response.statusText}`
+            `Plasmic CMS API error: ${response.status} ${response.statusText}`
           );
         }
 
-        const data = (await response.json()) as {
-          rows?: unknown[];
-          totalCount?: number;
+        // The CMS Data API returns each row wrapped as { id, identifier, data: {...} }.
+        // Unwrap `data` so downstream extraction sees the actual field values.
+        const json = (await response.json()) as {
+          rows?: Array<Record<string, unknown>>;
         };
-        const pageRows = data.rows || [];
+        const rawRows = json.rows || [];
+        const pageRows = rawRows.map((r) =>
+          r && typeof r === "object" && "data" in r
+            ? { id: r.id, ...(r.data as Record<string, unknown>) }
+            : r
+        );
 
         allRows.push(...pageRows);
 
-        // If we got fewer rows than the limit, we've reached the end
-        if (pageRows.length < FETCH_LIMIT) {
+        // Short page => we've reached the end.
+        if (rawRows.length < FETCH_LIMIT) {
           hasMore = false;
         } else {
           offset += FETCH_LIMIT;
         }
-      } catch {
-        // Direct API failed, fall back to loader
-        usingDirectApi = false;
+      } catch (err) {
+        console.log("[v0] Plasmic CMS Data API fetch failed:", err);
         hasMore = false;
-        allRows.length = 0; // Clear any partial results
-        break;
       }
     }
+
+    if (allRows.length > 0) return allRows;
   }
 
-  // Fallback: Use Plasmic loader with pagination support
-  if (!usingDirectApi) {
-    try {
-      // Collect projects from multiple fetches to bypass 100-item limitation
-      let pageNum = 0;
-      const pagesChecked = new Set<string>();
-      
-      // Fetch homepage first to get initial projects
-      let plasmicData = await PLASMIC.maybeFetchComponentData("/");
-      if (plasmicData) {
-        const pageMeta = plasmicData.entryCompMetas[0];
-        if (pageMeta && !pagesChecked.has(pageMeta.path)) {
-          pagesChecked.add(pageMeta.path);
-          const queryCache = await extractPlasmicQueryData(
-            React.createElement(
-              PlasmicRootProvider,
-              {
-                loader: PLASMIC,
-                prefetchedData: plasmicData,
-                pageRoute: pageMeta.path,
-                pageParams: pageMeta.params,
-              },
-              React.createElement(PlasmicComponent, {
-                component: pageMeta.displayName,
-              })
-            )
-          );
-          const loaderRows = collectProjects(queryCache);
-          allRows.push(...loaderRows);
-        }
-      }
+  // Fallback: single Plasmic loader fetch (may be capped at 100 by the query).
+  try {
+    const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
+    if (!plasmicData) return allRows;
 
-      // Fetch test page to get additional projects (often has comprehensive data)
-      plasmicData = await PLASMIC.maybeFetchComponentData("/test");
-      if (plasmicData) {
-        const pageMeta = plasmicData.entryCompMetas[0];
-        if (pageMeta && !pagesChecked.has(pageMeta.path)) {
-          pagesChecked.add(pageMeta.path);
-          const queryCache = await extractPlasmicQueryData(
-            React.createElement(
-              PlasmicRootProvider,
-              {
-                loader: PLASMIC,
-                prefetchedData: plasmicData,
-                pageRoute: pageMeta.path,
-                pageParams: pageMeta.params,
-              },
-              React.createElement(PlasmicComponent, {
-                component: pageMeta.displayName,
-              })
-            )
-          );
-          const loaderRows = collectProjects(queryCache);
-          allRows.push(...loaderRows);
-        }
-      }
+    const pageMeta = plasmicData.entryCompMetas[0];
+    if (!pageMeta) return allRows;
 
-      // Fetch all available pages to maximize data collection
-      const pages = await PLASMIC.fetchPages();
-      for (const page of pages) {
-        if (pagesChecked.has(page.path)) continue;
-        
-        try {
-          plasmicData = await PLASMIC.maybeFetchComponentData(page.path);
-          if (plasmicData) {
-            const pageMeta = plasmicData.entryCompMetas[0];
-            if (pageMeta && !pagesChecked.has(pageMeta.path)) {
-              pagesChecked.add(pageMeta.path);
-              const queryCache = await extractPlasmicQueryData(
-                React.createElement(
-                  PlasmicRootProvider,
-                  {
-                    loader: PLASMIC,
-                    prefetchedData: plasmicData,
-                    pageRoute: pageMeta.path,
-                    pageParams: pageMeta.params,
-                  },
-                  React.createElement(PlasmicComponent, {
-                    component: pageMeta.displayName,
-                  })
-                )
-              );
-              const loaderRows = collectProjects(queryCache);
-              allRows.push(...loaderRows);
-            }
-          }
-        } catch {
-          // Continue fetching other pages even if one fails
-        }
-      }
-    } catch {
-      // Loader fetch failed, return whatever we have
-    }
+    const queryCache = await extractPlasmicQueryData(
+      React.createElement(
+        PlasmicRootProvider,
+        {
+          loader: PLASMIC,
+          prefetchedData: plasmicData,
+          pageRoute: pageMeta.path,
+          pageParams: pageMeta.params,
+        },
+        React.createElement(PlasmicComponent, {
+          component: pageMeta.displayName,
+        })
+      )
+    );
+
+    const loaderRows = collectProjects(queryCache);
+    allRows.push(...loaderRows);
+  } catch {
+    // Loader fetch failed, return whatever we have.
   }
 
   return allRows;
@@ -354,9 +300,9 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
  * This is the single source-of-truth fetch used by every route that
  * needs the project list. Attempts offset pagination to support 100+ items.
  *
- * If env vars PLASMIC_PROJECT_ID and PLASMIC_API_TOKEN are set, uses direct
- * REST API pagination. Otherwise, falls back to the Plasmic loader (may be
- * limited to 100 items depending on Plasmic settings).
+ * If env vars PLASMIC_CMS_ID and PLASMIC_CMS_PUBLIC_TOKEN are set, uses direct
+ * CMS Data API pagination (fetches ALL rows). Otherwise, falls back to the
+ * Plasmic loader (may be limited to 100 items depending on Plasmic settings).
  *
  * ISR revalidate: 3600 seconds (1 hour)
  */
