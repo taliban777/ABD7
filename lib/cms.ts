@@ -23,12 +23,32 @@ import { projectSlug } from "@/components/archive/types";
 const FETCH_LIMIT = 100;
 const FETCH_TIMEOUT_MS = 30000;
 
-// Plasmic CMS Data API configuration from environment.
-// These are the CMS *database* ID and CMS *public* token — NOT the loader
-// project ID/token in plasmic-init.ts. Find them in Plasmic Studio under
-// the CMS's "Settings" → "API tokens".
-const PLASMIC_CMS_ID = process.env.PLASMIC_CMS_ID || "";
-const PLASMIC_CMS_PUBLIC_TOKEN = process.env.PLASMIC_CMS_PUBLIC_TOKEN || "";
+// Plasmic CMS Data API configuration.
+//
+// IMPORTANT: These are the CMS *database* ID and CMS *public read* token — NOT
+// the loader project ID/token in plasmic-init.ts (those are a different pair).
+// Like the loader project token, the CMS public token is designed to be shipped
+// to the client (it is already embedded in Plasmic's published loader bundle),
+// so it is safe to keep here as the default. An env var can still override it.
+//
+// The CMS table queried is "projects".
+const DEFAULT_PLASMIC_CMS_ID = "hRz8x3SYHMyVVLNBRrsxdu";
+const DEFAULT_PLASMIC_CMS_PUBLIC_TOKEN =
+  "TOIJRNZK822EhTOi0cUe4DACNLxhtFx7s6SESVy0fiVUVhJeNUlvlAdcXiqNPWYNBO00LGTmaLFP30fXZBg";
+
+// Only accept an env override when it is present AND is not accidentally set to
+// the loader project ID (a common mix-up that yields 404s from the CMS API).
+const LOADER_PROJECT_ID = "44bf48cwfgePT5AFUoVrNj";
+const ENV_CMS_ID = process.env.PLASMIC_CMS_ID;
+const PLASMIC_CMS_ID =
+  ENV_CMS_ID && ENV_CMS_ID !== LOADER_PROJECT_ID
+    ? ENV_CMS_ID
+    : DEFAULT_PLASMIC_CMS_ID;
+const PLASMIC_CMS_PUBLIC_TOKEN =
+  process.env.PLASMIC_CMS_PUBLIC_TOKEN || DEFAULT_PLASMIC_CMS_PUBLIC_TOKEN;
+
+// The Plasmic CMS table/model that holds project rows.
+const PLASMIC_CMS_TABLE = "projects";
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -182,17 +202,17 @@ export function findProjectBySlug(
  * Fetch all CMS rows for a given model using offset pagination against the
  * Plasmic CMS Data API.
  *
- * The Plasmic CMS Data API caps each request at 100 rows (`q.limit`), so this
- * helper loops with an increasing `q.offset` until a short page is returned,
- * guaranteeing that ALL rows are retrieved (not just the first 100).
+ * The Plasmic CMS Data API defaults to returning at most 100 rows per request.
+ * Pagination is controlled by a SINGLE `q` query parameter containing a
+ * URL-encoded JSON object, e.g. q={"limit":100,"offset":100}. (Passing
+ * `q.limit`/`q.offset` as separate params is silently ignored and always
+ * returns the first 100 rows — which previously caused the 100-item cap and an
+ * infinite fetch loop.) This helper loops, increasing `offset`, until a short
+ * page is returned, guaranteeing ALL rows are retrieved.
  *
  * Endpoint:
- *   GET https://data.plasmic.app/api/v1/cms/databases/{CMS_ID}/tables/{model}/query
+ *   GET https://data.plasmic.app/api/v1/cms/databases/{CMS_ID}/tables/{model}/query?q={json}
  *   Header: x-plasmic-api-cms-tokens: {CMS_ID}:{PUBLIC_TOKEN}
- *
- * Requires env vars PLASMIC_CMS_ID and PLASMIC_CMS_PUBLIC_TOKEN. When they are
- * absent, falls back to a single Plasmic loader fetch (which may be limited to
- * 100 items by the page's data query).
  *
  * @param modelId - The Plasmic CMS table/model identifier (e.g. "projects")
  * @returns Array of all CMS row objects retrieved from Plasmic
@@ -204,14 +224,22 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
   if (PLASMIC_CMS_ID && PLASMIC_CMS_PUBLIC_TOKEN) {
     let offset = 0;
     let hasMore = true;
+    // Safety cap to guarantee the loop always terminates even if the API were
+    // to ignore pagination again (100 pages * 100 rows = 10k rows max).
+    const MAX_PAGES = 100;
+    let page = 0;
 
-    while (hasMore) {
+    while (hasMore && page < MAX_PAGES) {
+      page += 1;
       try {
         const url = new URL(
           `https://data.plasmic.app/api/v1/cms/databases/${PLASMIC_CMS_ID}/tables/${modelId}/query`
         );
-        url.searchParams.set("q.limit", String(FETCH_LIMIT));
-        url.searchParams.set("q.offset", String(offset));
+        // Pagination MUST be passed as a single JSON `q` param.
+        url.searchParams.set(
+          "q",
+          JSON.stringify({ limit: FETCH_LIMIT, offset })
+        );
 
         const response = await Promise.race([
           fetch(url.toString(), {
