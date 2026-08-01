@@ -180,7 +180,8 @@ export function findProjectBySlug(
  *
  * Plasmic CMS API defaults to a limit of 100 records per request. This helper
  * attempts to use the direct REST API with offset pagination; if that fails,
- * it falls back to multiple requests through the Plasmic loader.
+ * it falls back to fetching and extracting via the Plasmic loader, which also
+ * supports pagination through multiple data fetches.
  *
  * @param modelId - The Plasmic CMS model ID (e.g. "projects")
  * @returns Array of all CMS row objects retrieved from Plasmic
@@ -250,36 +251,96 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
     }
   }
 
-  // Fallback: Use Plasmic loader (note: this may only return 100 items)
+  // Fallback: Use Plasmic loader with pagination support
   if (!usingDirectApi) {
     try {
-      const plasmicData = await PLASMIC.maybeFetchComponentData("/test");
-      if (!plasmicData) {
-        return allRows;
+      // Collect projects from multiple fetches to bypass 100-item limitation
+      let pageNum = 0;
+      const pagesChecked = new Set<string>();
+      
+      // Fetch homepage first to get initial projects
+      let plasmicData = await PLASMIC.maybeFetchComponentData("/");
+      if (plasmicData) {
+        const pageMeta = plasmicData.entryCompMetas[0];
+        if (pageMeta && !pagesChecked.has(pageMeta.path)) {
+          pagesChecked.add(pageMeta.path);
+          const queryCache = await extractPlasmicQueryData(
+            React.createElement(
+              PlasmicRootProvider,
+              {
+                loader: PLASMIC,
+                prefetchedData: plasmicData,
+                pageRoute: pageMeta.path,
+                pageParams: pageMeta.params,
+              },
+              React.createElement(PlasmicComponent, {
+                component: pageMeta.displayName,
+              })
+            )
+          );
+          const loaderRows = collectProjects(queryCache);
+          allRows.push(...loaderRows);
+        }
       }
 
-      const pageMeta = plasmicData.entryCompMetas[0];
-      if (!pageMeta) {
-        return allRows;
+      // Fetch test page to get additional projects (often has comprehensive data)
+      plasmicData = await PLASMIC.maybeFetchComponentData("/test");
+      if (plasmicData) {
+        const pageMeta = plasmicData.entryCompMetas[0];
+        if (pageMeta && !pagesChecked.has(pageMeta.path)) {
+          pagesChecked.add(pageMeta.path);
+          const queryCache = await extractPlasmicQueryData(
+            React.createElement(
+              PlasmicRootProvider,
+              {
+                loader: PLASMIC,
+                prefetchedData: plasmicData,
+                pageRoute: pageMeta.path,
+                pageParams: pageMeta.params,
+              },
+              React.createElement(PlasmicComponent, {
+                component: pageMeta.displayName,
+              })
+            )
+          );
+          const loaderRows = collectProjects(queryCache);
+          allRows.push(...loaderRows);
+        }
       }
 
-      const queryCache = await extractPlasmicQueryData(
-        React.createElement(
-          PlasmicRootProvider,
-          {
-            loader: PLASMIC,
-            prefetchedData: plasmicData,
-            pageRoute: pageMeta.path,
-            pageParams: pageMeta.params,
-          },
-          React.createElement(PlasmicComponent, {
-            component: pageMeta.displayName,
-          })
-        )
-      );
-
-      const loaderRows = collectProjects(queryCache);
-      allRows.push(...loaderRows);
+      // Fetch all available pages to maximize data collection
+      const pages = await PLASMIC.fetchPages();
+      for (const page of pages) {
+        if (pagesChecked.has(page.path)) continue;
+        
+        try {
+          plasmicData = await PLASMIC.maybeFetchComponentData(page.path);
+          if (plasmicData) {
+            const pageMeta = plasmicData.entryCompMetas[0];
+            if (pageMeta && !pagesChecked.has(pageMeta.path)) {
+              pagesChecked.add(pageMeta.path);
+              const queryCache = await extractPlasmicQueryData(
+                React.createElement(
+                  PlasmicRootProvider,
+                  {
+                    loader: PLASMIC,
+                    prefetchedData: plasmicData,
+                    pageRoute: pageMeta.path,
+                    pageParams: pageMeta.params,
+                  },
+                  React.createElement(PlasmicComponent, {
+                    component: pageMeta.displayName,
+                  })
+                )
+              );
+              const loaderRows = collectProjects(queryCache);
+              allRows.push(...loaderRows);
+            }
+          }
+        } catch {
+          // Continue fetching other pages even if one fails
+        }
+      }
     } catch {
       // Loader fetch failed, return whatever we have
     }
