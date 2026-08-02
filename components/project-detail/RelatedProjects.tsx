@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { CmsProject } from '@/components/archive/types';
 import { asArray, valueLabel, projectSlug, catalogueNumber } from '@/components/archive/types';
-import { getArchiveImageUrl } from '@/components/images/cloudinary';
+import { getRelatedImageUrl } from '@/components/images/cloudinary';
 import styles from './project-detail.module.css';
 
 export interface RelatedProjectsProps {
@@ -46,9 +46,11 @@ export function RelatedProjects({
           {project.frontCover ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={getArchiveImageUrl(project.frontCover)}
+              src={getRelatedImageUrl(project.frontCover)}
               alt={project.title}
               className={styles.relatedImage}
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className={styles.relatedImagePlaceholder} aria-hidden="true">

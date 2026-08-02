@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import type { CmsProject } from '@/components/archive/types';
 import { asArray, valueLabel, paletteValue, catalogueNumber } from '@/components/archive/types';
-import { getProjectImageUrl } from '@/components/images/cloudinary';
+import { getProjectImageUrl, getGalleryThumbUrl } from '@/components/images/cloudinary';
 import styles from './project-detail.module.css';
 import { Lightbox } from './Lightbox';
 import { PaletteVisualization } from './PaletteVisualization';
@@ -141,6 +141,11 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                   src={getProjectImageUrl(project.frontCover)}
                   alt={`${project.title} — Front`}
                   className={styles.artworkImage}
+                  // LCP image — load eagerly, high priority
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore fetchpriority is valid HTML but not yet in React types
+                  fetchpriority="high"
+                  decoding="async"
                 />
               </div>
               <div
@@ -158,6 +163,8 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                   src={getProjectImageUrl(project.backCover!)}
                   alt={`${project.title} — Back`}
                   className={styles.artworkImage}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -178,6 +185,11 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                 src={getProjectImageUrl(project.frontCover)}
                 alt={project.title}
                 className={styles.artworkImage}
+                // LCP image — load eagerly, high priority
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore fetchpriority is valid HTML but not yet in React types
+                fetchpriority="high"
+                decoding="async"
               />
             </div>
           )}
@@ -205,9 +217,11 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={getProjectImageUrl(url)}
+                    src={getGalleryThumbUrl(url)}
                     alt={`${project.title} — ${i + 1}`}
                     className={styles.galleryThumbImage}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               );
