@@ -121,7 +121,11 @@ function StripRow({ tiles, rowIndex, dir, speed }: StripRowProps) {
                 alt=""
                 width={TILE_SIZE}
                 height={TILE_SIZE}
-                loading="lazy"
+                // First row (rowIndex 0) is LCP candidate — fetch with high priority
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore fetchpriority is valid HTML but not yet in React types
+                fetchpriority={rowIndex === 0 ? "high" : "low"}
+                loading="eager"
                 decoding="async"
                 draggable={false}
               />

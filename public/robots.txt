@@ -1,0 +1,15 @@
+# robots.txt — ARTBYDANI7 archive & portfolio site
+# Allow all robots to crawl and index
+
+User-agent: *
+Allow: /
+
+# Specify sitemap for search engines
+Sitemap: https://abd7.art/sitemap.xml
+
+# Crawl delay (optional — set to avoid overwhelming the server)
+# Crawl-delay: 1
+
+# Disallow admin and internal paths
+Disallow: /_next/
+Disallow: /api/internal/

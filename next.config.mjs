@@ -21,7 +21,11 @@ const nextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Permissions-Policy", value: "geolocation=(), microphone=(), camera=(), payment=()" },
+          { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://res.cloudinary.com https://plasmic.app" },
         ],
       },
       // Immutable cache for Next.js hashed static chunks (JS/CSS)

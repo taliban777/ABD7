@@ -18,11 +18,13 @@ const cormorant = Cormorant({
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
-      style={{ minHeight: "100%", display: "contents" }}
-    >
-      <Component {...pageProps} />
-    </div>
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
+        style={{ minHeight: "100%", display: "contents" }}
+      >
+        <Component {...pageProps} />
+      </body>
+    </html>
   );
 }

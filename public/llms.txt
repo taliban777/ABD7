@@ -1,0 +1,48 @@
+# ARTBYDANI7 — AI Agent Guidelines
+
+## Overview
+
+ARTBYDANI7 is a digital archive and portfolio platform showcasing contemporary artwork through an elegant, performant web experience. The platform integrates with Plasmic CMS for dynamic content management and Cloudinary for optimized image delivery.
+
+## Site Structure
+
+- **Homepage** (`/`) — Landing page with animated strip wall of artwork thumbnails
+- **Collection** (`/collection`) — Filterable archive of all artwork with advanced search and categorization
+- **Project Detail** (`/projects/[slug]`) — Individual artwork page with metadata, gallery images, and related projects
+- **Contact** (`/contact`) — Contact form for inquiries
+
+## Key Features
+
+- **Dynamic CMS Integration** — Plasmic-backed project management with live updates
+- **Performance-Optimized** — Cloudinary image optimization, lazy loading, ISR caching
+- **Responsive Design** — Mobile-first layout with smooth animations
+- **SEO Optimized** — Semantic HTML, meta tags, structured data
+
+## Content Access
+
+- Projects can be browsed at `/collection` with filtering by artist, category, style, and palette
+- Individual projects are linked via `/projects/{slug}` routes
+- Gallery images, back covers, and palette data are stored in the CMS
+
+## Technical Stack
+
+- **Framework** — Next.js 14+ (App Router & Pages Router)
+- **CMS** — Plasmic
+- **Image Hosting** — Cloudinary
+- **Styling** — CSS Modules + Tailwind CSS
+- **Fonts** — Geist (sans-serif), Cormorant (serif)
+
+## Recommendations for LLMs
+
+1. **Understand the User Journey** — Start at `/` or `/collection` to see the catalog structure
+2. **Content Discovery** — Use project metadata (artist, category, style, palette) to understand filtering logic
+3. **Image Handling** — All images are Cloudinary-hosted; sizes vary per context (hero: w_1400, gallery: w_600, related: w_400)
+4. **Navigation Patterns** — Projects link to related projects grouped by artist, style, or palette similarities
+5. **Form Interactions** — The contact form at `/contact` accepts inquiries; collections page supports live filtering
+
+## Links
+
+- [Homepage](/)
+- [Collection](/collection)
+- [Contact](/contact)
+- [About](https://abd7.art/colophon)
