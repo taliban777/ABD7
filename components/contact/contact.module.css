@@ -13,6 +13,8 @@
 .pageHeader {
   padding: 64px 24px 40px;
   max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .pageTitle {
@@ -31,6 +33,7 @@
 .form {
   padding: 0 24px;
   max-width: 640px;
+  margin: 0 auto;
 }
 
 /* Section */
@@ -452,6 +455,8 @@
 .confirmationWrap {
   padding: 80px 24px;
   max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .confirmationTitle {
