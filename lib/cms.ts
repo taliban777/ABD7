@@ -59,9 +59,6 @@ const PLASMIC_CMS_PUBLIC_TOKEN = useEnvCreds
   ? (envCmsToken as string)
   : VERIFIED_PLASMIC_CMS_PUBLIC_TOKEN;
 
-// The Plasmic CMS table/model that holds project rows.
-const PLASMIC_CMS_TABLE = "projects";
-
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
