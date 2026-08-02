@@ -9,19 +9,16 @@ import styles from './project-detail.module.css';
 export interface RelatedProjectsProps {
   byArtist: CmsProject[];
   byStyle: CmsProject[];
-  byPalette: CmsProject[];
-  currentProjectId: string;
   allProjects: CmsProject[];
 }
 
 export function RelatedProjects({
   byArtist,
   byStyle,
-  byPalette,
   allProjects,
 }: RelatedProjectsProps) {
   // Calculate stable catalogue numbers
-  const chronological = allProjects.sort((a, b) => {
+  const chronological = [...allProjects].sort((a, b) => {
     const aYear = a.year ?? 0;
     const bYear = b.year ?? 0;
     if (aYear !== bYear) return aYear - bYear;
@@ -73,11 +70,9 @@ export function RelatedProjects({
     );
   };
 
-  // Only render sections with results
   const hasArtist = byArtist.length > 0;
   const hasStyle = byStyle.length > 0;
-  const hasPalette = byPalette.length > 0;
-  const hasAny = hasArtist || hasStyle || hasPalette;
+  const hasAny = hasArtist || hasStyle;
 
   if (!hasAny) return null;
 
@@ -101,17 +96,6 @@ export function RelatedProjects({
           <h3 className={styles.relatedGroupTitle}>Similar Style</h3>
           <div className={styles.relatedGrid}>
             {byStyle.map((project) => (
-              <RelatedItem key={project.id} project={project} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {hasPalette && (
-        <div className={styles.relatedGroup}>
-          <h3 className={styles.relatedGroupTitle}>Similar Palette</h3>
-          <div className={styles.relatedGrid}>
-            {byPalette.map((project) => (
               <RelatedItem key={project.id} project={project} />
             ))}
           </div>

@@ -109,11 +109,26 @@ export function collectProjects(
   const frontCover = resolveImageUrl(o.frontCover);
 
   if (title && frontCover) {
+    // Resolve optional back cover
+    const backCover = resolveImageUrl(o.backCover) || null;
+
+    // Resolve optional gallery array — may be an array of image objects or strings
+    const rawGallery = o.gallery;
+    const gallery: string[] = [];
+    if (Array.isArray(rawGallery)) {
+      for (const item of rawGallery) {
+        const url = resolveImageUrl(item);
+        if (url) gallery.push(url);
+      }
+    }
+
     results.push({
       id: typeof o.id === "string" ? o.id : title,
       title,
       slug: typeof o.slug === "string" ? o.slug : null,
       frontCover,
+      backCover,
+      gallery: gallery.length > 0 ? gallery : null,
       artists: resolveListField(o.artists),
       categories: resolveListField(o.categories),
       style: resolveListField(o.style),
@@ -166,11 +181,23 @@ export function findProjectBySlug(
   const frontCover = resolveImageUrl(o.frontCover);
 
   if (title && frontCover) {
+    const backCover = resolveImageUrl(o.backCover) || null;
+    const rawGallery = o.gallery;
+    const gallery: string[] = [];
+    if (Array.isArray(rawGallery)) {
+      for (const item of rawGallery) {
+        const url = resolveImageUrl(item);
+        if (url) gallery.push(url);
+      }
+    }
+
     const project: CmsProject = {
       id: typeof o.id === "string" ? o.id : title,
       title,
       slug: typeof o.slug === "string" ? o.slug : null,
       frontCover,
+      backCover,
+      gallery: gallery.length > 0 ? gallery : null,
       artists: resolveListField(o.artists),
       categories: resolveListField(o.categories),
       style: resolveListField(o.style),

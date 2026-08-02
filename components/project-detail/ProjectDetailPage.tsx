@@ -24,9 +24,9 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
     .map(valueLabel)
     .filter(Boolean)
     .join(', ');
-  
+
   // Calculate stable catalogue number
-  const chronological = allProjects.sort((a, b) => {
+  const chronological = [...allProjects].sort((a, b) => {
     const aYear = a.year ?? 0;
     const bYear = b.year ?? 0;
     if (aYear !== bYear) return aYear - bYear;
@@ -35,22 +35,26 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
   const projectIndex = chronological.findIndex((p) => p.id === project.id);
   const catalogueNum = catalogueNumber(projectIndex >= 0 ? projectIndex : 0);
 
+  // Determine which images are available
+  const hasFrontCover = !!project.frontCover;
+  const hasBackCover = !!project.backCover;
+  const galleryImages = project.gallery ?? [] as string[];
+  const hasGallery = galleryImages.length > 0;
+
   // Collect all images for lightbox: front cover, back cover, then gallery
   const allImages = useMemo(() => {
     const images: Array<{ url: string; alt: string }> = [];
     if (project.frontCover) {
-      images.push({ url: project.frontCover, alt: `${project.title} - Front` });
+      images.push({ url: project.frontCover, alt: `${project.title} — Front` });
     }
-    // Note: backCover would be added here if available in CMS
-    // if (project.backCover) {
-    //   images.push({ url: project.backCover, alt: `${project.title} - Back` });
-    // }
+    if (project.backCover) {
+      images.push({ url: project.backCover, alt: `${project.title} — Back` });
+    }
+    for (let i = 0; i < galleryImages.length; i++) {
+      images.push({ url: galleryImages[i], alt: `${project.title} — ${i + 1}` });
+    }
     return images;
-  }, [project]);
-
-  // Determine artwork display mode
-  const hasFrontCover = !!project.frontCover;
-  const hasBackCover = false; // TODO: add when backCover field is available in CMS
+  }, [project, galleryImages]);
 
   // Palette colors
   const paletteColors = useMemo(
@@ -58,7 +62,7 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
     [project.palette]
   );
 
-  // Related projects
+  // Related projects — by artist and style only
   const relatedByArtist = useMemo(() => {
     const artistSet = new Set(asArray(project.artists).map(valueLabel));
     return allProjects.filter(
@@ -74,15 +78,6 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
       (p) =>
         p.id !== project.id &&
         asArray(p.style).some((s) => styleSet.has(valueLabel(s)))
-    );
-  }, [project, allProjects]);
-
-  const relatedByPalette = useMemo(() => {
-    const paletteSet = new Set(asArray(project.palette).map(valueLabel));
-    return allProjects.filter(
-      (p) =>
-        p.id !== project.id &&
-        asArray(p.palette).some((pal) => paletteSet.has(valueLabel(pal)))
     );
   }, [project, allProjects]);
 
@@ -104,7 +99,7 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
       <section className={styles.metadata}>
         <div className={styles.metadataContent}>
           <h1 className={styles.title}>{project.title}</h1>
-          
+
           {artistNames && (
             <p className={styles.artist}>{artistNames}</p>
           )}
@@ -116,35 +111,11 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                 <span className={styles.value}>{project.year}</span>
               </div>
             )}
-            
+
             <div className={styles.metadataField}>
               <span className={styles.label}>Catalogue No.</span>
               <span className={styles.value}>{catalogueNum}</span>
             </div>
-
-            {asArray(project.categories).length > 0 && (
-              <div className={styles.metadataField}>
-                <span className={styles.label}>Categories</span>
-                <span className={styles.value}>
-                  {asArray(project.categories)
-                    .map(valueLabel)
-                    .filter(Boolean)
-                    .join(', ')}
-                </span>
-              </div>
-            )}
-
-            {asArray(project.style).length > 0 && (
-              <div className={styles.metadataField}>
-                <span className={styles.label}>Styles</span>
-                <span className={styles.value}>
-                  {asArray(project.style)
-                    .map(valueLabel)
-                    .filter(Boolean)
-                    .join(', ')}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -152,7 +123,45 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
       {/* Artwork Display Section */}
       {hasFrontCover && (
         <section className={styles.artworkSection}>
-          {!hasBackCover ? (
+          {hasBackCover ? (
+            // Side-by-side: front and back cover
+            <div className={styles.artworkDualContainer}>
+              <div
+                className={styles.artworkSide}
+                onClick={() => handleImageClick(0)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
+                }}
+                aria-label="Front cover — click to view fullscreen"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getProjectImageUrl(project.frontCover)}
+                  alt={`${project.title} — Front`}
+                  className={styles.artworkImage}
+                />
+              </div>
+              <div
+                className={styles.artworkSide}
+                onClick={() => handleImageClick(1)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleImageClick(1);
+                }}
+                aria-label="Back cover — click to view fullscreen"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getProjectImageUrl(project.backCover!)}
+                  alt={`${project.title} — Back`}
+                  className={styles.artworkImage}
+                />
+              </div>
+            </div>
+          ) : (
             // Single artwork centered
             <div
               className={styles.artworkSingleContainer}
@@ -160,11 +169,9 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleImageClick(0);
-                }
+                if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
               }}
-              aria-label="Click to view artwork in fullscreen"
+              aria-label="Click to view artwork fullscreen"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -173,51 +180,54 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
                 className={styles.artworkImage}
               />
             </div>
-          ) : (
-            // Side-by-side artwork (front and back)
-            <div className={styles.artworkDualContainer}>
-              <div
-                className={styles.artworkSide}
-                onClick={() => handleImageClick(0)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleImageClick(0);
-                  }
-                }}
-                aria-label="Front cover - click to view in fullscreen"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getProjectImageUrl(project.frontCover)}
-                  alt={`${project.title} - Front`}
-                  className={styles.artworkImage}
-                />
-              </div>
-              {/* Back cover would be rendered here when available */}
-            </div>
           )}
+        </section>
+      )}
+
+      {/* Gallery Strip — shown when additional images exist */}
+      {hasGallery && (
+        <section className={styles.gallerySection}>
+          <div className={styles.galleryStrip}>
+            {galleryImages.map((url, i) => {
+              // Offset index: front cover is 0, back cover is 1 if present
+              const lightboxOffset = 1 + (hasBackCover ? 1 : 0);
+              return (
+                <div
+                  key={i}
+                  className={styles.galleryThumb}
+                  onClick={() => handleImageClick(lightboxOffset + i)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') handleImageClick(lightboxOffset + i);
+                  }}
+                  aria-label={`Gallery image ${i + 1} — click to view fullscreen`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getProjectImageUrl(url)}
+                    alt={`${project.title} — ${i + 1}`}
+                    className={styles.galleryThumbImage}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </section>
       )}
 
       {/* Palette Section */}
       {paletteColors.length > 0 && (
         <section className={styles.paletteSection}>
-          <PaletteVisualization colors={paletteColors} title={project.title} />
+          <PaletteVisualization colors={paletteColors} />
         </section>
       )}
-
-      {/* Gallery Section - Note: Gallery images would need to be added to CMS schema */}
-      {/* Gallery images would go here if available in the CMS project model */}
 
       {/* Related Projects Section */}
       <section className={styles.relatedSection}>
         <RelatedProjects
           byArtist={relatedByArtist.slice(0, 3)}
           byStyle={relatedByStyle.slice(0, 3)}
-          byPalette={relatedByPalette.slice(0, 3)}
-          currentProjectId={project.id}
           allProjects={allProjects}
         />
       </section>
