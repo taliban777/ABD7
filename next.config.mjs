@@ -15,12 +15,27 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // Security headers on every response
       {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000" },
+        ],
+      },
+      // Immutable cache for Next.js hashed static chunks (JS/CSS)
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // ISR pages: serve from CDN edge for 1 hour, then revalidate in background
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" },
         ],
       },
     ];

@@ -1,0 +1,627 @@
+/* Project Detail Page Styles */
+
+.detailPage {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 56px 24px 80px;
+}
+
+/* ===== Return to Archive Link ===== */
+
+.returnLink,
+.returnLinkBottom {
+  margin-bottom: 48px;
+}
+
+.returnLinkBottom {
+  margin-top: 80px;
+  padding-top: 48px;
+  border-top: 1px solid var(--line);
+}
+
+.backButton {
+  display: inline-block;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: var(--foreground);
+}
+
+/* ===== Metadata Section ===== */
+
+.metadata {
+  margin-bottom: 64px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--line);
+}
+
+.metadataContent {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.title {
+  font: 800 72px/1 var(--font-mono);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist {
+  font: 500 22px/1.3 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.metadataFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 32px;
+  text-align: center;
+}
+
+.metadataField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metadataField .label {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metadataField .value {
+  font: 400 13px/1.4 var(--font-sans);
+  color: var(--foreground);
+}
+
+/* ===== Artwork Section ===== */
+
+.artworkSection {
+  margin-bottom: 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.artworkSingleContainer {
+  width: 100%;
+  max-width: 900px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.artworkSingleContainer:hover {
+  transform: scale(1.01);
+}
+
+.artworkDualContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.artworkSide {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.artworkSide:hover {
+  transform: scale(1.01);
+}
+
+.artworkImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--surface);
+}
+
+/* ===== Palette Section ===== */
+
+.paletteSection {
+  margin-bottom: 80px;
+}
+
+.paletteContainer {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.paletteTitle {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.paletteRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.paletteSpecimen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.paletteColor {
+  width: 120px;
+  height: 120px;
+  border: 1px solid var(--line);
+  background: white;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.paletteSpecimen:hover .paletteColor {
+  transform: scale(1.05);
+}
+
+.paletteCode {
+  font: 400 10px/1.2 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: center;
+  word-break: break-all;
+  max-width: 140px;
+}
+
+/* ===== Gallery Strip ===== */
+
+.gallerySection {
+  margin-bottom: 80px;
+}
+
+.galleryStrip {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.galleryThumb {
+  flex: 1 1 0;
+  min-width: 160px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.galleryThumb:hover {
+  opacity: 0.85;
+}
+
+.galleryThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 1 / 1;
+}
+
+/* ===== Lightbox ===== */
+
+.lightboxOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.lightboxContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.lightboxImageContainer {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightboxImage {
+  width: 100%;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font: 600 20px/1 var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+}
+
+.lightboxClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.lightboxNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  font: 600 24px/1 var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+}
+
+.lightboxNav:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.lightboxPrev {
+  left: 20px;
+}
+
+.lightboxNext {
+  right: 20px;
+}
+
+.lightboxCounter {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== Related Projects Section ===== */
+
+.relatedSection {
+  margin-bottom: 40px;
+}
+
+.relatedContainer {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.relatedSectionTitle {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.relatedGroup {
+  margin-bottom: 64px;
+}
+
+.relatedGroup:last-child {
+  margin-bottom: 0;
+}
+
+.relatedGroupTitle {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.relatedItem {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: transform 0.3s ease;
+}
+
+.relatedItem:hover {
+  transform: translateY(-4px);
+}
+
+.relatedImageContainer {
+  aspect-ratio: 1 / 1;
+  background: var(--surface);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+}
+
+.relatedImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.relatedImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.relatedLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.relatedMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.relatedCatalogue {
+  transition: letter-spacing 0.3s ease;
+}
+
+.relatedItem:hover .relatedCatalogue {
+  letter-spacing: 0.3em;
+}
+
+.relatedYear {
+  white-space: nowrap;
+}
+
+.relatedTitle {
+  font: 700 13px/1.3 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.relatedArtist {
+  font: 400 10px/1.4 var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ===== Responsive Design ===== */
+
+@media (max-width: 1024px) {
+  .detailPage {
+    padding: 56px 20px 64px;
+  }
+
+  .metadata {
+    margin-bottom: 48px;
+    padding-bottom: 36px;
+  }
+
+  .title {
+    font-size: 52px;
+  }
+
+  .artworkSection {
+    margin-bottom: 64px;
+  }
+
+  .artworkDualContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .relatedGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .detailPage {
+    padding: 56px 16px 48px;
+  }
+
+  .returnLink,
+  .returnLinkBottom {
+    margin-bottom: 36px;
+  }
+
+  .metadata {
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+  }
+
+  .title {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .artist {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .metadataFields {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .artworkSection {
+    margin-bottom: 48px;
+  }
+
+  .lightboxContent {
+    padding: 20px;
+  }
+
+  .lightboxNav {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .lightboxPrev {
+    left: 10px;
+  }
+
+  .lightboxNext {
+    right: 10px;
+  }
+
+  .paletteSection {
+    margin-bottom: 48px;
+  }
+
+  .relatedGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .relatedItem:hover {
+    transform: translateY(-2px);
+  }
+
+  .relatedImageContainer {
+    margin-bottom: 12px;
+  }
+
+  .paletteRow {
+    gap: 16px;
+  }
+
+  .paletteColor {
+    width: 80px;
+    height: 80px;
+  }
+
+  .galleryStrip {
+    gap: 1px;
+  }
+
+  .galleryThumb {
+    min-width: 120px;
+  }
+
+  .relatedSectionTitle {
+    margin-bottom: 36px;
+  }
+
+  .relatedGroup {
+    margin-bottom: 48px;
+  }
+}
+
+@media (max-width: 540px) {
+  .detailPage {
+    padding: 56px 12px 40px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .metadataFields {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .relatedImageContainer {
+    aspect-ratio: auto;
+    min-height: 160px;
+  }
+
+  .lightboxClose {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+
+  .lightboxNav {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+}

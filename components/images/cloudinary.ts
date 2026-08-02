@@ -64,18 +64,39 @@ export function getArchiveImageUrl(url: string): string {
 }
 
 /**
- * Get project detail page URL with higher resolution.
- * Emphasizes artwork quality at larger display sizes.
- * Parameters: w_1800,q_auto:good,f_auto
- * - w_1800: up to 1800px width, maintains aspect ratio (larger for detail viewing)
- * - q_auto:good: balanced quality tier for artwork preservation
- * - f_auto: automatic format selection
+ * Get project detail hero image URL — LCP image, loaded eagerly at high res.
+ * Parameters: w_1400,q_auto:good,f_auto
+ * - w_1400: enough for any 2x display up to ~700px CSS wide
+ * - q_auto:good: artwork-safe quality tier
+ * - f_auto: WebP/AVIF automatic format selection
  */
 export function getProjectImageUrl(url: string): string {
   if (!url) return "";
   if (!isCloudinaryUrl(url)) return url;
 
-  return injectTransformation(url, "w_1800,q_auto:good,f_auto");
+  return injectTransformation(url, "w_1400,q_auto:good,f_auto");
+}
+
+/**
+ * Get gallery thumbnail URL — smaller images used in the horizontal strip.
+ * Parameters: w_600,h_600,c_fill,q_auto:good,f_auto
+ */
+export function getGalleryThumbUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_600,h_600,c_fill,q_auto:good,f_auto");
+}
+
+/**
+ * Get related-projects card URL — compact cards, lower bandwidth needed.
+ * Parameters: w_400,h_400,c_fill,q_auto:eco,f_auto
+ */
+export function getRelatedImageUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_400,h_400,c_fill,q_auto:eco,f_auto");
 }
 
 /**

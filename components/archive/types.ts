@@ -5,6 +5,8 @@ export interface CmsProject {
   title: string;
   slug?: string | null;
   frontCover: string;
+  backCover?: string | null;
+  gallery?: string[] | null;
   artists: CmsListValue[];
   categories: CmsListValue[];
   style: CmsListValue[];
