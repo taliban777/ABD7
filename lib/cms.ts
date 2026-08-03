@@ -18,6 +18,8 @@ import {
 import { PLASMIC } from "@/plasmic-init";
 import type { CmsProject, CmsListValue } from "@/components/archive/types";
 import { projectSlug } from "@/components/archive/types";
+import type { CmsOther } from "@/components/others/types";
+import { otherSlug } from "@/components/others/types";
 
 // Constants for pagination
 const FETCH_LIMIT = 100;
@@ -412,4 +414,92 @@ export async function fetchCmsProjectBySlug(
 ): Promise<CmsProject | null> {
   const allProjects = await fetchCmsProjects();
   return allProjects.find((p) => projectSlug(p) === slug) || null;
+}
+
+// ---------------------------------------------------------------------------
+// Others CMS model — independent from the Album Archive
+// ---------------------------------------------------------------------------
+
+function resolveStringArray(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.filter((v): v is string => typeof v === "string" && v.length > 0);
+  }
+  if (typeof value === "string") return value.length ? [value] : [];
+  return [];
+}
+
+/**
+ * Walk raw CMS rows and extract Others entries.
+ * Recognised when a row has a non-empty `title` AND a non-empty `image`.
+ */
+export function collectOthers(rows: unknown[]): CmsOther[] {
+  const results: CmsOther[] = [];
+  const seen = new Set<string>();
+
+  for (const raw of rows) {
+    if (!raw || typeof raw !== "object") continue;
+    const o = raw as Record<string, unknown>;
+
+    const title = typeof o.title === "string" ? o.title.trim() : "";
+    const image = resolveImageUrl(o.image);
+    if (!title || !image) continue;
+
+    const id = typeof o.id === "string" ? o.id : title;
+    if (seen.has(id)) continue;
+    seen.add(id);
+
+    const slug = typeof o.slug === "string" ? o.slug.trim() : "";
+    const date = typeof o.date === "string" ? o.date : null;
+    const yearRaw = o.year;
+    const year =
+      typeof yearRaw === "number" ? yearRaw :
+      yearRaw ? Number(yearRaw) || null : null;
+    const type = typeof o.type === "string" ? o.type.trim() : "";
+    const description = typeof o.description === "string" ? o.description : "";
+    const gallery = resolveStringArray(o.gallery);
+    const tags = resolveStringArray(o.tags);
+    const groupSlug = typeof o.groupSlug === "string" ? o.groupSlug.trim() : "";
+
+    results.push({
+      id,
+      title,
+      slug,
+      date,
+      year,
+      type,
+      description,
+      image,
+      gallery: gallery.length > 0 ? gallery : null,
+      tags,
+      groupSlug,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Fetch and extract all "Others" entries from the Plasmic CMS `others` model.
+ * Uses the same offset-pagination infrastructure as the Album Archive.
+ */
+export async function fetchCmsOthers(): Promise<CmsOther[]> {
+  const allRows = await fetchAllCmsRows("others");
+  const items = collectOthers(allRows);
+  console.log(
+    `[v0] fetchCmsOthers: rawRows=${
+      Array.isArray(allRows) ? allRows.length : "n/a"
+    } -> others=${items.length}`
+  );
+  return items;
+}
+
+/**
+ * Fetch all Others entries and return the one matching `slug`.
+ */
+export async function fetchCmsOtherBySlug(
+  slug: string
+): Promise<CmsOther | null> {
+  const all = await fetchCmsOthers();
+  return all.find((item) => otherSlug(item) === slug) || null;
 }

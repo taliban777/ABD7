@@ -113,3 +113,38 @@ export function getStripThumbnailUrl(url: string): string {
 
   return injectTransformation(url, "w_240,h_240,c_fill,q_auto:eco,f_auto");
 }
+
+/**
+ * Get a collection-grid image URL for the "Others" page — preserves aspect ratio.
+ * Parameters: w_800,q_auto:good,f_auto
+ * - w_800: wide enough for 3-column masonry grid
+ * - q_auto:good: artwork-safe quality tier
+ * - f_auto: WebP/AVIF automatic format selection
+ * No height or crop — images keep their natural aspect ratio.
+ */
+export function getOthersImageUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_800,q_auto:good,f_auto");
+}
+
+/**
+ * Get a hero image URL for the Others detail page — high res, aspect-ratio preserved.
+ */
+export function getOthersHeroImageUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_1400,q_auto:good,f_auto");
+}
+
+/**
+ * Get a gallery thumbnail URL for the Others detail page — preserves aspect ratio.
+ */
+export function getOthersGalleryThumbUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_600,q_auto:good,f_auto");
+}
