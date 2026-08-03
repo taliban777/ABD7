@@ -92,7 +92,16 @@ export const getStaticProps: GetStaticProps = async (context) => {
     return { props: { isIndexPage: true, projects }, revalidate: 3600 };
   }
 
-  const plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
+  let plasmicData: ComponentRenderData | null = null;
+  try {
+    plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
+  } catch (err) {
+    // Plasmic may throw if it has a redirect or other non-page response for
+    // this path. Treat it as "no Plasmic page" so Next falls through to 404
+    // or the dedicated route handles it.
+    console.log(`[v0] maybeFetchComponentData threw for ${plasmicPath}:`, err);
+    return { props: {} };
+  }
 
   if (!plasmicData) {
     return { props: {} };
