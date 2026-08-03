@@ -124,7 +124,12 @@ export const getStaticProps: GetStaticProps = async (context) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const pageModules = await PLASMIC.fetchPages();
+  let pageModules: { path: string }[] = [];
+  try {
+    pageModules = await PLASMIC.fetchPages();
+  } catch (err) {
+    console.log("[v0] PLASMIC.fetchPages threw:", err);
+  }
   const EXCLUDED = new Set(["/archive", "/test", "/contact", "/colophon", "/collection", "/others"]);
 
   const paths = pageModules
