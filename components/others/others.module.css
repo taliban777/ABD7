@@ -242,7 +242,11 @@
 
 /* ── Card ────────────────────────────────────────────────── */
 .card {
-  display: block;
+  /* Flex column so the label stretches to match the frame width,
+     even when the frame is narrower than the full column. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 0 0 40px;
   break-inside: avoid;
   -webkit-column-break-inside: avoid;
@@ -268,13 +272,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  /* Prevent extreme-aspect-ratio images (e.g. OBI strips ~4.8:1 tall)
-     from consuming disproportionate vertical space in the masonry grid.
-     At 3 columns the frame is ~(100vw - 48px) / 3 ≈ 30vw wide, so
-     capping at 60vw gives ≈ 2:1 (tall) without cropping anything.
-     At 2 cols ≈ 45vw wide, cap at 90vw. At 1 col the cap is 200vw
-     (effectively uncapped). Images use object-fit: contain so artwork
-     is always shown whole — the letterbox background fills the gap. */
+  /* Fill the card width (JS constrains the card width for tall images). */
+  width: 100%;
   max-height: 60vw;
 }
 .imageFrame::after {
@@ -305,8 +304,6 @@
   height: auto;
   display: block;
   object-fit: contain;
-  /* Clamp the image to the same cap as .imageFrame so tall images
-     (e.g. OBI strips) never overflow their container. */
   max-height: 60vw;
 }
 .imageFallback {
@@ -324,6 +321,8 @@
 
 /* Label */
 .label {
+  /* Stretch to the same width as the image frame above it. */
+  width: 100%;
   background: var(--label);
   color: var(--label-foreground);
   border: 1px solid var(--line);
@@ -721,12 +720,8 @@
     column-gap: 20px;
   }
   /* 2 columns ≈ 48vw wide each; cap at ~2:1 tall = 96vw */
-  .imageFrame {
-    max-height: 96vw;
-  }
-  .image {
-    max-height: 96vw;
-  }
+  .imageFrame { max-height: 96vw; }
+  .image       { max-height: 96vw; }
   .filterGroups {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -759,14 +754,9 @@
     padding-top: 12px;
   }
   .card { margin-bottom: 36px; }
-  /* 1 column ≈ full width; cap OBI strips at ~2:1 = 200vw is infinite,
-     so use a sensible absolute cap of 90vh to stay on screen */
-  .imageFrame {
-    max-height: 90vh;
-  }
-  .image {
-    max-height: 90vh;
-  }
+  /* 1 column ≈ full width; cap at 90vh so OBI strips stay on screen */
+  .imageFrame { max-height: 90vh; }
+  .image       { max-height: 90vh; }
 
   .detailPage { padding: 56px 14px 48px; }
   .detailTitle { font-size: 32px; }
