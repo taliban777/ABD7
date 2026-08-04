@@ -1,15 +1,8 @@
-"use client";
-
-import { useCallback, useRef } from "react";
 import Link from "next/link";
 import styles from "./others.module.css";
 import type { CmsOther } from "./types";
 import { otherSlug } from "./types";
 import { getOthersImageUrl } from "@/components/images/cloudinary";
-
-// Images taller than this ratio (h/w) get a tight-width card.
-// OBI strips are ~4.8; normal artwork sits between 0.5–1.5.
-const TALL_RATIO_THRESHOLD = 2;
 
 export interface OthersCardProps {
   item: CmsOther;
@@ -17,8 +10,6 @@ export interface OthersCardProps {
 
 export function OthersCard({ item }: OthersCardProps) {
   const destination = `/others/${otherSlug(item)}`;
-  const cardRef = useRef<HTMLAnchorElement>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
 
   const reflectionSeed = (item.id || item.title)
     .split("")
@@ -30,44 +21,21 @@ export function OthersCard({ item }: OthersCardProps) {
   const startY = ((reflectionSeed * 73) % 40) - 20;
   const endY = -startY;
 
-  // Once the image loads, read its intrinsic dimensions. For tall images
-  // (ratio > threshold) add a CSS class that constrains the card width to
-  // the image's intrinsic width at the capped height, eliminating the
-  // letterbox background that would otherwise appear on the sides.
-  const handleImageLoad = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement>) => {
-      const img = e.currentTarget;
-      const { naturalWidth, naturalHeight } = img;
-      if (!naturalWidth || !frameRef.current || !cardRef.current) return;
-      const ratio = naturalHeight / naturalWidth;
-      if (ratio > TALL_RATIO_THRESHOLD) {
-        // Derive the rendered image width from the capped height.
-        // The CSS max-height cap at 3 cols = 60vw. At the moment the image
-        // loads we can read the actual rendered height from the frame and
-        // back-calculate the correct pixel width directly.
-        const frameHeight = frameRef.current.getBoundingClientRect().height;
-        const targetWidth = Math.round(frameHeight / ratio);
-        cardRef.current.style.width = `${targetWidth}px`;
-      }
-    },
-    []
-  );
-
   return (
-    <Link ref={cardRef} href={destination} className={styles.card}>
-      <div
-        ref={frameRef}
-        className={styles.imageFrame}
-        style={
-          {
-            "--reflection-duration": `${reflectionDuration}ms`,
-            "--reflection-start": `${startX}%`,
-            "--reflection-end": `${endX}%`,
-            "--reflection-y-start": `${startY}%`,
-            "--reflection-y-end": `${endY}%`,
-          } as React.CSSProperties
-        }
-      >
+    <Link
+      href={destination}
+      className={styles.card}
+      style={
+        {
+          "--reflection-duration": `${reflectionDuration}ms`,
+          "--reflection-start": `${startX}%`,
+          "--reflection-end": `${endX}%`,
+          "--reflection-y-start": `${startY}%`,
+          "--reflection-y-end": `${endY}%`,
+        } as React.CSSProperties
+      }
+    >
+      <div className={styles.imageFrame}>
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -76,7 +44,6 @@ export function OthersCard({ item }: OthersCardProps) {
             alt={item.title}
             loading="lazy"
             decoding="async"
-            onLoad={handleImageLoad}
           />
         ) : (
           <div className={styles.imageFallback} aria-hidden="true">
