@@ -264,13 +264,8 @@
 
 .imageFrame {
   width: 100%;
-  max-height: 500px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
-  background: var(--surface);
 }
 .imageFrame::after {
   content: " ";
@@ -299,9 +294,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 500px;
   object-fit: contain;
-  background: var(--surface);
 }
 .imageFallback {
   width: 100%;
@@ -724,10 +717,6 @@
 }
 
 @media (max-width: 800px) {
-  .filterGroups {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
   .filterGroups {
     grid-template-columns: 1fr;
     gap: 32px;
