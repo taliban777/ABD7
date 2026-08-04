@@ -420,13 +420,23 @@ export async function fetchCmsProjectBySlug(
 // Others CMS model — independent from the Album Archive
 // ---------------------------------------------------------------------------
 
-function resolveStringArray(value: unknown): string[] {
+/**
+ * Resolve a CMS list field whose items may be plain strings OR objects with a
+ * display value (e.g. Plasmic CMS `tags` rows arrive as [{ name: "OBI" }]).
+ */
+function resolveLabelArray(value: unknown): string[] {
   if (!value) return [];
-  if (Array.isArray(value)) {
-    return value.filter((v): v is string => typeof v === "string" && v.length > 0);
-  }
-  if (typeof value === "string") return value.length ? [value] : [];
-  return [];
+  const toLabel = (v: unknown): string => {
+    if (typeof v === "string") return v;
+    if (v !== null && typeof v === "object") {
+      const o = v as Record<string, unknown>;
+      const label = o.name ?? o.title ?? o.label ?? o.value;
+      return typeof label === "string" ? label : "";
+    }
+    return "";
+  };
+  const items = Array.isArray(value) ? value : [value];
+  return items.map(toLabel).filter((s) => s.length > 0);
 }
 
 /**
@@ -457,8 +467,19 @@ export function collectOthers(rows: unknown[]): CmsOther[] {
       yearRaw ? Number(yearRaw) || null : null;
     const type = typeof o.type === "string" ? o.type.trim() : "";
     const description = typeof o.description === "string" ? o.description : "";
-    const gallery = resolveStringArray(o.gallery);
-    const tags = resolveStringArray(o.tags);
+
+    // Gallery items arrive from the CMS as image objects ({ url, ... }) —
+    // resolve each through resolveImageUrl so both strings and objects work.
+    const gallery: string[] = [];
+    if (Array.isArray(o.gallery)) {
+      for (const item of o.gallery) {
+        const url = resolveImageUrl(item);
+        if (url) gallery.push(url);
+      }
+    }
+
+    // Tags arrive as objects ({ name: "..." }) — resolve to plain labels.
+    const tags = resolveLabelArray(o.tags);
     const groupSlug = typeof o.groupSlug === "string" ? o.groupSlug.trim() : "";
 
     results.push({

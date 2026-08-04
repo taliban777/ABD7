@@ -235,15 +235,16 @@
    natural image aspect ratios without cropping.
    ─────────────────────────────────────────────────────────── */
 .grid {
-  column-count: 3;
-  column-gap: 20px;
+  column-count: 1;
+  column-gap: 24px;
   padding-top: 28px;
 }
 
 /* ── Card ────────────────────────────────────────────────── */
 .card {
-  display: block;
-  margin: 0 0 40px;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 24px;
   break-inside: avoid;
   -webkit-column-break-inside: avoid;
   page-break-inside: avoid;
@@ -262,11 +263,8 @@
 }
 
 .imageFrame {
-  background: var(--surface);
+  width: 100%;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
 }
 .imageFrame::after {
@@ -293,9 +291,9 @@
   animation: galleryReflection var(--reflection-duration, 1000ms) ease-in-out forwards;
 }
 .image {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
   object-fit: contain;
 }
 .imageFallback {
@@ -313,6 +311,8 @@
 
 /* Label */
 .label {
+  /* Stretch to the same width as the image frame above it. */
+  width: 100%;
   background: var(--label);
   color: var(--label-foreground);
   border: 1px solid var(--line);
@@ -704,11 +704,19 @@
    Responsive
    ========================================================= */
 
-@media (max-width: 800px) {
+@media (min-width: 640px) {
   .grid {
     column-count: 2;
-    column-gap: 20px;
   }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 800px) {
   .filterGroups {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -737,10 +745,9 @@
   .grid {
     column-count: 1;
     column-gap: 0;
-    row-gap: 36px;
     padding-top: 12px;
   }
-  .card { margin-bottom: 36px; }
+  .card { margin-bottom: 24px; }
 
   .detailPage { padding: 56px 14px 48px; }
   .detailTitle { font-size: 32px; }

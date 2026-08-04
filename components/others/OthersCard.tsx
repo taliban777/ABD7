@@ -22,19 +22,20 @@ export function OthersCard({ item }: OthersCardProps) {
   const endY = -startY;
 
   return (
-    <Link href={destination} className={styles.card}>
-      <div
-        className={styles.imageFrame}
-        style={
-          {
-            "--reflection-duration": `${reflectionDuration}ms`,
-            "--reflection-start": `${startX}%`,
-            "--reflection-end": `${endX}%`,
-            "--reflection-y-start": `${startY}%`,
-            "--reflection-y-end": `${endY}%`,
-          } as React.CSSProperties
-        }
-      >
+    <Link
+      href={destination}
+      className={styles.card}
+      style={
+        {
+          "--reflection-duration": `${reflectionDuration}ms`,
+          "--reflection-start": `${startX}%`,
+          "--reflection-end": `${endX}%`,
+          "--reflection-y-start": `${startY}%`,
+          "--reflection-y-end": `${endY}%`,
+        } as React.CSSProperties
+      }
+    >
+      <div className={styles.imageFrame}>
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
