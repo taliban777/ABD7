@@ -18,6 +18,28 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
 
   const galleryImages = useMemo(() => item.gallery ?? [], [item.gallery]);
 
+  // Is this entry an Obi strip? (mirrors the detection in OthersPage.tsx)
+  const isObiStrip =
+    item.layoutType === 'obi-pack' ||
+    (item.type || '').toLowerCase().includes('obi');
+
+  // For Obi strip pages, gather every Obi asset sharing the same groupSlug
+  // (including the current item) so they can be displayed together as a shelf.
+  const obiGroup = useMemo(() => {
+    if (!isObiStrip) return [];
+    const group = allItems.filter((o) => {
+      const oIsObi =
+        o.layoutType === 'obi-pack' ||
+        (o.type || '').toLowerCase().includes('obi');
+      if (!oIsObi) return false;
+      // Group by shared groupSlug; if this item has no groupSlug, only itself.
+      return item.groupSlug ? o.groupSlug === item.groupSlug : o.id === item.id;
+    });
+    // Ensure the current item is present and appears first.
+    const withoutCurrent = group.filter((o) => o.id !== item.id);
+    return [item, ...withoutCurrent];
+  }, [isObiStrip, allItems, item]);
+
   const allImages = useMemo(() => {
     const images: Array<{ url: string; alt: string }> = [];
     if (item.image) {
@@ -80,31 +102,67 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
         </div>
       </section>
 
-      {/* Main image */}
-      {item.image && (
-        <section className={styles.detailArtworkSection}>
-          <div
-            className={styles.detailArtworkContainer}
-            onClick={() => handleImageClick(0)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
-            }}
-            aria-label="View image fullscreen"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={getOthersHeroImageUrl(item.image)}
-              alt={item.title}
-              className={styles.detailArtworkImage}
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore fetchpriority is valid HTML but not yet in React types
-              fetchpriority="high"
-              decoding="async"
-            />
+      {/* Obi strips shelf — grouped by groupSlug, aligned in a single row */}
+      {isObiStrip && obiGroup.length > 0 ? (
+        <section className={styles.obiGroupSection} aria-label="Obi strips">
+          <div className={styles.obiGroupShelf}>
+            {obiGroup.map((strip) => (
+              <Link
+                key={strip.id}
+                href={`/others/${otherSlug(strip)}`}
+                className={styles.obiGroupItem}
+                aria-label={strip.title}
+              >
+                {strip.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={getOthersHeroImageUrl(strip.image)}
+                    alt={strip.title}
+                    className={
+                      strip.id === item.id
+                        ? `${styles.obiGroupImage} ${styles.obiGroupImageActive}`
+                        : styles.obiGroupImage
+                    }
+                    loading={strip.id === item.id ? undefined : 'lazy'}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore fetchpriority is valid HTML but not yet in React types
+                    fetchpriority={strip.id === item.id ? 'high' : undefined}
+                    decoding="async"
+                  />
+                ) : (
+                  <div className={styles.obiGroupFallback}>No Image</div>
+                )}
+              </Link>
+            ))}
           </div>
         </section>
+      ) : (
+        /* Main image */
+        item.image && (
+          <section className={styles.detailArtworkSection}>
+            <div
+              className={styles.detailArtworkContainer}
+              onClick={() => handleImageClick(0)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
+              }}
+              aria-label="View image fullscreen"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getOthersHeroImageUrl(item.image)}
+                alt={item.title}
+                className={styles.detailArtworkImage}
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore fetchpriority is valid HTML but not yet in React types
+                fetchpriority="high"
+                decoding="async"
+              />
+            </div>
+          </section>
+        )
       )}
 
       {/* Description */}

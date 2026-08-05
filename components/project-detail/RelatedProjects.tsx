@@ -86,7 +86,7 @@ export function RelatedProjects({
         <div className={styles.relatedGroup}>
           <h3 className={styles.relatedGroupTitle}>More from this Artist</h3>
           <div className={styles.relatedGrid}>
-            {byArtist.map((project) => (
+            {byArtist.slice(0, 3).map((project) => (
               <RelatedItem key={project.id} project={project} />
             ))}
           </div>
@@ -97,7 +97,7 @@ export function RelatedProjects({
         <div className={styles.relatedGroup}>
           <h3 className={styles.relatedGroupTitle}>Similar Style</h3>
           <div className={styles.relatedGrid}>
-            {byStyle.map((project) => (
+            {byStyle.slice(0, 3).map((project) => (
               <RelatedItem key={project.id} project={project} />
             ))}
           </div>
