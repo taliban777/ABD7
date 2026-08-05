@@ -1,0 +1,297 @@
+/* =========================================================
+   Per-exhibition layout CSS
+   Five distinct layouts — all share the same design language.
+   ========================================================= */
+
+/* ─────────────────────────────────────────────────────────
+   EXHIBITION 01 — Can You See the Colour?
+   Horizontal marquee, all artwork desaturated.
+   Speed modulated on scroll via --marquee-speed CSS var.
+   ───────────────────────────────────────────────────────── */
+
+.marqueeSection {
+  overflow: hidden;
+  width: 100%;
+  /* Reserve height = tile height so the wall doesn't collapse */
+  height: 520px;
+  position: relative;
+}
+
+.marqueeTrack {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  will-change: transform;
+  /* Speed is injected as --marquee-duration via inline style */
+  animation: marqueeLeft var(--marquee-duration, 60s) linear infinite;
+  transition: animation-duration 0.8s ease;
+}
+
+@keyframes marqueeLeft {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(calc(-1 * var(--marquee-loop-width, 50%)), 0, 0); }
+}
+
+.marqueeTile {
+  flex: 0 0 auto;
+  height: 100%;
+  overflow: hidden;
+}
+
+.marqueeTile img {
+  display: block;
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+  /* Desaturated to reinforce the concept */
+  filter: grayscale(1) brightness(0.82);
+  user-select: none;
+  pointer-events: none;
+  transition: filter 600ms ease;
+}
+
+.marqueeTile:hover img {
+  filter: grayscale(0) brightness(0.92);
+}
+
+/* ─────────────────────────────────────────────────────────
+   EXHIBITION 02 — Change How You Perceive Space.
+   Vertical architectural composition, mono axis labels.
+   ───────────────────────────────────────────────────────── */
+
+.verticalSection {
+  padding: 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.verticalItem {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0 48px;
+  padding: 72px 0;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.verticalItem:last-child {
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.verticalAxisLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: center;
+  line-height: 1;
+}
+
+.verticalImageWrap {
+  /* Portrait framing — full natural width, constrained max */
+  max-width: 640px;
+}
+
+.verticalImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────
+   EXHIBITION 03 — Bearers of the Beacon
+   White glow emerges slowly behind artwork on hover.
+   Pure CSS — no JS. box-shadow transition 4s ease.
+   ───────────────────────────────────────────────────────── */
+
+.glowSection {
+  padding: 0 64px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px 40px;
+}
+
+.glowItem {
+  position: relative;
+}
+
+.glowImageWrap {
+  position: relative;
+  display: block;
+  overflow: visible;
+  /* Glow lives as box-shadow on this element — very slow transition */
+  box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
+  transition: box-shadow 4s ease;
+}
+
+.glowItem:hover .glowImageWrap {
+  box-shadow: 0 0 120px 48px rgba(255, 255, 255, 0.45);
+}
+
+.glowImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─────────────────────────────────────────────────────────
+   EXHIBITION 04 — Vessels of the Unseen (Mali Selections)
+   Vol 1+2 side-by-side, Vol 3 full-width beneath.
+   ───────────────────────────────────────────────────────── */
+
+.maliSection {
+  padding: 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.maliRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.maliFullRow {
+  width: 100%;
+}
+
+.maliImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────
+   EXHIBITION 05 — Build or Destroy
+   Fragment shatter on hover — pure CSS clip-path transitions.
+   ───────────────────────────────────────────────────────── */
+
+.fragmentSection {
+  padding: 0 64px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px 40px;
+}
+
+/* Container — position:relative so fragments can be absolute children */
+.fragmentItem {
+  position: relative;
+  overflow: visible;
+}
+
+/* Base image — always visible, sits behind fragments */
+.fragmentBase {
+  display: block;
+  width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 0;
+  user-select: none;
+}
+
+/* Fragment overlay — covers the base image exactly */
+.fragmentOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Individual fragment piece */
+.fragment {
+  position: absolute;
+  inset: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  /* Each fragment's clip-path, --dx, --dy, --rot are set via inline style */
+  transition:
+    clip-path 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform  1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity    1.0s ease;
+  transform: translate(0, 0) rotate(0deg);
+  opacity: 1;
+}
+
+/* On hover: each fragment drifts to its target position */
+.fragmentItem:hover .fragment {
+  transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg));
+  opacity: 0.0;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .verticalSection {
+    padding: 0 32px;
+  }
+
+  .verticalItem {
+    grid-template-columns: 1fr;
+    gap: 20px 0;
+    padding: 48px 0;
+  }
+
+  .verticalAxisLabel {
+    writing-mode: horizontal-tb;
+    transform: none;
+    align-self: auto;
+  }
+
+  .glowSection {
+    padding: 0 32px;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .maliSection {
+    padding: 0 32px;
+  }
+
+  .maliRow {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .fragmentSection {
+    padding: 0 32px;
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+}
+
+@media (max-width: 600px) {
+  .marqueeSection {
+    height: 320px;
+  }
+
+  .verticalSection {
+    padding: 0 24px;
+  }
+
+  .glowSection {
+    padding: 0 24px;
+  }
+
+  .maliSection {
+    padding: 0 24px;
+    gap: 24px;
+  }
+
+  .maliRow {
+    gap: 24px;
+  }
+
+  .fragmentSection {
+    padding: 0 24px;
+    gap: 32px;
+  }
+}

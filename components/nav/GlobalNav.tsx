@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { label: "HOME", href: "/" },
   { label: "COLLECTION", href: "/collection" },
   { label: "OTHERS", href: "/others" },
+  { label: "CURATIONS", href: "/curations" },
 ] as const;
 
 const NAV_LINKS_RIGHT = [
@@ -276,18 +277,19 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
           aria-label="Site navigation"
         >
           <ul className={styles.mobileLinks} role="list">
-            {NAV_LINKS.map(({ label, href }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`${styles.mobileLink} ${isActive(href) ? styles.mobileLinkActive : ""}`}
-                  aria-current={isActive(href) ? "page" : undefined}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
+          {NAV_LINKS.map(({ label, href }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`${styles.mobileLink} ${isActive(href) ? styles.mobileLinkActive : ""}`}
+                aria-current={isActive(href) ? "page" : undefined}
+                onClick={() => setMobileOpen(false)}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+
 
             {/* PROJECTS — expandable by year */}
             <li className={styles.mobileGroup}>
