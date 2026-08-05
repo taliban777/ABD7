@@ -139,20 +139,21 @@
 }
 
 .metadataPair {
-  display: grid;
-  grid-template-columns: minmax(104px, 34%) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line-subtle);
 }
 
-.metadataPair dt,
-.metadataPair dd {
+.metadataPair dt {
+  flex: 0 0 120px;
   min-width: 0;
 }
 
 .metadataPair dd {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
@@ -726,8 +727,12 @@
 
 @media (max-width: 640px) {
   .metadataPair {
-    grid-template-columns: minmax(72px, 28%) minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: minmax(120px, 34%) minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .metadataPair dt {
+    white-space: nowrap;
   }
 
   .breadcrumbBar {
