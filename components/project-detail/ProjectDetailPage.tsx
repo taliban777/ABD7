@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useInView } from '@/hooks/useInView';
 import Link from 'next/link';
 import type { CmsProject } from '@/components/archive/types';
 import { asArray, valueLabel, paletteValue, catalogueNumber, projectSlug } from '@/components/archive/types';
@@ -18,6 +19,7 @@ export interface ProjectDetailPageProps {
 export function ProjectDetailPage({ project, allProjects }: ProjectDetailPageProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [paletteBarRef, paletteBarInView] = useInView<HTMLDivElement>({ rootMargin: '0px 0px -60px 0px' });
 
   // Extract metadata
   const artistNames = asArray(project.artists)
@@ -295,8 +297,8 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
 
       {/* ── Palette section ── */}
       {paletteColors.length > 0 && (
-        <section className={styles.paletteSection}>
-          <PaletteVisualization colors={paletteColors} />
+        <section className={styles.paletteSection} ref={paletteBarRef}>
+          <PaletteVisualization colors={paletteColors} barVisible={paletteBarInView} />
         </section>
       )}
 

@@ -96,10 +96,11 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
           </svg>
         </button>
 
-        {/* Image */}
+        {/* Image — key forces remount so lightboxImageIn CSS animation replays on navigation */}
         <div className={styles.lightboxImageContainer}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={currentIndex}
             src={getProjectImageUrl(currentImage.url)}
             alt={currentImage.alt}
             className={styles.lightboxImage}

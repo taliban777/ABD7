@@ -24,6 +24,8 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--foreground);
+  animation: clipReveal 0.7s var(--ease-reveal) both;
+  animation-delay: 0.1s;
 }
 
 .pageSubtitle {
@@ -31,12 +33,16 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
+  animation: fadeUp 0.55s var(--ease-reveal) both;
+  animation-delay: 0.25s;
 }
 
 /* ─── Table ─── */
 
 .tableContainer {
   padding: 0 24px;
+  animation: fadeUp 0.65s var(--ease-reveal) both;
+  animation-delay: 0.3s;
 }
 
 .table {
@@ -62,6 +68,7 @@
 /* Data rows */
 .table tr:not(.sectionHeaderRow) {
   border-bottom: 1px solid var(--line);
+  transition: background 0.16s ease;
 }
 
 .table tr:not(.sectionHeaderRow):hover td {

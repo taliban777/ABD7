@@ -99,11 +99,12 @@ export function OthersPage({ items, projects = [] }: OthersPageProps) {
         {/* Type filter buttons */}
         {typeOptions.length > 0 && (
           <nav className={styles.typeNav} aria-label="Filter by type">
-            {typeOptions.map(({ value, count }) => (
+            {typeOptions.map(({ value, count }, i) => (
               <button
                 key={value}
                 className={`${styles.typeBtn} ${activeType === value ? styles.typeBtnActive : ""}`}
                 type="button"
+                style={{ "--btn-index": i } as React.CSSProperties}
                 onClick={() => setActiveType((prev) => (prev === value ? null : value))}
               >
                 {value}

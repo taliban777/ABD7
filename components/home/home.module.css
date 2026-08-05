@@ -51,17 +51,22 @@
   gap: 36px;
   padding: 48px 64px 44px;
   pointer-events: auto;
-  /* Gentle fade-in on mount */
-  animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Clip-path reveal on mount — the paperBlock lifts into view */
+  animation: blockSettle 1.4s var(--ease-reveal) both;
 }
 
 @keyframes blockSettle {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    clip-path: inset(0 0 12% 0);
+    transform: translateY(14px);
+  }
+  50% {
+    clip-path: inset(0 0 0% 0);
   }
   to {
     opacity: 1;
+    clip-path: inset(0 0 0% 0);
     transform: none;
   }
 }

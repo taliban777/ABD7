@@ -175,6 +175,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                       className={styles.dropdownLink}
                       role="option"
                       aria-selected={false}
+                      style={{ "--item-index": 0 } as React.CSSProperties}
                       onClick={() => setDropdownOpen(false)}
                     >
                       ALL YEARS
@@ -182,12 +183,13 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                     {years.length === 0 ? (
                       <span className={styles.dropdownEmpty}>No years available</span>
                     ) : (
-                      years.map((year) => (
+                      years.map((year, i) => (
                         <button
                           key={year}
                           type="button"
                           className={styles.dropdownLink}
                           role="option"
+                          style={{ "--item-index": i + 1 } as React.CSSProperties}
                           onClick={(e) => {
                             e.preventDefault();
                             setSelectedYear(year);
@@ -207,6 +209,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                       className={styles.dropdownLink}
                       role="option"
                       aria-selected={selectedYear === null}
+                      style={{ "--item-index": 0 } as React.CSSProperties}
                       onClick={(e) => {
                         e.preventDefault();
                         setSelectedYear(null);
@@ -218,13 +221,14 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
                     {albumsInYear.length === 0 ? (
                       <span className={styles.dropdownEmpty}>No projects in {selectedYear}</span>
                     ) : (
-                      albumsInYear.map((project) => (
+                      albumsInYear.map((project, i) => (
                         <Link
                           key={project.id}
                           href={`/projects/${project.slug ?? project.title.toLowerCase().replace(/\s+/g, "-")}`}
                           className={styles.dropdownLink}
                           role="option"
                           aria-selected={false}
+                          style={{ "--item-index": i + 1 } as React.CSSProperties}
                           onClick={() => setDropdownOpen(false)}
                         >
                           {project.title}

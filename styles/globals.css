@@ -23,9 +23,19 @@
   /* ---- Motion ---- */
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Reveal: clip-path / translateY — decelerating punch-through */
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Mask: directional wipes (search underline, chip fill, menu wipe) */
+  --ease-mask: cubic-bezier(0.77, 0, 0.18, 1);
+  /* Exit: fast ease-in */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --duration-fast: 0.18s;
   --duration-base: 0.28s;
   --duration-slow: 0.45s;
+  /* Scroll-triggered reveal */
+  --duration-reveal: 0.72s;
+  /* Page-level transition */
+  --duration-page: 0.42s;
 
   /* ---- Radii ---- */
   --radius-none: 0px;
@@ -82,4 +92,42 @@ img {
   syntax: '<number>';
   initial-value: 0;
   inherits: true;
+}
+
+/* ── Page-enter animation ─────────────────────────────────────────────── */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-transition {
+  animation: pageEnter var(--duration-page) var(--ease-reveal) both;
+}
+
+/* ── Clip-path reveal (used by section headers, hero text, cards) ─────── */
+@keyframes clipReveal {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0% 0); }
+}
+
+/* ── Soft fade-up (used by metadata rows, related items, table rows) ──── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Honour prefers-reduced-motion — kill everything globally ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
