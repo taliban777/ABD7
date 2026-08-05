@@ -54,6 +54,18 @@ export function otherSlug(item: Pick<CmsOther, "slug" | "title" | "id">): string
   return fromTitle || item.id;
 }
 
+/**
+ * Detect whether an entry is an "Obi Strip" — either via its `type`
+ * field or one of its tags. Obi strips render in a narrow, dedicated
+ * slot in the gallery grid.
+ */
+export function isObiStrip(item: Pick<CmsOther, "type" | "tags">): boolean {
+  const needle = "obi";
+  const type = (item.type || "").toLocaleLowerCase();
+  if (type.includes(needle)) return true;
+  return (item.tags || []).some((t) => t.toLocaleLowerCase().includes(needle));
+}
+
 /** Resolve the display label for a "Project" (groupSlug) filter option. */
 export function projectLabel(slug: string): string {
   if (!slug) return "Standalone";

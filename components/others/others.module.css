@@ -230,24 +230,32 @@
   color: var(--foreground);
 }
 
-/* ── Masonry grid ──────────────────────────────────────────
-   CSS columns create a calm masonry layout that preserves
-   natural image aspect ratios without cropping.
+/* ── Variable-width flow grid ──────────────────────────────
+   A flex-wrap layout where each card's column width adapts to
+   its content type. Standard artwork occupies wide slots while
+   Obi strips take a narrow, dedicated column. gap-6 keeps the
+   spacing consistent across unequal column widths.
    ─────────────────────────────────────────────────────────── */
 .grid {
-  column-count: 1;
-  column-gap: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px; /* gap-6 — vertical + horizontal */
   padding-top: 28px;
 }
 
-/* ── Card ────────────────────────────────────────────────── */
+/* ── Card ──────────────────────────────────────────────────
+   Standard assets adapt naturally between 280px and 380px and
+   grow to fill the row. Cards wrap their image bounds tightly
+   (no letterboxing / grey canvas) by sizing to the content.
+   ─────────────────────────────────────────────────────────── */
 .card {
-  display: inline-block;
-  width: 100%;
-  margin: 0 0 24px;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 280px;
+  min-width: 280px;
+  max-width: 380px;
+  margin: 0;
   text-decoration: none;
   color: inherit;
   animation: cardIn 0.4s ease both;
@@ -260,6 +268,14 @@
 .card:hover {
   transform: scale(1.022);
   filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
+}
+
+/* Obi strips — narrow, dedicated slot that never grows/shrinks. */
+.cardObi {
+  flex: 0 0 140px;
+  min-width: 140px;
+  max-width: 140px;
+  width: 140px;
 }
 
 .imageFrame {
@@ -704,18 +720,6 @@
    Responsive
    ========================================================= */
 
-@media (min-width: 640px) {
-  .grid {
-    column-count: 2;
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid {
-    column-count: 3;
-  }
-}
-
 @media (max-width: 800px) {
   .filterGroups {
     grid-template-columns: 1fr;
@@ -743,11 +747,22 @@
   .indexBar strong { width: 100%; margin-right: 0; }
   .sortControls { flex-wrap: wrap; }
   .grid {
-    column-count: 1;
-    column-gap: 0;
+    gap: 16px;
     padding-top: 12px;
   }
-  .card { margin-bottom: 24px; }
+  /* On the narrowest screens standard cards take the full row. */
+  .card {
+    flex-basis: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+  /* Obi strips stay narrow even on mobile. */
+  .cardObi {
+    flex: 0 0 120px;
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+  }
 
   .detailPage { padding: 56px 14px 48px; }
   .detailTitle { font-size: 32px; }

@@ -524,3 +524,14 @@ export async function fetchCmsOtherBySlug(
   const all = await fetchCmsOthers();
   return all.find((item) => otherSlug(item) === slug) || null;
 }
+
+/**
+ * Fetch all Others entries belonging to a given `groupSlug`.
+ * Returns an empty array when no entries match the group.
+ */
+export async function fetchCmsOthersByGroup(
+  groupSlug: string
+): Promise<CmsOther[]> {
+  const all = await fetchCmsOthers();
+  return all.filter((item) => item.groupSlug && item.groupSlug === groupSlug);
+}

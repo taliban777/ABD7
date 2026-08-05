@@ -1,15 +1,28 @@
 import Link from "next/link";
 import styles from "./others.module.css";
 import type { CmsOther } from "./types";
-import { otherSlug } from "./types";
+import { otherSlug, isObiStrip } from "./types";
 import { getOthersImageUrl } from "@/components/images/cloudinary";
 
 export interface OthersCardProps {
   item: CmsOther;
+  /**
+   * When true the card always links to the individual entry page,
+   * bypassing the group route. Used inside a group view so items can
+   * still be opened individually.
+   */
+  linkToItem?: boolean;
 }
 
-export function OthersCard({ item }: OthersCardProps) {
-  const destination = `/others/${otherSlug(item)}`;
+export function OthersCard({ item, linkToItem = false }: OthersCardProps) {
+  // Cards on the /others index route to the shared group page when the
+  // entry belongs to a CMS group; otherwise they open the individual entry.
+  const destination =
+    !linkToItem && item.groupSlug
+      ? `/others/group/${item.groupSlug}`
+      : `/others/${otherSlug(item)}`;
+
+  const obi = isObiStrip(item);
 
   const reflectionSeed = (item.id || item.title)
     .split("")
@@ -24,7 +37,7 @@ export function OthersCard({ item }: OthersCardProps) {
   return (
     <Link
       href={destination}
-      className={styles.card}
+      className={`${styles.card} ${obi ? styles.cardObi : ""}`}
       style={
         {
           "--reflection-duration": `${reflectionDuration}ms`,
