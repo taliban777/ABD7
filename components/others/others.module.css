@@ -798,7 +798,7 @@
 }
 .obiGroupItem:hover { transform: translateY(-4px); }
 .obiGroupImage {
-  height: 320px;
+  height: 640px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -807,8 +807,8 @@
   outline: 1px solid var(--line);
 }
 .obiGroupFallback {
-  height: 320px;
-  width: 96px;
+  height: 640px;
+  width: 192px;
   display: flex;
   align-items: center;
   justify-content: center;
