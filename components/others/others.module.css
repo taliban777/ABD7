@@ -413,37 +413,94 @@
   max-width: 120px;
 }
 
-/* ── Primary Artwork Grid ──────────────────────────────────
-   Standard 3-column grid for posters, press kits, flyers,
-   banners — all items with normal aspect ratios.
+/* ── Unified 3-column grid ─────────────────────────────────
+   One grid that holds both standard artwork cards and obi
+   pack tiles. Standard cards keep their natural image ratio;
+   obi packs fill their cell with a fixed-ratio desk scene.
    ─────────────────────────────────────────────────────────── */
-.primaryGrid {
+.unifiedGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
-  padding-top: 4px;
+  gap: 24px;
+  padding-top: 28px;
 }
 
-/* Card variant for grid cells — resets masonry-specific margin */
-.cardGrid {
-  margin-bottom: 0;
-  break-inside: unset;
-  -webkit-column-break-inside: unset;
-  page-break-inside: unset;
+/* ── Obi Pack card ─────────────────────────────────────────
+   A single grid cell containing 3–4 obi strips side-by-side
+   on a warm cream background, like strips on a desk.
+   ─────────────────────────────────────────────────────────── */
+.obiPackCard {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  animation: cardIn 0.4s ease both;
+  transition:
+    transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.5s ease;
+  will-change: transform;
+}
+.obiPackCard:hover {
+  transform: scale(1.018);
+  filter: drop-shadow(0 10px 22px rgba(255, 255, 255, 0.07));
 }
 
-/* Image frame variant: fixed 4:5 aspect ratio so every cell is
-   the same height regardless of the source image dimensions */
-.imageFrameGrid {
-  aspect-ratio: 4 / 5;
+/* The cream-background frame that holds the strips.
+   aspect-ratio 3/4 keeps the cell proportional. */
+.obiPackFrame {
+  aspect-ratio: 3 / 4;
+  background: #EFECE6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 16px;
   overflow: hidden;
+  border: 1px solid var(--line);
+  border-bottom: none;
 }
 
-/* Inside grid cells the image should fill the frame by cropping */
-.imageFrameGrid .image {
+/* Individual strip inside the pack.
+   --obi-pack-count is set inline (3 or 4) so the width
+   calculation is exact regardless of group size. */
+.obiPackStrip {
+  flex: 0 0 auto;
+  width: calc((100% - (var(--obi-pack-count, 3) - 1) * 10px) / var(--obi-pack-count, 3));
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+.obiPackStrip:hover {
+  transform: translateY(-4px) scale(1.04);
+  filter: drop-shadow(0 8px 14px rgba(17, 17, 15, 0.22));
+  z-index: 2;
+}
+
+.obiPackStripImage {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  /* Paper-like drop shadow on each physical strip */
+  filter: drop-shadow(0 4px 8px rgba(17, 17, 15, 0.18)) drop-shadow(0 1px 2px rgba(17, 17, 15, 0.12));
+}
+
+.obiPackStripFallback {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  writing-mode: vertical-rl;
 }
 
 /* ── Legacy masonry grid ───────────────────────────────────
@@ -924,9 +981,9 @@
   .grid {
     column-count: 2;
   }
-  .primaryGrid {
+  .unifiedGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 24px;
   }
 }
 
@@ -934,9 +991,9 @@
   .grid {
     column-count: 3;
   }
-  .primaryGrid {
+  .unifiedGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 24px;
   }
 }
 

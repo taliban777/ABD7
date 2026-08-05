@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import styles from "./others.module.css";
 import { OthersCard } from "./OthersCard";
-import { ObiStripsShelf } from "./ObiStripsShelf";
+import { ObiPackCard } from "./ObiPackCard";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { fetchCmsOthers } from "@/lib/cms";
 import type { CmsOther, OthersSelection, OthersFilterKey } from "./types";
@@ -41,10 +41,51 @@ export function OthersPage({ items }: OthersPageProps) {
   const isObiStrip = (item: CmsOther) =>
     typeof item.type === "string" && item.type.toLowerCase().includes("obi");
 
-  const obiResults = useMemo(() => allResults.filter(isObiStrip), [allResults]);
-  const gridResults = useMemo(() => allResults.filter((item) => !isObiStrip(item)), [allResults]);
+  /**
+   * Build a flat list of grid tiles:
+   *  - Non-obi items become individual { kind: "card", item } tiles.
+   *  - Obi items are collected then chunked into groups of 3–4
+   *    so they fill a single cell as { kind: "obi-pack", items[] }.
+   *
+   * Strategy: preserve original sort order for standard cards; obi
+   * packs are inserted where the first obi strip appears in the list.
+   */
+  type GridTile =
+    | { kind: "card"; item: CmsOther }
+    | { kind: "obi-pack"; items: CmsOther[] };
 
-  /** Keep a stable total for the "results" count in the index bar. */
+  const gridTiles = useMemo<GridTile[]>(() => {
+    const OBI_PACK_SIZE = 3;
+    const tiles: GridTile[] = [];
+    const pendingObis: CmsOther[] = [];
+    let firstObiInserted = false;
+
+    const flushObis = () => {
+      if (pendingObis.length === 0) return;
+      // chunk into groups of OBI_PACK_SIZE; last group gets whatever remains
+      for (let i = 0; i < pendingObis.length; i += OBI_PACK_SIZE) {
+        tiles.push({ kind: "obi-pack", items: pendingObis.slice(i, i + OBI_PACK_SIZE) });
+      }
+      pendingObis.length = 0;
+    };
+
+    for (const item of allResults) {
+      if (isObiStrip(item)) {
+        pendingObis.push(item);
+        firstObiInserted = true;
+      } else {
+        // flush accumulated obis before inserting a standard card
+        if (pendingObis.length >= OBI_PACK_SIZE || (firstObiInserted && pendingObis.length > 0)) {
+          flushObis();
+        }
+        tiles.push({ kind: "card", item });
+      }
+    }
+    // flush any remaining obis at the end
+    flushObis();
+    return tiles;
+  }, [allResults]);
+
   const results = allResults;
 
   const activeCount =
@@ -227,24 +268,25 @@ export function OthersPage({ items }: OthersPageProps) {
             ) : null}
           </p>
         ) : (
-          <div aria-live="polite">
-            {/* ── Obi Strips Shelf ───────────────────────────── */}
-            {obiResults.length > 0 && (
-              <ObiStripsShelf items={obiResults} />
+          <section
+            className={styles.unifiedGrid}
+            aria-live="polite"
+            aria-label="Others collection"
+          >
+            {gridTiles.map((tile, i) =>
+              tile.kind === "obi-pack" ? (
+                <ObiPackCard
+                  key={`obi-pack-${i}`}
+                  items={tile.items}
+                />
+              ) : (
+                <OthersCard
+                  key={tile.item.id}
+                  item={tile.item}
+                />
+              )
             )}
-
-            {/* ── Primary Artwork Grid ───────────────────────── */}
-            {gridResults.length > 0 && (
-              <section
-                className={styles.primaryGrid}
-                aria-label="Others collection"
-              >
-                {gridResults.map((item) => (
-                  <OthersCard key={item.id} item={item} variant="grid" />
-                ))}
-              </section>
-            )}
-          </div>
+          </section>
         )}
       </main>
     </>

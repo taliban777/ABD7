@@ -6,11 +6,9 @@ import { getOthersImageUrl } from "@/components/images/cloudinary";
 
 export interface OthersCardProps {
   item: CmsOther;
-  /** "grid" renders the card with a fixed 4:5 image aspect ratio for uniform cells */
-  variant?: "masonry" | "grid";
 }
 
-export function OthersCard({ item, variant = "masonry" }: OthersCardProps) {
+export function OthersCard({ item }: OthersCardProps) {
   const destination = `/others/${otherSlug(item)}`;
 
   const reflectionSeed = (item.id || item.title)
@@ -23,12 +21,10 @@ export function OthersCard({ item, variant = "masonry" }: OthersCardProps) {
   const startY = ((reflectionSeed * 73) % 40) - 20;
   const endY = -startY;
 
-  const isGrid = variant === "grid";
-
   return (
     <Link
       href={destination}
-      className={`${styles.card} ${isGrid ? styles.cardGrid : ""}`}
+      className={styles.card}
       style={
         {
           "--reflection-duration": `${reflectionDuration}ms`,
@@ -39,7 +35,7 @@ export function OthersCard({ item, variant = "masonry" }: OthersCardProps) {
         } as React.CSSProperties
       }
     >
-      <div className={`${styles.imageFrame} ${isGrid ? styles.imageFrameGrid : ""}`}>
+      <div className={styles.imageFrame}>
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
