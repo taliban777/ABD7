@@ -432,28 +432,23 @@
   transform: translateY(-4px);
 }
 
+/* No canvas background, border, or padding — artwork sits flush so its
+   edges align exactly with the metadata title card beneath it. */
 .relatedImageContainer {
-  background: var(--surface);
   overflow: hidden;
   margin-bottom: 14px;
-  border: 1px solid var(--line-subtle);
-  /* Natural proportions with a floor */
-  min-height: 120px;
-  max-height: 280px;
 }
 
 .relatedImage {
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   display: block;
-  object-fit: contain;
-  min-height: 120px;
-  max-height: 280px;
 }
 
 .relatedImagePlaceholder {
   width: 100%;
-  min-height: 120px;
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
