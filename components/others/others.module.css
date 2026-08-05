@@ -39,8 +39,9 @@
 .typeNav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
-  padding: 24px 0;
+  padding: 40px 0 36px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -76,6 +77,39 @@
   font: 400 9px/1 var(--font-mono);
   letter-spacing: 0.06em;
   color: var(--muted);
+}
+
+/* ── Empty / prompt states ───────────────────────────────── */
+.emptyPrompt {
+  padding: 80px 0 0;
+  text-align: center;
+  font: 400 11px/1.6 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.empty {
+  padding: 60px 0 0;
+  text-align: center;
+  font: 400 11px/1.6 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.emptyReset {
+  display: inline-block;
+  margin-left: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ── Obi Strips Shelf ──────────────────────────────────────

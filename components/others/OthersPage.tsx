@@ -72,8 +72,9 @@ export function OthersPage({ items }: OthersPageProps) {
 
   const [activeType, setActiveType] = useState<string | null>(null);
 
+  // null = nothing selected → show nothing until user picks a type
   const filtered = useMemo(() => {
-    if (!activeType) return safeItems;
+    if (!activeType) return [];
     return safeItems.filter((item) => item.type === activeType);
   }, [safeItems, activeType]);
 
@@ -96,14 +97,6 @@ export function OthersPage({ items }: OthersPageProps) {
         {/* Type filter buttons */}
         {typeOptions.length > 0 && (
           <nav className={styles.typeNav} aria-label="Filter by type">
-            <button
-              className={`${styles.typeBtn} ${!activeType ? styles.typeBtnActive : ""}`}
-              type="button"
-              onClick={() => setActiveType(null)}
-            >
-              All
-              <span className={styles.typeBtnCount}>{safeItems.length}</span>
-            </button>
             {typeOptions.map(({ value, count }) => (
               <button
                 key={value}
@@ -123,13 +116,10 @@ export function OthersPage({ items }: OthersPageProps) {
           <p className={styles.empty}>
             The archive is currently empty. New entries will appear here as they are added.
           </p>
+        ) : !activeType ? (
+          <p className={styles.emptyPrompt}>Select a category above to browse the archive.</p>
         ) : filtered.length === 0 ? (
-          <p className={styles.empty}>
-            No entries match this type.
-            <button type="button" className={styles.emptyReset} onClick={() => setActiveType(null)}>
-              Show All
-            </button>
-          </p>
+          <p className={styles.empty}>No entries found for this type.</p>
         ) : (
           <section
             className={styles.unifiedGrid}
