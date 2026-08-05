@@ -32,10 +32,8 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
         o.layoutType === 'obi-pack' ||
         (o.type || '').toLowerCase().includes('obi');
       if (!oIsObi) return false;
-      // Group by shared groupSlug; if this item has no groupSlug, only itself.
       return item.groupSlug ? o.groupSlug === item.groupSlug : o.id === item.id;
     });
-    // Ensure the current item is present and appears first.
     const withoutCurrent = group.filter((o) => o.id !== item.id);
     return [item, ...withoutCurrent];
   }, [isObiStrip, allItems, item]);
@@ -71,39 +69,15 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
     setLightboxOpen(true);
   };
 
-  return (
-    <main className={styles.detailPage}>
-      {/* Return link */}
-      <div className={styles.returnLink}>
-        <Link href="/others" className={styles.backButton}>
-          ← Return to Others
-        </Link>
-      </div>
-
-      {/* Metadata */}
-      <section className={styles.detailMetadata}>
-        <div className={styles.detailMetadataContent}>
-          <h1 className={styles.detailTitle}>{item.title}</h1>
-          {item.type && <p className={styles.detailType}>{item.type}</p>}
-          {item.date && (
-            <div className={styles.detailMetaFields}>
-              <div className={styles.detailMetaField}>
-                <span className={styles.detailMetaLabel}>Date</span>
-                <span className={styles.detailMetaValue}>
-                  {new Date(item.date).toLocaleDateString("en-GB", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-            </div>
-          )}
+  // ── Obi strip page — just the horizontal shelf row ──────────────────────
+  if (isObiStrip && obiGroup.length > 0) {
+    return (
+      <main className={styles.detailPage}>
+        <div className={styles.returnLink}>
+          <Link href="/others" className={styles.backButton}>
+            ← Return to Others
+          </Link>
         </div>
-      </section>
-
-      {/* Obi strips shelf — grouped by groupSlug, aligned in a single row */}
-      {isObiStrip && obiGroup.length > 0 ? (
         <section className={styles.obiGroupSection} aria-label="Obi strips">
           <div className={styles.obiGroupShelf}>
             {obiGroup.map((strip) => (
@@ -136,33 +110,67 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
             ))}
           </div>
         </section>
-      ) : (
-        /* Main image */
-        item.image && (
-          <section className={styles.detailArtworkSection}>
-            <div
-              className={styles.detailArtworkContainer}
-              onClick={() => handleImageClick(0)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
-              }}
-              aria-label="View image fullscreen"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getOthersHeroImageUrl(item.image)}
-                alt={item.title}
-                className={styles.detailArtworkImage}
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore fetchpriority is valid HTML but not yet in React types
-                fetchpriority="high"
-                decoding="async"
-              />
+      </main>
+    );
+  }
+
+  // ── Non-obi detail page — full layout ───────────────────────────────────
+  return (
+    <main className={styles.detailPage}>
+      {/* Return link */}
+      <div className={styles.returnLink}>
+        <Link href="/others" className={styles.backButton}>
+          ← Return to Others
+        </Link>
+      </div>
+
+      {/* Metadata */}
+      <section className={styles.detailMetadata}>
+        <div className={styles.detailMetadataContent}>
+          <h1 className={styles.detailTitle}>{item.title}</h1>
+          {item.type && <p className={styles.detailType}>{item.type}</p>}
+          {item.date && (
+            <div className={styles.detailMetaFields}>
+              <div className={styles.detailMetaField}>
+                <span className={styles.detailMetaLabel}>Date</span>
+                <span className={styles.detailMetaValue}>
+                  {new Date(item.date).toLocaleDateString("en-GB", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
             </div>
-          </section>
-        )
+          )}
+        </div>
+      </section>
+
+      {/* Main image */}
+      {item.image && (
+        <section className={styles.detailArtworkSection}>
+          <div
+            className={styles.detailArtworkContainer}
+            onClick={() => handleImageClick(0)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
+            }}
+            aria-label="View image fullscreen"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getOthersHeroImageUrl(item.image)}
+              alt={item.title}
+              className={styles.detailArtworkImage}
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore fetchpriority is valid HTML but not yet in React types
+              fetchpriority="high"
+              decoding="async"
+            />
+          </div>
+        </section>
       )}
 
       {/* Description */}
