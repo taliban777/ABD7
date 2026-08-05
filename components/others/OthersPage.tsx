@@ -33,29 +33,11 @@ type GridTile =
   | { kind: "obi-pack"; items: CmsOther[] };
 
 function buildGridTiles(items: CmsOther[]): GridTile[] {
-  const OBI_PACK_SIZE = 3;
-  const tiles: GridTile[] = [];
-  const pendingObis: CmsOther[] = [];
-
-  const flushObis = () => {
-    if (pendingObis.length === 0) return;
-    for (let i = 0; i < pendingObis.length; i += OBI_PACK_SIZE) {
-      tiles.push({ kind: "obi-pack", items: pendingObis.slice(i, i + OBI_PACK_SIZE) });
-    }
-    pendingObis.splice(0);
-  };
-
-  for (const item of items) {
-    if (isObiStrip(item)) {
-      pendingObis.push(item);
-      if (pendingObis.length >= OBI_PACK_SIZE) flushObis();
-    } else {
-      flushObis();
-      tiles.push({ kind: "card", item, wide: isWide(item) });
-    }
-  }
-  flushObis();
-  return tiles;
+  return items.map((item) =>
+    isObiStrip(item)
+      ? { kind: "obi-pack", items: [item] }
+      : { kind: "card", item, wide: isWide(item) }
+  );
 }
 
 export function OthersPage({ items, projects = [] }: OthersPageProps) {
