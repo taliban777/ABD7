@@ -143,11 +143,15 @@
   object-fit: contain;
   position: relative;
   z-index: 1;
-  transition: filter 5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center bottom;
+  transition:
+    filter    5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glowItemHovered .glowImage {
   filter: brightness(1.06);
+  transform: scale(1.025) translateY(-6px);
 }
 
 /* ─────────────────────────────────────────────────────────
