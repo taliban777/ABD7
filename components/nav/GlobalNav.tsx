@@ -14,7 +14,6 @@ const NAV_LINKS = [
   { label: "COLLECTION", href: "/collection" },
   { label: "OTHERS", href: "/others" },
   { label: "INDEX", href: "/catalogue" },
-  { label: "CURATIONS", href: "/curations" },
 ] as const;
 
 const NAV_LINKS_RIGHT = [
