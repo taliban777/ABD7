@@ -1,20 +1,17 @@
+'use client';
+
 /**
  * Exhibition 03 — Bearers of the Beacon
  *
- * Large artwork presentation. On hover, a very slow white glow
- * builds from behind each artwork — pure CSS box-shadow transition (4s ease).
- *
- * Curation 03 specifics:
- *  - plans-of-the-diligent   → frontCover
- *  - right-over-left          → frontCover
- *  - right-over-left-2        → frontCover  (first entry)
- *  - right-over-left-2        → backCover   (second entry)
- * The imageUrl on each ExhibitionWork already reflects these choices.
+ * Hovering an artwork causes a slow white glow to emerge from behind it
+ * (::before pseudo-element with filter:blur, 6s transition) and dims
+ * the rest of the section via a dark overlay for contrast.
  */
 
-import { getProjectImageUrl } from "@/components/images/cloudinary";
-import type { CurationExhibition } from "./types";
-import styles from "./exhibition.module.css";
+import { useState } from 'react';
+import { getProjectImageUrl } from '@/components/images/cloudinary';
+import type { CurationExhibition } from './types';
+import styles from './exhibition.module.css';
 
 interface Props {
   exhibition: CurationExhibition;
@@ -22,28 +19,41 @@ interface Props {
 
 export function ExhibitionLayout03({ exhibition }: Props) {
   const { works } = exhibition;
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   if (works.length === 0) return null;
 
   return (
     <section
-      className={styles.glowSection}
+      className={`${styles.glowSection} ${hoveredIndex !== null ? styles.glowSectionDimmed : ''}`}
       aria-label={`Artworks from ${exhibition.title}`}
     >
+      {/* Dark overlay that fades in when any item is hovered */}
+      <div
+        className={`${styles.glowDimOverlay} ${hoveredIndex !== null ? styles.glowDimOverlayVisible : ''}`}
+        aria-hidden="true"
+      />
+
       {works.map((work, i) => {
         const src = getProjectImageUrl(work.imageUrl);
+        const isHovered = hoveredIndex === i;
         return (
-          <div key={`${work.project.id}-${i}`} className={styles.glowItem}>
-            <div className={styles.glowImageWrap}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={work.project.title}
-                className={styles.glowImage}
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-              />
-            </div>
+          <div
+            key={`${work.project.id}-${i}`}
+            className={`${styles.glowItem} ${isHovered ? styles.glowItemHovered : ''}`}
+            onMouseEnter={() => setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            {/* Glow bloom — blurred white layer behind the image */}
+            <div className={styles.glowBloom} aria-hidden="true" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt={work.project.title}
+              className={styles.glowImage}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
           </div>
         );
       })}

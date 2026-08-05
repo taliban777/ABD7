@@ -114,27 +114,58 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 48px 40px;
+  position: relative;
+}
+
+/* Dark veil — fades in over the whole section when any artwork is hovered,
+   giving the glowing piece contrast to emerge against */
+.glowDimOverlay {
+  position: absolute;
+  inset: -120px -80px;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  z-index: 1;
+  transition: background 5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glowDimOverlayVisible {
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .glowItem {
   position: relative;
+  z-index: 2;
+  /* Slightly dim non-hovered siblings — handled by opacity below */
+  transition: opacity 4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glowImageWrap {
-  position: relative;
-  display: block;
-  overflow: visible;
-  /* Two-layer glow: a tight core + a wide ambient halo, both pure white */
-  box-shadow:
-    0 0   0px  0px rgba(255, 255, 255, 0),
-    0 0   0px  0px rgba(255, 255, 255, 0);
-  transition: box-shadow 6s cubic-bezier(0.16, 1, 0.3, 1);
+/* When the section is dimmed, non-active items fade further back */
+.glowSectionDimmed .glowItem {
+  opacity: 0.35;
 }
 
-.glowItem:hover .glowImageWrap {
-  box-shadow:
-    0 0  60px 12px rgba(255, 255, 255, 0.18),
-    0 0 180px 64px rgba(255, 255, 255, 0.09);
+/* The actively hovered item stays fully visible and lifts above the overlay */
+.glowSectionDimmed .glowItemHovered {
+  opacity: 1;
+  z-index: 3;
+}
+
+/* Bloom element — sits behind the image, blurs white into the dark */
+.glowBloom {
+  position: absolute;
+  inset: -20%;
+  background: rgba(255, 255, 255, 0);
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 6s cubic-bezier(0.16, 1, 0.3, 1),
+              filter    6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glowItemHovered .glowBloom {
+  background: rgba(255, 255, 255, 0.22);
+  filter: blur(80px);
 }
 
 .glowImage {
@@ -144,13 +175,12 @@
   object-fit: contain;
   position: relative;
   z-index: 1;
-  /* Subtle luminance lift — builds on same timeline */
-  transition: filter 6s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: brightness(0.92);
+  transition: filter 5s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: brightness(0.9);
 }
 
-.glowItem:hover .glowImage {
-  filter: brightness(1.04);
+.glowItemHovered .glowImage {
+  filter: brightness(1.05);
 }
 
 /* ─────────────────────────────────────────────────────────
