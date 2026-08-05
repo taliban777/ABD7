@@ -4,7 +4,7 @@ import { OthersCard } from "./OthersCard";
 import { ObiPackCard } from "./ObiPackCard";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { fetchCmsOthers } from "@/lib/cms";
-import type { CmsOther, OthersLayoutType } from "./types";
+import type { CmsOther } from "./types";
 import { projectLabel } from "./types";
 
 export interface OthersPageProps {
