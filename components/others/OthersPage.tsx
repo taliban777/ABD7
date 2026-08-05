@@ -240,7 +240,7 @@ export function OthersPage({ items }: OthersPageProps) {
                 aria-label="Others collection"
               >
                 {gridResults.map((item) => (
-                  <OthersCard key={item.id} item={item} />
+                  <OthersCard key={item.id} item={item} variant="grid" />
                 ))}
               </section>
             )}

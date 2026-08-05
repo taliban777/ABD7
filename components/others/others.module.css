@@ -234,9 +234,9 @@
    Dedicated horizontal shelf for ultra-narrow obi strips.
    ─────────────────────────────────────────────────────────── */
 .obiSection {
-  padding: 40px 0 0;
+  padding: 28px 0 0;
   border-bottom: 1px solid var(--line);
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .obiHeader {
@@ -244,7 +244,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .obiSectionTitle {
@@ -266,46 +266,45 @@
 .obiShelf {
   display: flex;
   flex-direction: row;
-  gap: 16px;
+  gap: 10px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 24px;
-  /* Drag-scroll smoothness */
+  padding-bottom: 20px;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   cursor: grab;
-  /* Thin scrollbar */
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
 .obiShelf:active { cursor: grabbing; }
-.obiShelf::-webkit-scrollbar { height: 4px; }
+.obiShelf::-webkit-scrollbar { height: 3px; }
 .obiShelf::-webkit-scrollbar-thumb {
   background: var(--line);
   border-radius: 0;
 }
 .obiShelf::-webkit-scrollbar-track { background: transparent; }
 
-/* Individual spine card */
+/* Individual spine card — compact, shelf-like */
 .obiCard {
   flex: 0 0 auto;
-  /* Fixed height keeps all spines at the same shelf height;
-     width is auto so narrow obi strips don't get stretched. */
-  height: 320px;
+  /* 160px is tall enough to read the image, short enough that
+     multiple strips don't dominate the page. Width is driven
+     by the natural aspect ratio of each strip image. */
+  height: 160px;
   width: auto;
   display: flex;
   flex-direction: column;
   text-decoration: none;
   color: inherit;
   transition:
-    transform 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    filter 0.4s ease;
+    transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.36s ease;
   will-change: transform;
-  animation: cardIn 0.4s ease both;
+  animation: cardIn 0.35s ease both;
 }
 .obiCard:hover {
-  transform: translateY(-6px) scale(1.025);
-  filter: drop-shadow(0 16px 28px rgba(17, 17, 15, 0.35));
+  transform: translateY(-5px) scale(1.03);
+  filter: drop-shadow(0 10px 20px rgba(17, 17, 15, 0.4));
   z-index: 2;
 }
 
@@ -382,19 +381,18 @@
   color: var(--label-foreground);
   border: 1px solid var(--line);
   border-top: 0;
-  padding: 10px 10px 12px;
+  padding: 6px 8px 8px;
   max-width: 100%;
-  /* Constrain to the image width — the frame dictates width */
 }
 
 .obiLabelTitle {
-  font: 700 9px/1.3 var(--font-mono);
-  letter-spacing: 0.04em;
+  font: 600 8px/1.3 var(--font-mono);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
+  max-width: 120px;
   transition: text-shadow 0.3s ease;
 }
 .obiCard:hover .obiLabelTitle {
@@ -404,15 +402,15 @@
 }
 
 .obiLabelType {
-  margin-top: 4px;
-  font: 400 8px/1.3 var(--font-mono);
+  margin-top: 3px;
+  font: 400 7px/1.3 var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
+  max-width: 120px;
 }
 
 /* ── Primary Artwork Grid ──────────────────────────────────
@@ -422,28 +420,30 @@
 .primaryGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
-  padding-top: 8px;
+  gap: 20px;
+  padding-top: 4px;
 }
 
-/* Cards inside the primaryGrid don't need masonry-specific margin */
-.primaryGrid .card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+/* Card variant for grid cells — resets masonry-specific margin */
+.cardGrid {
   margin-bottom: 0;
+  break-inside: unset;
+  -webkit-column-break-inside: unset;
+  page-break-inside: unset;
 }
 
-/* Image fills the cell; label wraps tightly to the bottom */
-.primaryGrid .imageFrame {
-  width: 100%;
+/* Image frame variant: fixed 4:5 aspect ratio so every cell is
+   the same height regardless of the source image dimensions */
+.imageFrameGrid {
+  aspect-ratio: 4 / 5;
   overflow: hidden;
 }
-.primaryGrid .image {
+
+/* Inside grid cells the image should fill the frame by cropping */
+.imageFrameGrid .image {
   width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ── Legacy masonry grid ───────────────────────────────────
@@ -926,6 +926,7 @@
   }
   .primaryGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
 }
 
@@ -935,6 +936,7 @@
   }
   .primaryGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 }
 
