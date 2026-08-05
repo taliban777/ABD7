@@ -22,7 +22,13 @@ export function OthersCard({ item, linkToItem = false }: OthersCardProps) {
       ? `/others/group/${item.groupSlug}`
       : `/others/${otherSlug(item)}`;
 
-  const obi = isObiStrip(item);
+  // Extreme aspect ratios (Obi Strips, Landscape Banners) are shown
+  // "contained" so the full artwork stays visible inside the fixed cell.
+  const typeText = `${item.type || ""} ${(item.tags || []).join(" ")}`.toLocaleLowerCase();
+  const extremeRatio =
+    isObiStrip(item) ||
+    typeText.includes("landscape") ||
+    typeText.includes("banner");
 
   const reflectionSeed = (item.id || item.title)
     .split("")
@@ -37,7 +43,7 @@ export function OthersCard({ item, linkToItem = false }: OthersCardProps) {
   return (
     <Link
       href={destination}
-      className={`${styles.card} ${obi ? styles.cardObi : ""}`}
+      className={styles.card}
       style={
         {
           "--reflection-duration": `${reflectionDuration}ms`,
@@ -52,7 +58,7 @@ export function OthersCard({ item, linkToItem = false }: OthersCardProps) {
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className={styles.image}
+            className={`${styles.image} ${extremeRatio ? styles.imageContain : ""}`}
             src={getOthersImageUrl(item.image)}
             alt={item.title}
             loading="lazy"

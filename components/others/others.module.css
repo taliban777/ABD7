@@ -230,31 +230,35 @@
   color: var(--foreground);
 }
 
-/* ── Variable-width flow grid ──────────────────────────────
-   A flex-wrap layout where each card's column width adapts to
-   its content type. Standard artwork occupies wide slots while
-   Obi strips take a narrow, dedicated column. gap-6 keeps the
-   spacing consistent across unequal column widths.
+/* ── Uniform responsive grid ───────────────────────────────
+   Every cell is identical in width and height. Columns scale
+   1 → 2 → 3 → 4 across breakpoints; gap-6 keeps consistent
+   vertical + horizontal spacing.
    ─────────────────────────────────────────────────────────── */
 .grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 24px; /* gap-6 — vertical + horizontal */
+  display: grid;
+  grid-template-columns: 1fr; /* grid-cols-1 */
+  gap: 24px; /* gap-6 */
   padding-top: 28px;
+}
+@media (min-width: 640px) {
+  .grid { grid-template-columns: repeat(2, 1fr); } /* sm:grid-cols-2 */
+}
+@media (min-width: 768px) {
+  .grid { grid-template-columns: repeat(3, 1fr); } /* md:grid-cols-3 */
+}
+@media (min-width: 1024px) {
+  .grid { grid-template-columns: repeat(4, 1fr); } /* lg:grid-cols-4 */
 }
 
 /* ── Card ──────────────────────────────────────────────────
-   Standard assets adapt naturally between 280px and 380px and
-   grow to fill the row. Cards wrap their image bounds tightly
-   (no letterboxing / grey canvas) by sizing to the content.
+   Uniform cell: image container has a fixed aspect ratio and
+   the metadata footer stays anchored at the bottom.
    ─────────────────────────────────────────────────────────── */
 .card {
   display: flex;
   flex-direction: column;
-  flex: 1 1 280px;
-  min-width: 280px;
-  max-width: 380px;
+  height: 100%;
   margin: 0;
   text-decoration: none;
   color: inherit;
@@ -270,16 +274,10 @@
   filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
 }
 
-/* Obi strips — narrow, dedicated slot that never grows/shrinks. */
-.cardObi {
-  flex: 0 0 140px;
-  min-width: 140px;
-  max-width: 140px;
-  width: 140px;
-}
-
 .imageFrame {
   width: 100%;
+  aspect-ratio: 4 / 5; /* aspect-[4/5] */
+  background: #efece6; /* subtle canvas fill */
   overflow: hidden;
   position: relative;
 }
@@ -306,15 +304,22 @@
   opacity: 1;
   animation: galleryReflection var(--reflection-duration, 1000ms) ease-in-out forwards;
 }
+/* Standard artwork fills the container edge-to-edge. */
 .image {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+}
+/* Extreme aspect ratios (Obi Strips, Landscape Banners) show the full
+   artwork centered inside the card without stretching or cropping. */
+.imageContain {
   object-fit: contain;
+  padding: 16px; /* p-4 */
 }
 .imageFallback {
   width: 100%;
-  min-height: 200px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,6 +334,8 @@
 .label {
   /* Stretch to the same width as the image frame above it. */
   width: 100%;
+  /* Anchor the metadata footer at the bottom of the uniform card. */
+  margin-top: auto;
   background: var(--label);
   color: var(--label-foreground);
   border: 1px solid var(--line);
@@ -749,19 +756,6 @@
   .grid {
     gap: 16px;
     padding-top: 12px;
-  }
-  /* On the narrowest screens standard cards take the full row. */
-  .card {
-    flex-basis: 100%;
-    min-width: 0;
-    max-width: none;
-  }
-  /* Obi strips stay narrow even on mobile. */
-  .cardObi {
-    flex: 0 0 120px;
-    min-width: 120px;
-    max-width: 120px;
-    width: 120px;
   }
 
   .detailPage { padding: 56px 14px 48px; }
