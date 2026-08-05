@@ -1,59 +1,84 @@
 import { useMemo, useState } from "react";
 import styles from "./others.module.css";
 import { OthersCard } from "./OthersCard";
+import { ObiPackCard } from "./ObiPackCard";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { fetchCmsOthers } from "@/lib/cms";
-import type { CmsOther, OthersSelection, OthersFilterKey } from "./types";
-import {
-  EMPTY_OTHERS_SELECTION,
-  OTHERS_SORT_OPTIONS,
-  OthersSortKey,
-  projectLabel,
-} from "./types";
-import { sortOthers } from "./logic/sortOthers";
-import { filterOthers } from "./logic/filterOthers";
-import { extractOthersFilterOptions } from "./logic/extractOthersFilterOptions";
+import type { CmsOther } from "./types";
+import { projectLabel } from "./types";
 
 export interface OthersPageProps {
   items: CmsOther[];
 }
 
+const isObiStrip = (item: CmsOther) =>
+  (item.layoutType === "obi-pack") ||
+  (item.type || "").toLowerCase().includes("obi");
+
+const isWide = (item: CmsOther) => {
+  if (item.layoutType === "wide") return true;
+  const t = (item.type || "").toLowerCase();
+  return (
+    t.includes("banner") ||
+    t.includes("horizontal") ||
+    t.includes("landscape") ||
+    t.includes("wide")
+  );
+};
+
+type GridTile =
+  | { kind: "card"; item: CmsOther; wide: boolean }
+  | { kind: "obi-pack"; items: CmsOther[] };
+
+function buildGridTiles(items: CmsOther[]): GridTile[] {
+  const OBI_PACK_SIZE = 3;
+  const tiles: GridTile[] = [];
+  const pendingObis: CmsOther[] = [];
+
+  const flushObis = () => {
+    if (pendingObis.length === 0) return;
+    for (let i = 0; i < pendingObis.length; i += OBI_PACK_SIZE) {
+      tiles.push({ kind: "obi-pack", items: pendingObis.slice(i, i + OBI_PACK_SIZE) });
+    }
+    pendingObis.splice(0);
+  };
+
+  for (const item of items) {
+    if (isObiStrip(item)) {
+      pendingObis.push(item);
+      if (pendingObis.length >= OBI_PACK_SIZE) flushObis();
+    } else {
+      flushObis();
+      tiles.push({ kind: "card", item, wide: isWide(item) });
+    }
+  }
+  flushObis();
+  return tiles;
+}
+
 export function OthersPage({ items }: OthersPageProps) {
   const safeItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
 
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<OthersSelection>(EMPTY_OTHERS_SELECTION);
-  const [sort, setSort] = useState<OthersSortKey>("newest");
-  const [filterOpen, setFilterOpen] = useState(false);
+  // Derive unique types from CMS data, sorted by count descending
+  const typeOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of safeItems) {
+      if (item.type) counts.set(item.type, (counts.get(item.type) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({ value, count }));
+  }, [safeItems]);
 
-  const options = useMemo(
-    () => extractOthersFilterOptions(safeItems, selected, search),
-    [safeItems, selected, search]
-  );
+  const [activeType, setActiveType] = useState<string | null>(null);
 
-  const results = useMemo(
-    () => sortOthers(filterOthers(safeItems, { search, selected }), sort),
-    [safeItems, search, selected, sort]
-  );
+  // null = nothing selected → show nothing until user picks a type
+  const filtered = useMemo(() => {
+    if (!activeType) return [];
+    return safeItems.filter((item) => item.type === activeType);
+  }, [safeItems, activeType]);
 
-  const activeCount =
-    selected.types.length + selected.projects.length;
-  const isFiltered = activeCount > 0 || search.trim().length > 0;
-  const sortLabel =
-    OTHERS_SORT_OPTIONS.find((o) => o.key === sort)?.label ?? "Newest";
-
-  const toggle = (key: OthersFilterKey, value: string) =>
-    setSelected((current) => ({
-      ...current,
-      [key]: current[key].includes(value)
-        ? current[key].filter((v) => v !== value)
-        : [...current[key], value],
-    }));
-
-  const clear = () => {
-    setSelected(EMPTY_OTHERS_SELECTION);
-    setSearch("");
-  };
+  const gridTiles = useMemo(() => buildGridTiles(filtered), [filtered]);
 
   const hasItems = safeItems.length > 0;
 
@@ -69,161 +94,45 @@ export function OthersPage({ items }: OthersPageProps) {
           </p>
         </header>
 
-        {/* Toolbar */}
-        <section
-          className={`${styles.toolbar} ${filterOpen ? styles.toolbarOpen : ""}`}
-          aria-label="Others controls"
-        >
-          <div className={styles.toolbarTop}>
-            <label className={styles.searchLabel}>
-              <span className={styles.srOnly}>Search others</span>
-              <input
-                className={styles.searchInput}
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search title, type, tags…"
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </label>
-            <button
-              className={styles.filterToggle}
-              type="button"
-              onClick={() => setFilterOpen((v) => !v)}
-              aria-expanded={filterOpen}
-              aria-controls="others-filter-panel"
-            >
-              Filter {activeCount > 0 ? `(${activeCount})` : ""} {filterOpen ? "−" : "+"}
-            </button>
-          </div>
-
-          {/* Filter panel */}
-          <div
-            className={styles.filterPanel}
-            id="others-filter-panel"
-            aria-hidden={!filterOpen}
-          >
-            <div className={styles.filterPanelInner}>
-              <div className={styles.filterGroups}>
-                {/* Type filter */}
-                <fieldset className={styles.filterGroup}>
-                  <legend className={styles.filterLegend}>Type</legend>
-                  {options.types.length === 0 ? (
-                    <p className={styles.filterEmpty}>None available</p>
-                  ) : (
-                    <div className={styles.checkList}>
-                      {options.types.map((option) => {
-                        const isSelected = selected.types.includes(option.value);
-                        return (
-                          <label className={styles.checkOption} key={option.value}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggle("types", option.value)}
-                            />
-                            <span className={styles.checkBox} aria-hidden="true" />
-                            <span className={styles.checkText}>{option.label}</span>
-                            <span className={styles.filterCount}>{option.count}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </fieldset>
-
-                {/* Project filter */}
-                <fieldset className={styles.filterGroup}>
-                  <legend className={styles.filterLegend}>Project</legend>
-                  {options.projects.length === 0 ? (
-                    <p className={styles.filterEmpty}>None available</p>
-                  ) : (
-                    <div className={styles.checkList}>
-                      {options.projects.map((option) => {
-                        const isSelected = selected.projects.includes(option.value);
-                        return (
-                          <label className={styles.checkOption} key={option.value}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggle("projects", option.value)}
-                            />
-                            <span className={styles.checkBox} aria-hidden="true" />
-                            <span className={styles.checkText}>{option.label}</span>
-                            <span className={styles.filterCount}>{option.count}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </fieldset>
-              </div>
-
-              <div className={styles.filterFooter}>
-                <button
-                  type="button"
-                  onClick={clear}
-                  disabled={activeCount === 0 && search.length === 0}
-                >
-                  Clear Filters
-                </button>
-                <span>
-                  {activeCount} {activeCount === 1 ? "Filter" : "Filters"} Selected
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Index / sort bar */}
-        <div className={styles.indexBar}>
-          <strong>
-            {results.length} {results.length === 1 ? "Entry" : "Entries"}
-          </strong>
-          <div className={styles.sortControls} role="group" aria-label="Sort others">
-            <span className={styles.sortLabel}>Sort</span>
-            {OTHERS_SORT_OPTIONS.map((option) => (
+        {/* Type filter buttons */}
+        {typeOptions.length > 0 && (
+          <nav className={styles.typeNav} aria-label="Filter by type">
+            {typeOptions.map(({ value, count }) => (
               <button
-                key={option.key}
+                key={value}
+                className={`${styles.typeBtn} ${activeType === value ? styles.typeBtnActive : ""}`}
                 type="button"
-                className={`${styles.sortButton} ${
-                  sort === option.key ? styles.sortButtonActive : ""
-                }`}
-                aria-pressed={sort === option.key}
-                onClick={() => setSort(option.key)}
+                onClick={() => setActiveType((prev) => (prev === value ? null : value))}
               >
-                {option.label}
+                {value}
+                <span className={styles.typeBtnCount}>{count}</span>
               </button>
             ))}
-          </div>
-          <span className={styles.indexMeta}>
-            Showing <b>{isFiltered ? "Filtered" : "All"}</b> · Sorted <b>{sortLabel}</b>
-          </span>
-        </div>
+          </nav>
+        )}
 
         {/* Grid */}
         {!hasItems ? (
           <p className={styles.empty}>
             The archive is currently empty. New entries will appear here as they are added.
           </p>
-        ) : results.length === 0 ? (
-          <p className={styles.empty}>
-            No entries match this query.
-            {isFiltered ? (
-              <button type="button" className={styles.emptyReset} onClick={clear}>
-                Reset
-              </button>
-            ) : null}
-          </p>
+        ) : !activeType ? (
+          <p className={styles.emptyPrompt}>Select a category above to browse the archive.</p>
+        ) : filtered.length === 0 ? (
+          <p className={styles.empty}>No entries found for this type.</p>
         ) : (
           <section
-            className={styles.grid}
+            className={styles.unifiedGrid}
             aria-live="polite"
             aria-label="Others collection"
           >
-            {results.map((item) => (
-              <OthersCard key={item.id} item={item} />
-            ))}
+            {gridTiles.map((tile, i) =>
+              tile.kind === "obi-pack" ? (
+                <ObiPackCard key={`obi-pack-${i}`} items={tile.items} />
+              ) : (
+                <OthersCard key={tile.item.id} item={tile.item} wide={tile.wide} />
+              )
+            )}
           </section>
         )}
       </main>

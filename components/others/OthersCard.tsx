@@ -6,9 +6,11 @@ import { getOthersImageUrl } from "@/components/images/cloudinary";
 
 export interface OthersCardProps {
   item: CmsOther;
+  /** Causes the card wrapper to span 2 grid columns for banners/wide artwork */
+  wide?: boolean;
 }
 
-export function OthersCard({ item }: OthersCardProps) {
+export function OthersCard({ item, wide = false }: OthersCardProps) {
   const destination = `/others/${otherSlug(item)}`;
 
   const reflectionSeed = (item.id || item.title)
@@ -24,7 +26,7 @@ export function OthersCard({ item }: OthersCardProps) {
   return (
     <Link
       href={destination}
-      className={styles.card}
+      className={`${styles.card}${wide ? ` ${styles.cardWide}` : ""}`}
       style={
         {
           "--reflection-duration": `${reflectionDuration}ms`,
