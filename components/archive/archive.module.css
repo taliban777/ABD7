@@ -594,7 +594,10 @@
    ============================================================================= */
 
 .card {
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   /* Stagger in via CSS custom property passed from the component */
@@ -644,13 +647,12 @@
 
 /* Image — let its natural proportions set the frame height, bounded at extremes */
 .cover {
+  /* Scoped equivalents of w-full h-auto block aspect-square object-cover. */
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
-  /* Bound extreme ratios without cropping or distorting */
-  min-height: 140px;
-  max-height: clamp(200px, 45vw, 500px);
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   object-position: center;
   /* Fade-in on load */
   opacity: 0;
