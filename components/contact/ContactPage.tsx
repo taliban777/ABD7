@@ -204,7 +204,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {/* ─── 1. Who are you? ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 0 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>01 — Who are you?</h2>
             <div className={styles.chipGrid}>
               {CLIENT_TYPES.map((type) => (
@@ -227,7 +227,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 2. What do you need? ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 1 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>02 — What do you need?</h2>
             <div className={styles.chipGrid}>
               {SERVICE_TYPES.map((type) => (
@@ -245,7 +245,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 3. Describe your vision ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 2 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>03 — Describe your vision</h2>
             <textarea
               className={styles.textarea}
@@ -257,8 +257,8 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             />
           </section>
 
-          {/* ─── 4. Upload references �����── */}
-          <section className={styles.section}>
+          {/* ─── 4. Upload references ─── */}
+          <section className={styles.section} style={{ "--section-index": 3 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>04 — Upload references</h2>
             <div
               className={`${styles.dropzone} ${dragActive ? styles.dropzoneActive : ""}`}
@@ -313,7 +313,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 5. Inspirations from archive ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 4 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>
               05 — Which ARTBYDANI7 projects inspire you?
             </h2>
@@ -404,7 +404,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 6. Deadline ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 5 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>06 — Deadline</h2>
             <div className={styles.chipGrid}>
               {DEADLINES.map((d) => (
@@ -435,7 +435,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 7. Budget willingness ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 6 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>07 — How much are you willing to give?</h2>
             <div className={styles.budgetSliderContainer}>
               <input
@@ -457,7 +457,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           </section>
 
           {/* ─── 8. Contact details ─── */}
-          <section className={styles.section}>
+          <section className={styles.section} style={{ "--section-index": 7 } as React.CSSProperties}>
             <h2 className={styles.sectionLabel}>08 — Contact details</h2>
             <div className={styles.contactFields}>
               <label className={styles.fieldLabel}>

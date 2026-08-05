@@ -21,12 +21,16 @@
   font: 400 32px/1.1 var(--font-sans);
   letter-spacing: -0.01em;
   margin-bottom: 16px;
+  animation: clipReveal 0.75s var(--ease-reveal) both;
+  animation-delay: 0.08s;
 }
 
 .pageDesc {
   font: 400 14px/1.6 var(--font-sans);
   color: var(--muted);
   max-width: 440px;
+  animation: fadeUp 0.55s var(--ease-reveal) both;
+  animation-delay: 0.22s;
 }
 
 /* Form */
@@ -36,10 +40,12 @@
   margin: 0 auto;
 }
 
-/* Section */
+/* Section — stagger via --section-index CSS var set in JSX */
 .section {
   padding: 48px 0;
   border-bottom: 1px solid var(--line);
+  animation: fadeUp 0.55s var(--ease-reveal) both;
+  animation-delay: min(calc(var(--section-index, 0) * 60ms + 100ms), 480ms);
 }
 
 .sectionLabel {
@@ -59,14 +65,20 @@
 
 .chip {
   border: 1px solid var(--line);
-  background: transparent;
+  /* Background fill wipes from left on activation */
+  background-image: linear-gradient(to right, var(--foreground) 0%, var(--foreground) 100%);
+  background-color: transparent;
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
   color: var(--foreground);
   font: 700 11px/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 10px 16px;
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  transition: border-color 0.22s var(--ease-mask),
+              background-size 0.26s var(--ease-mask),
+              color 0.22s ease;
 }
 
 .chip:hover {
@@ -75,7 +87,7 @@
 
 .chipActive {
   border-color: var(--foreground);
-  background: var(--foreground);
+  background-size: 100% 100%;
   color: var(--background);
 }
 

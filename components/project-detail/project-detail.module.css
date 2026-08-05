@@ -9,6 +9,23 @@
   padding-top: 56px; /* fixed nav height */
 }
 
+/* ── Project-detail entry animations ──────────────────────────────────────── */
+
+@keyframes metadataReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes artworkReveal {
+  from { opacity: 0; clip-path: inset(0 0 8% 0); transform: translateY(12px); }
+  to   { opacity: 1; clip-path: inset(0 0 0% 0); transform: none; }
+}
+
+@keyframes lightboxImageIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* =============================================================================
    Breadcrumb + sibling navigation
    ============================================================================= */
@@ -69,6 +86,21 @@
   color: var(--foreground);
 }
 
+/* Arrow micro-translation on hover */
+.siblingLink:first-of-type:hover svg {
+  transform: translateX(-3px);
+  transition: transform 0.22s var(--ease-mask);
+}
+
+.siblingLink:last-of-type:hover svg {
+  transform: translateX(3px);
+  transition: transform 0.22s var(--ease-mask);
+}
+
+.siblingLink svg {
+  transition: transform 0.22s ease;
+}
+
 .siblingLabel {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -119,6 +151,8 @@
   color: var(--foreground);
   margin-bottom: 12px;
   text-wrap: balance;
+  animation: clipReveal 0.8s var(--ease-reveal) both;
+  animation-delay: 0.08s;
 }
 
 .artist {
@@ -127,6 +161,8 @@
   letter-spacing: 0.01em;
   color: var(--muted);
   margin-bottom: 36px;
+  animation: metadataReveal 0.55s var(--ease-reveal) both;
+  animation-delay: 0.2s;
 }
 
 .metadataList {
@@ -136,6 +172,8 @@
   gap: 0;
   border-top: 1px solid var(--line);
   margin-bottom: 36px;
+  animation: metadataReveal 0.55s var(--ease-reveal) both;
+  animation-delay: 0.3s;
 }
 
 .metadataPair {
@@ -196,6 +234,8 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
+  animation: artworkReveal 0.9s var(--ease-reveal) both;
+  animation-delay: 0.12s;
 }
 
 .artworkSingleContainer {
@@ -334,6 +374,14 @@
   overflow: hidden;
   margin-bottom: 20px;
   box-shadow: var(--shadow-card);
+  /* Reveal: grows from left via scaleX, controlled by .paletteBarVisible */
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease-reveal);
+}
+
+.paletteBarVisible {
+  transform: scaleX(1);
 }
 
 .paletteBarSlice {
@@ -574,6 +622,8 @@
   object-fit: contain;
   display: block;
   user-select: none;
+  /* Crossfade between images — animation replays on key change in JSX */
+  animation: lightboxImageIn 0.3s var(--ease-reveal) both;
 }
 
 .lightboxCaption {

@@ -26,6 +26,8 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--foreground);
+  animation: clipReveal 0.7s var(--ease-reveal) both;
+  animation-delay: 0.1s;
 }
 
 .pageSubtitle {
@@ -33,6 +35,8 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
+  animation: fadeUp 0.55s var(--ease-reveal) both;
+  animation-delay: 0.25s;
 }
 
 /* ── Type filter nav ─────────────────────────────────────── */
@@ -58,7 +62,16 @@
   padding: 7px 12px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  /* Background fill wipes in from left */
+  background-image: linear-gradient(to right, var(--foreground) 0%, var(--foreground) 100%);
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+  transition: color 0.26s var(--ease-mask),
+              border-color 0.26s var(--ease-mask),
+              background-size 0.28s var(--ease-mask);
+  /* Stagger appearance; --btn-index set via JSX */
+  animation: fadeUp 0.45s var(--ease-reveal) both;
+  animation-delay: min(calc(var(--btn-index, 0) * 28ms + 200ms), 460ms);
 }
 .typeBtn:hover {
   color: var(--foreground);
@@ -66,8 +79,8 @@
 }
 .typeBtnActive {
   color: var(--background) !important;
-  background: var(--foreground);
   border-color: var(--foreground);
+  background-size: 100% 100%;
 }
 .typeBtnActive .typeBtnCount {
   color: var(--background) !important;
@@ -182,7 +195,8 @@
     transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     filter 0.36s ease;
   will-change: transform;
-  animation: cardIn 0.35s ease both;
+  animation: fadeUp 0.45s var(--ease-reveal) both;
+  animation-delay: min(calc(var(--card-index, 0) * 28ms), 220ms);
 }
 .obiCard:hover {
   transform: translateY(-5px) scale(1.03);

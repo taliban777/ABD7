@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
 import localFont from "next/font/local";
 import { Cormorant } from "next/font/google";
 import "@/styles/globals.css";
@@ -17,12 +18,18 @@ const cormorant = Cormorant({
 });
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
   return (
     <div
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
       style={{ minHeight: "100%", display: "contents" }}
     >
-      <Component {...pageProps} />
+      {/* key forces a re-mount on every route change, replaying the
+          page-transition CSS animation defined in globals.css */}
+      <div key={router.asPath} className="page-transition" style={{ display: "contents" }}>
+        <Component {...pageProps} />
+      </div>
     </div>
   );
 }

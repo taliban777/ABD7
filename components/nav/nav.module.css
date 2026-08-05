@@ -12,6 +12,19 @@
   background: var(--background);
   border-bottom: 1px solid var(--line);
   transition: background 0.3s ease, box-shadow 0.3s ease;
+  /* Slide down on mount */
+  animation: navMountIn 0.55s var(--ease-reveal) both;
+}
+
+@keyframes navMountIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Frosted glass + shadow when scrolled */
@@ -54,6 +67,12 @@
   color: var(--foreground);
   white-space: nowrap;
   flex: none;
+  transition: letter-spacing 0.38s var(--ease-mask), opacity 0.2s ease;
+}
+
+.wordmark:hover {
+  letter-spacing: 0.22em;
+  opacity: 0.75;
 }
 
 /* Nav link list */
@@ -90,7 +109,7 @@
   background: var(--foreground);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.22s ease;
+  transition: transform 0.28s var(--ease-mask);
 }
 
 .navLink:hover {
@@ -151,16 +170,19 @@
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  animation: dropdownIn 0.18s ease both;
+  animation: dropdownIn 0.28s var(--ease-reveal) both;
+  transform-origin: top center;
 }
 
 @keyframes dropdownIn {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(-6px);
+    clip-path: inset(0 0 100% 0);
+    transform: translateX(-50%) translateY(-4px);
   }
   to {
     opacity: 1;
+    clip-path: inset(0 0 0% 0);
     transform: translateX(-50%) translateY(0);
   }
 }
@@ -173,7 +195,7 @@
   color: var(--muted);
   text-decoration: none;
   border-bottom: 1px solid var(--line);
-  transition: color 0.14s ease, background 0.14s ease;
+  transition: color 0.16s ease, background 0.16s ease, letter-spacing 0.28s var(--ease-mask);
   white-space: nowrap;
   background: transparent;
   border: none;
@@ -183,6 +205,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* Stagger each item; --item-index is set via inline style in JSX */
+  animation: fadeUp 0.28s var(--ease-reveal) both;
+  animation-delay: calc((var(--item-index, 0)) * 30ms + 60ms);
+}
+
+.dropdownLink:hover,
+.dropdownLink[aria-selected="true"] {
+  letter-spacing: 0.18em;
 }
 
 .dropdownLink:last-child {
@@ -278,19 +308,17 @@
   background: var(--background);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  animation: mobileMenuIn 0.22s ease both;
+  animation: mobileMenuIn 0.38s var(--ease-mask) both;
 }
 
 @keyframes mobileMenuIn {
   from {
     opacity: 0;
-    transform: translateX(12px);
-    clip-path: inset(0 0 0 100%);
+    clip-path: inset(0 100% 0 0);
   }
   to {
     opacity: 1;
-    transform: none;
-    clip-path: inset(0 0 0 0%);
+    clip-path: inset(0 0% 0 0);
   }
 }
 

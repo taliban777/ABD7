@@ -40,6 +40,9 @@
   letter-spacing: -0.01em;
   color: var(--foreground);
   /* italic sub-word for typographic distinction */
+  /* Clip-path punch-through on page mount */
+  animation: clipReveal 0.8s var(--ease-reveal) both;
+  animation-delay: 0.1s;
 }
 
 .archiveHeroTitle em {
@@ -58,6 +61,8 @@
   color: var(--muted);
   display: block;
   margin-bottom: 6px;
+  animation: clipReveal 0.8s var(--ease-reveal) both;
+  animation-delay: 0.22s;
 }
 
 .archiveHeroMeta {
@@ -130,7 +135,8 @@
   color: var(--foreground);
   font: 400 14px/1.3 var(--font-sans);
   outline: none;
-  transition: border-color var(--duration-fast) ease;
+  /* Wipe the underline inward from the left */
+  transition: border-color 0.32s var(--ease-mask);
 }
 
 .searchInput::placeholder {
@@ -216,8 +222,10 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transform: translateY(-4px);
-  transition: grid-template-rows 0.35s ease, opacity 0.22s ease, transform 0.32s ease;
+  transform: translateY(-6px);
+  transition: grid-template-rows 0.4s var(--ease-reveal),
+              opacity 0.28s ease,
+              transform 0.38s var(--ease-reveal);
   overflow: hidden;
 }
 
@@ -600,9 +608,10 @@
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  /* Stagger in via CSS custom property passed from the component */
-  animation: cardIn 0.5s var(--ease-out) both;
-  animation-delay: calc(var(--card-index, 0) * 40ms);
+  /* Clip-path reveal staggered per card; delay is capped at 320ms so
+     large grids don't feel sluggish — CSS min() handles this natively */
+  animation: cardReveal 0.65s var(--ease-reveal) both;
+  animation-delay: min(calc(var(--card-index, 0) * 35ms), 320ms);
   transition: transform var(--duration-slow) var(--ease-out),
               box-shadow var(--duration-slow) ease;
   will-change: transform;
@@ -778,8 +787,8 @@
   text-decoration: none;
   color: var(--foreground);
   transition: background var(--duration-fast) ease;
-  animation: cardIn 0.4s var(--ease-out) both;
-  animation-delay: calc(var(--card-index, 0) * 25ms);
+  animation: fadeUp 0.45s var(--ease-reveal) both;
+  animation-delay: min(calc(var(--card-index, 0) * 22ms), 280ms);
 }
 
 .listRow:hover {
@@ -893,6 +902,20 @@
    Entry animations
    ============================================================================= */
 
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 20% 0);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+    transform: none;
+  }
+}
+
+/* legacy — keep for any old references */
 @keyframes cardIn {
   from {
     opacity: 0;
