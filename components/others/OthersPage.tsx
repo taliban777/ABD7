@@ -37,56 +37,56 @@ export function OthersPage({ items }: OthersPageProps) {
     [safeItems, search, selected, sort]
   );
 
-  /** Obi strips are identified by a type that includes "obi" (case-insensitive). */
-  const isObiStrip = (item: CmsOther) =>
-    typeof item.type === "string" && item.type.toLowerCase().includes("obi");
-
   /**
-   * Wide banners / horizontal artwork span 2 columns.
-   * Detected by type keywords: banner, horizontal, landscape, wide.
+   * Resolve the layout type for an item.
+   * Explicit `layoutType` on the CMS item wins; otherwise infer from `type`.
    */
-  const isWide = (item: CmsOther) => {
+  const resolveLayout = (item: CmsOther): "standard" | "wide" | "obi-pack" => {
+    if (item.layoutType) return item.layoutType;
     const t = (item.type || "").toLowerCase();
-    return t.includes("banner") || t.includes("horizontal") || t.includes("landscape") || t.includes("wide");
+    if (t.includes("obi")) return "obi-pack";
+    if (
+      t.includes("banner") ||
+      t.includes("horizontal") ||
+      t.includes("landscape") ||
+      t.includes("wide")
+    ) return "wide";
+    return "standard";
   };
 
-  /**
-   * Build a flat list of grid tiles:
-   *  - Non-obi items become individual { kind: "card", item, wide } tiles.
-   *  - Obi items are collected then chunked into groups of 2–3
-   *    so they fill a single cell as { kind: "obi-pack", items[] }.
-   *
-   * Strategy: preserve original sort order for standard cards; obi
-   * packs are inserted where the first obi strip appears in the list.
-   */
   type GridTile =
     | { kind: "card"; item: CmsOther; wide: boolean }
     | { kind: "obi-pack"; items: CmsOther[] };
 
   const gridTiles = useMemo<GridTile[]>(() => {
-    // Pack obi strips in groups of 2 (fits well in a single grid cell with even spacing)
+    // Show 2 obi strips per pack tile — enough to feel like a shelf grouping
+    // without overwhelming a single grid cell.
     const OBI_PACK_SIZE = 2;
     const tiles: GridTile[] = [];
     const pendingObis: CmsOther[] = [];
 
+    /** Drain all pending obis into pack tiles. */
     const flushObis = () => {
       if (pendingObis.length === 0) return;
       for (let i = 0; i < pendingObis.length; i += OBI_PACK_SIZE) {
         tiles.push({ kind: "obi-pack", items: pendingObis.slice(i, i + OBI_PACK_SIZE) });
       }
-      pendingObis.length = 0;
+      pendingObis.splice(0);
     };
 
     for (const item of allResults) {
-      if (isObiStrip(item)) {
+      const layout = resolveLayout(item);
+      if (layout === "obi-pack") {
         pendingObis.push(item);
-        // flush as soon as we hit pack size so they interleave naturally
+        // emit a tile as soon as the pack is full so obis interleave naturally
         if (pendingObis.length >= OBI_PACK_SIZE) flushObis();
       } else {
+        // flush any remaining obis before inserting a non-obi card
         flushObis();
-        tiles.push({ kind: "card", item, wide: isWide(item) });
+        tiles.push({ kind: "card", item, wide: layout === "wide" });
       }
     }
+    // flush any trailing obi strips (lone strip becomes a 1-item pack)
     flushObis();
     return tiles;
   }, [allResults]);

@@ -6,6 +6,8 @@
 
 export type OthersListValue = string | { name?: string; title?: string; label?: string; value?: string };
 
+export type OthersLayoutType = "standard" | "wide" | "obi-pack";
+
 export interface CmsOther {
   id: string;
   title: string;
@@ -13,6 +15,8 @@ export interface CmsOther {
   date: string | null;
   year?: number | null;
   type: string;
+  /** Explicit layout override. When absent the page derives it from `type`. */
+  layoutType?: OthersLayoutType;
   description: string;
   image: string;
   gallery: string[] | null;

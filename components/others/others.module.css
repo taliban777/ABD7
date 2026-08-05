@@ -423,6 +423,9 @@
   grid-template-columns: 1fr;
   gap: 24px;
   padding-top: 28px;
+  /* Items start at the top of their row — prevents tall cells from
+     stretching short neighbours and creating dead vertical space. */
+  align-items: start;
 }
 
 /* ── Obi Pack card ─────────────────────────────────────────
@@ -532,6 +535,7 @@
 /* Wide banners span 2 grid columns */
 .cardWide {
   grid-column: span 2;
+  align-self: start;
 }
 
 .imageFrame {
@@ -566,8 +570,7 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Keep natural aspect ratio — no cropping, no letterboxing */
-  object-fit: fill;
+  /* Let the image render at its natural aspect ratio with no distortion */
 }
 .imageFallback {
   width: 100%;
