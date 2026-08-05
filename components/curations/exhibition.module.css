@@ -124,13 +124,17 @@
   position: relative;
   display: block;
   overflow: visible;
-  /* Glow lives as box-shadow on this element — very slow transition */
-  box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
-  transition: box-shadow 4s ease;
+  /* Two-layer glow: a tight core + a wide ambient halo, both pure white */
+  box-shadow:
+    0 0   0px  0px rgba(255, 255, 255, 0),
+    0 0   0px  0px rgba(255, 255, 255, 0);
+  transition: box-shadow 6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glowItem:hover .glowImageWrap {
-  box-shadow: 0 0 120px 48px rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 0  60px 12px rgba(255, 255, 255, 0.18),
+    0 0 180px 64px rgba(255, 255, 255, 0.09);
 }
 
 .glowImage {
@@ -140,6 +144,13 @@
   object-fit: contain;
   position: relative;
   z-index: 1;
+  /* Subtle luminance lift — builds on same timeline */
+  transition: filter 6s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: brightness(0.92);
+}
+
+.glowItem:hover .glowImage {
+  filter: brightness(1.04);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -149,19 +160,17 @@
 
 .maliSection {
   padding: 0 64px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 40px;
 }
 
 .maliRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  display: contents;
 }
 
 .maliFullRow {
-  width: 100%;
+  display: contents;
 }
 
 .maliImage {
@@ -256,9 +265,8 @@
     padding: 0 32px;
   }
 
-  .maliRow {
+  .maliSection {
     grid-template-columns: 1fr;
-    gap: 32px;
   }
 
   .fragmentSection {
