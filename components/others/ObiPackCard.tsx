@@ -9,21 +9,16 @@ export interface ObiPackCardProps {
 }
 
 /**
- * Renders 3–4 obi strips side-by-side inside a single grid cell.
- * The container uses aspect-ratio 3/4 and a warm cream background
- * so the pack reads like physical strips laid on a gallery desk.
- * Each strip links to its own detail page.
+ * Renders up to 3 obi strips side-by-side in a single grid cell.
+ * The frame constrains max-height so strips scale down uniformly
+ * while preserving their natural (tall, narrow) aspect ratios.
+ * Each strip links independently to its detail page.
  */
 export function ObiPackCard({ items }: ObiPackCardProps) {
   if (items.length === 0) return null;
 
   return (
     <div className={styles.obiPackCard}>
-      {/*
-        No fixed aspect-ratio here — the strips dictate the height.
-        The frame uses `display: flex` so strips sit side-by-side at
-        their natural proportions, sharing the available width equally.
-      */}
       <div className={styles.obiPackFrame}>
         {items.map((item) => {
           const destination = `/others/${otherSlug(item)}`;
@@ -52,14 +47,14 @@ export function ObiPackCard({ items }: ObiPackCardProps) {
           );
         })}
       </div>
-
-      {/* Pack label — title of first item + count */}
       <div className={styles.label}>
         <h2 className={styles.labelTitle}>
           {items[0].title}
           {items.length > 1 ? ` +${items.length - 1}` : ""}
         </h2>
-        <p className={styles.labelType}>Obi Strip · {items.length} {items.length === 1 ? "piece" : "pieces"}</p>
+        <p className={styles.labelType}>
+          Obi Strip · {items.length} {items.length === 1 ? "piece" : "pieces"}
+        </p>
       </div>
     </div>
   );

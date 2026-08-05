@@ -35,199 +35,47 @@
   color: var(--muted);
 }
 
-/* ── Toolbar ────────────────────────────────────────────── */
-.toolbar {
+/* ── Type filter nav ─────────────────────────────────────── */
+.typeNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 24px 0;
   border-bottom: 1px solid var(--line);
 }
-.toolbarTop {
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 48px;
-}
-.searchLabel {
-  width: min(520px, 70%);
-}
-.searchInput {
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid var(--foreground);
-  border-radius: 0;
-  padding: 10px 0;
-  background: transparent;
-  color: var(--foreground);
-  font: 400 15px/1.3 var(--font-sans);
-  outline: none;
-}
-.searchInput::placeholder {
-  color: var(--muted);
-}
-.searchInput:focus {
-  border-bottom-width: 2px;
-}
-.searchInput::-webkit-search-cancel-button {
-  appearance: none;
-}
-.filterToggle,
-.filterFooter button {
-  border: 0;
-  background: transparent;
-  color: var(--foreground);
-  font: 600 11px/1 var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  white-space: nowrap;
-}
 
-/* ── Filter panel ────────────────────────────────────────── */
-.filterPanel {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transform: translateY(-6px);
-  transition: grid-template-rows 0.35s ease, opacity 0.25s ease, transform 0.35s ease;
-  overflow: hidden;
-}
-.toolbarOpen .filterPanel {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transform: none;
-}
-.filterPanelInner {
-  min-height: 0;
-  padding-bottom: 22px;
-}
-.filterGroups {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 42px 24px;
-  padding: 24px 0 44px;
-  border-top: 1px solid var(--line);
-}
-.filterGroup {
-  border: 0;
-  min-width: 0;
-}
-.filterLegend {
-  margin-bottom: 18px;
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.filterEmpty {
-  font: 400 12px/1.4 var(--font-sans);
-  color: var(--muted);
-}
-.checkList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 220px;
-  overflow-y: auto;
-  padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-}
-.checkList::-webkit-scrollbar { width: 6px; }
-.checkList::-webkit-scrollbar-thumb { background: var(--line); }
-.checkList::-webkit-scrollbar-track { background: transparent; }
-.checkOption {
-  display: flex;
+.typeBtn {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  max-width: 100%;
-  font: 400 13px/1.35 var(--font-sans);
-  cursor: pointer;
-}
-.checkOption input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-.checkBox {
-  width: 11px;
-  height: 11px;
-  border: 1px solid var(--foreground);
-  flex: none;
-}
-.checkOption input:checked + .checkBox {
-  background: var(--foreground);
-  box-shadow: inset 0 0 0 2px var(--background);
-}
-.checkText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.filterCount {
-  margin-left: auto;
-  padding-left: 12px;
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  flex: none;
-}
-.filterFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid var(--line);
-  padding-top: 18px;
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.filterFooter button:disabled {
-  color: var(--muted);
-  cursor: default;
-}
-
-/* ── Index / sort bar ────────────────────────────────────── */
-.indexBar {
-  height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  border-bottom: 1px solid var(--line);
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.indexBar strong {
-  margin-right: auto;
-  font-weight: 600;
-}
-.sortControls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.sortLabel {
-  margin-right: 6px;
-  color: var(--muted);
-}
-.sortButton {
-  border: 1px solid transparent;
+  gap: 7px;
+  border: 1px solid var(--line);
   background: transparent;
   color: var(--muted);
   font: 500 10px/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 6px 8px;
+  padding: 7px 12px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
-.sortButton:hover { color: var(--foreground); }
-.sortButtonActive {
+.typeBtn:hover {
   color: var(--foreground);
   border-color: var(--foreground);
 }
-.indexMeta { color: var(--muted); }
-.indexMeta b {
-  font-weight: 500;
-  color: var(--foreground);
+.typeBtnActive {
+  color: var(--background);
+  background: var(--foreground);
+  border-color: var(--foreground);
+}
+.typeBtnActive .typeBtnCount {
+  color: var(--background);
+  opacity: 0.55;
+}
+.typeBtnCount {
+  font: 400 9px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--muted);
 }
 
 /* ── Obi Strips Shelf ──────────────────────────────────────
@@ -452,35 +300,40 @@
   filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
 }
 
-/* The cream-background frame that holds the strips.
-   No fixed aspect-ratio — height is driven by the tallest strip image. */
+/* Frame holds 3 strips side-by-side at a constrained height so
+   they read as scaled-down physical spines, not full-size posters.
+   max-height caps the tallest possible strip without distorting. */
 .obiPackFrame {
-  background: #EFECE6;
   display: flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: flex-end;
   justify-content: center;
-  gap: 12px;
-  padding: 20px 16px;
+  gap: 8px;
+  padding: 16px 12px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-bottom: none;
+  /* Constrain frame height — strips scale down proportionally */
+  max-height: 260px;
+  background: var(--surface, #1a1a18);
 }
 
-/* Each strip shares the available width equally via flex: 1 1 0.
-   The image inside drives the height. */
+/* Each strip takes an equal share of the width.
+   Images inside drive their own aspect ratio — no cropping. */
 .obiPackStrip {
   flex: 1 1 0;
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   text-decoration: none;
-  transition: transform 0.25s ease, filter 0.25s ease;
+  /* Overflow visible so hover lift clears the frame edge */
+  overflow: visible;
+  transition: transform 0.22s ease, filter 0.22s ease;
 }
 .obiPackStrip:hover {
-  transform: translateY(-4px) scale(1.04);
-  filter: drop-shadow(0 8px 14px rgba(17, 17, 15, 0.22));
+  transform: translateY(-5px) scale(1.05);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
   z-index: 2;
 }
 
@@ -488,8 +341,10 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Paper-like drop shadow on each physical strip */
-  filter: drop-shadow(0 4px 8px rgba(17, 17, 15, 0.18)) drop-shadow(0 1px 2px rgba(17, 17, 15, 0.12));
+  max-height: 228px; /* inner max so image stays within the frame */
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
 }
 
 .obiPackStripFallback {
