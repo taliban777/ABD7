@@ -15,6 +15,7 @@ export interface OthersCardProps {
 }
 
 export function OthersCard({ item, linkToItem = false }: OthersCardProps) {
+  // Renders a single "Others" gallery card with a hover reflection effect.
   // Cards on the /others index route to the shared group page when the
   // entry belongs to a CMS group; otherwise they open the individual entry.
   const destination =
