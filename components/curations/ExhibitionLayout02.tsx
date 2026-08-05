@@ -3,8 +3,7 @@
  *
  * Three artworks in a vertical architectural composition.
  * Each artwork is accompanied by a mono axis label on the left,
- * written vertically. Generous whitespace. No animation — restraint
- * is the effect.
+ * written vertically.
  */
 
 import { getProjectImageUrl } from "@/components/images/cloudinary";
@@ -33,22 +32,19 @@ export function ExhibitionLayout02({ exhibition }: Props) {
       aria-label={`Artworks from ${exhibition.title}`}
     >
       {works.map((work, i) => {
-        const src = getProjectImageUrl(work.frontCover);
+        const src = getProjectImageUrl(work.imageUrl);
         const label = labels[i] ?? `[AXIS // ${String(i + 1).padStart(2, "0")}]`;
 
         return (
-          <div key={work.id} className={styles.verticalItem}>
-            {/* Vertical axis label */}
+          <div key={`${work.project.id}-${i}`} className={styles.verticalItem}>
             <span className={styles.verticalAxisLabel} aria-hidden="true">
               {label}
             </span>
-
-            {/* Artwork */}
             <div className={styles.verticalImageWrap}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
-                alt={work.title}
+                alt={work.project.title}
                 className={styles.verticalImage}
                 loading={i === 0 ? "eager" : "lazy"}
                 decoding="async"

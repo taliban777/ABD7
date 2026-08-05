@@ -2,30 +2,18 @@
  * Exhibition 05 — Build or Destroy
  *
  * Hovering an artwork causes it to fragment into geometric pieces
- * that drift apart in a controlled, architectural manner.
- * Leaving hover reconstructs. Pure CSS clip-path transitions — no JS per-frame.
- *
- * Implementation:
- * - Base image sits at z-index 0, always visible.
- * - A fixed set of fragment <div>s overlay it, each showing the SAME image
- *   via background-image + background-position, clipped to a polygon region.
- * - On hover the fragment container receives data-hovered, triggering each
- *   fragment's CSS custom-property-driven transform transition.
- * - All motion vars (--dx, --dy, --rot) are set via inline style on each fragment.
+ * that drift apart. Leaving hover reconstructs. Pure CSS clip-path transitions.
  */
 
 import { getProjectImageUrl } from "@/components/images/cloudinary";
 import type { CurationExhibition } from "./types";
 import styles from "./exhibition.module.css";
 
-// ── Fragment definitions ───────────────────────────────────────────────────────
-// clip-path polygons are defined as percentages of the image bounding box.
-// Eight fragments per artwork — feels intentional, not random.
 interface FragmentDef {
-  clip: string;   // CSS polygon()
-  dx: string;     // translateX drift on hover
-  dy: string;     // translateY drift on hover
-  rot: string;    // rotate drift on hover
+  clip: string;
+  dx: string;
+  dy: string;
+  rot: string;
 }
 
 const FRAGMENTS: FragmentDef[] = [
@@ -54,22 +42,19 @@ export function ExhibitionLayout05({ exhibition }: Props) {
       aria-label={`Artworks from ${exhibition.title}`}
     >
       {works.map((work, i) => {
-        const src = getProjectImageUrl(work.frontCover);
+        const src = getProjectImageUrl(work.imageUrl);
 
         return (
-          <div key={work.id} className={styles.fragmentItem}>
-            {/* Base image — always visible, provides the reconstructed state */}
+          <div key={`${work.project.id}-${i}`} className={styles.fragmentItem}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
-              alt={work.title}
+              alt={work.project.title}
               className={styles.fragmentBase}
               loading={i === 0 ? "eager" : "lazy"}
               decoding="async"
               draggable={false}
             />
-
-            {/* Fragment overlay — absolutely positioned over the base */}
             <div className={styles.fragmentOverlay} aria-hidden="true">
               {FRAGMENTS.map((frag, fi) => (
                 <div

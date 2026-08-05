@@ -2,10 +2,18 @@ import type { ExhibitionConfig } from "./types";
 
 /**
  * Static exhibition configurations for the Curations section.
- * Add new exhibitions here — no code changes elsewhere needed.
- * workTitles are matched case-insensitively against CMS project titles at build time.
+ *
+ * IMPORTANT: Artwork is NEVER hardcoded here.
+ * Every curation references CMS projects exclusively by slug.
+ * At build time the resolver filters the full CMS project collection
+ * to the listed slugs and pulls the correct image field from each project.
+ * If a slug is not found it is silently skipped — no crash.
+ * Exhibitions automatically update whenever the CMS project changes.
+ *
+ * To add a new exhibition, append an entry here — no other file changes needed.
  */
 export const EXHIBITIONS: ExhibitionConfig[] = [
+  // ── 01 — Can You See the Colour? ──────────────────────────────────────────
   {
     id: "01",
     number: "01",
@@ -15,19 +23,21 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
       "Darkness functions as an essential canvas providing the structural depth necessary for light to register with clarity. Stripped of chromatic distraction, texture and contrast become the sole conductors of presence.",
       "Can you see the colour?",
     ],
-    workTitles: [
-      "River of January 2",
-      "River of January",
-      "6AM in Rio",
-      "Hungry $ince Birth",
-      "Traptivist",
-      "History Repeats",
-      "Time Immemorial",
-      "The Remix Mixtape",
-      "Respectfully",
+    slugs: [
+      "river-of-january-2",
+      "river-of-january",
+      "6am-rio",
+      "hungry-since-birth",
+      "traptivist",
+      "history-repeats",
+      "time-immemorial",
+      "remix-tape",
+      "respectfully",
     ],
     layout: "marquee",
   },
+
+  // ── 02 — Change How You Perceive Space. ───────────────────────────────────
   {
     id: "02",
     number: "02",
@@ -37,10 +47,10 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
       "The vertical axis; the structure anchored to the earth yet aspiring toward an absolute horizon.",
       "Change how you perceive space.",
     ],
-    workTitles: [
-      "Angels With Filthy Souls",
-      "The Void",
-      "The Spoils of Babylon",
+    slugs: [
+      "angels-with-filthy-souls",
+      "the-void",
+      "the-spoils-of-babylon",
     ],
     layout: "vertical",
     axisLabels: [
@@ -49,6 +59,8 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
       "[AXIS // 03: MONUMENT]",
     ],
   },
+
+  // ── 03 — Bearers of the Beacon ────────────────────────────────────────────
   {
     id: "03",
     number: "03",
@@ -57,14 +69,17 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
       "They move through the crowd unheralded, yet remain impossible to ignore. Where a countenance should be, pure light erupts, blinding in its clarity.",
       "This luminosity carries the absolute weight of righteousness. Falsehood is bound to vanish when the dawn arrives. Stand as a bearer of the beacon, or ensure total alignment within their proximity.",
     ],
-    workTitles: [
-      "Plans of the Diligent",
-      "Right Over Left",
-      "Right Over Left 2",
-      "Right Over Left 2 (Back)",
+    slugs: [
+      { slug: "plans-of-the-diligent", imageKey: "frontCover" },
+      { slug: "right-over-left",        imageKey: "frontCover" },
+      // right-over-left-2: both covers (front first, then back)
+      { slug: "right-over-left-2",      imageKey: "frontCover" },
+      { slug: "right-over-left-2",      imageKey: "backCover"  },
     ],
     layout: "glow",
   },
+
+  // ── 04 — Vessels of the Unseen (The Mali Selections) ──────────────────────
   {
     id: "04",
     number: "04",
@@ -73,19 +88,26 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
     description: [
       "No idol carved, but wood in flight,\nGuiding the soul that meets the grave.\nAll earthly forms fade into night;\nOnly the Maker stays to save.",
     ],
-    workTitles: [
-      "Mali Selection Vol.1",
-      "Mali Selection Vol.2",
-      "Mali Selection Vol.3",
+    slugs: [
+      { slug: "the-mali-selections-1", imageKey: "frontCover" },
+      { slug: "the-mali-selections-2", imageKey: "frontCover" },
+      { slug: "the-mali-selections-3", imageKey: "frontCover" },
     ],
     layout: "mali",
   },
+
+  // ── 05 — Build or Destroy ─────────────────────────────────────────────────
   {
     id: "05",
     number: "05",
     title: "Build or Destroy",
     description: ["Out of destruction comes the urge to cultivate."],
-    workTitles: ["2Foul", "Camouflage Giants", "Magnum Opus", "Skums and Roses"],
+    slugs: [
+      "2-foul",
+      "camouflage-giants",
+      "magnum-opus",
+      "skums-and-roses",
+    ],
     layout: "fragment",
   },
 ];

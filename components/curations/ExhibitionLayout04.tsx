@@ -3,7 +3,7 @@
  *
  * Vol.1 and Vol.2 sit side by side.
  * Vol.3 spans the full width beneath them.
- * Minimal. No animation. The layout is the statement.
+ * All three use frontCover (resolved by imageKey in data.ts).
  */
 
 import { getProjectImageUrl } from "@/components/images/cloudinary";
@@ -34,8 +34,8 @@ export function ExhibitionLayout04({ exhibition }: Props) {
           {vol1 && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={getProjectImageUrl(vol1.frontCover)}
-              alt={vol1.title}
+              src={getProjectImageUrl(vol1.imageUrl)}
+              alt={vol1.project.title}
               className={styles.maliImage}
               loading="eager"
               decoding="async"
@@ -44,8 +44,8 @@ export function ExhibitionLayout04({ exhibition }: Props) {
           {vol2 && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={getProjectImageUrl(vol2.frontCover)}
-              alt={vol2.title}
+              src={getProjectImageUrl(vol2.imageUrl)}
+              alt={vol2.project.title}
               className={styles.maliImage}
               loading="lazy"
               decoding="async"
@@ -59,8 +59,8 @@ export function ExhibitionLayout04({ exhibition }: Props) {
         <div className={styles.maliFullRow}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={getProjectImageUrl(vol3.frontCover)}
-            alt={vol3.title}
+            src={getProjectImageUrl(vol3.imageUrl)}
+            alt={vol3.project.title}
             className={styles.maliImage}
             loading="lazy"
             decoding="async"
