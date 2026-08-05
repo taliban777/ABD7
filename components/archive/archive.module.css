@@ -578,7 +578,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 20px;
+  column-gap: 0;
   row-gap: 48px;
 }
 
@@ -613,9 +613,10 @@
 
 /* Natural-proportion image frame — no forced aspect ratio */
 .imageFrame {
-  background: var(--surface);
+  background: transparent;
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
 /* Sheen reflection on hover */

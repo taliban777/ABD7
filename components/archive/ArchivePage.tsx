@@ -107,7 +107,6 @@ export function ArchivePage({ projects = [], initialYear }: ArchivePageProps) {
         {/* Editorial hero header */}
         <header className={styles.archiveHero}>
           <div className={styles.archiveHeroLeft}>
-            <p className={styles.archiveHeroLabel}>Digital Archive</p>
             <h1 className={styles.archiveHeroTitle}>
               The <em>Collection</em>
             </h1>

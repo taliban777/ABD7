@@ -5,10 +5,12 @@ import { ObiPackCard } from "./ObiPackCard";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { fetchCmsOthers } from "@/lib/cms";
 import type { CmsOther } from "./types";
+import type { CmsProject } from "@/components/archive/types";
 import { projectLabel } from "./types";
 
 export interface OthersPageProps {
   items: CmsOther[];
+  projects?: CmsProject[];
 }
 
 const isObiStrip = (item: CmsOther) =>
@@ -56,7 +58,7 @@ function buildGridTiles(items: CmsOther[]): GridTile[] {
   return tiles;
 }
 
-export function OthersPage({ items }: OthersPageProps) {
+export function OthersPage({ items, projects = [] }: OthersPageProps) {
   const safeItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
 
   // Derive unique types from CMS data, sorted by count descending
@@ -84,7 +86,7 @@ export function OthersPage({ items }: OthersPageProps) {
 
   return (
     <>
-      <GlobalNav projects={[]} />
+      <GlobalNav projects={projects} />
       <main className={styles.page}>
         {/* Header */}
         <header className={styles.header}>
