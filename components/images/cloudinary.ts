@@ -49,18 +49,18 @@ function injectTransformation(url: string, transformation: string): string {
 
 /**
  * Get archive thumbnail URL with optimization.
- * Prioritizes artwork quality while optimizing delivery.
- * Parameters: w_700,h_700,c_fill,q_auto:good,f_auto
- * - w_700,h_700: 700x700 square (larger size preserves texture and detail)
- * - c_fill: fill the entire area, crop if needed
+ * Preserves the artwork's natural aspect ratio — no forced square crop.
+ * Parameters: w_800,q_auto:good,f_auto
+ * - w_800: wide enough for 4-column grid at 2× pixel density
  * - q_auto:good: balanced quality tier (preserves gradients, print details)
  * - f_auto: automatic format selection (WebP, AVIF, etc.)
+ * No height or crop parameter — natural proportions are honoured.
  */
 export function getArchiveImageUrl(url: string): string {
   if (!url) return "";
   if (!isCloudinaryUrl(url)) return url;
 
-  return injectTransformation(url, "w_700,h_700,c_fill,q_auto:good,f_auto");
+  return injectTransformation(url, "w_800,q_auto:good,f_auto");
 }
 
 /**

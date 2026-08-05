@@ -1,69 +1,214 @@
+/* =============================================================================
+   Archive — museum-quality digital archive stylesheet
+   ============================================================================= */
+
 .archivePage {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  padding: 56px 24px 64px; /* top = fixed nav height */
+  /* top padding = fixed nav height */
+  padding-top: 56px;
 }
 
-/* Header */
-.siteHeader {
-  height: 64px;
+/* =============================================================================
+   Archive Hero Header
+   ============================================================================= */
+
+.archiveHero {
+  padding: 52px 24px 40px;
   border-bottom: 1px solid var(--line);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  font: 600 10px/1 var(--font-mono);
+  gap: 32px;
+}
+
+.archiveHeroLeft {
+  min-width: 0;
+}
+
+.archiveHeroLabel {
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.archiveHeroTitle {
+  font: 300 56px/0.95 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  /* italic sub-word for typographic distinction */
+}
+
+.archiveHeroTitle em {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.archiveHeroRight {
+  flex: none;
+  text-align: right;
+}
+
+.archiveHeroCount {
+  font: 300 48px/1 var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.archiveHeroMeta {
+  font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-.wordmark {
-  font-size: 12px;
+  color: var(--muted);
 }
 
-/* Toolbar */
+/* =============================================================================
+   Toolbar — sticky below nav
+   ============================================================================= */
+
 .toolbar {
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  background: var(--background);
   border-bottom: 1px solid var(--line);
+  /* Subtle edge shadow when scrolled underneath content */
+  box-shadow: 0 2px 0 0 transparent;
+  transition: box-shadow var(--duration-base) ease;
+  padding: 0 24px;
 }
+
+.toolbarScrolled {
+  box-shadow: 0 2px 12px rgba(17, 17, 15, 0.07);
+}
+
 .toolbarTop {
-  height: 72px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 48px;
+  gap: 32px;
 }
+
+/* Search field with icon and clear button */
+.searchWrapper {
+  position: relative;
+  flex: 1;
+  max-width: min(520px, 70%);
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  pointer-events: none;
+  flex: none;
+}
+
 .searchLabel {
-  width: min(520px, 70%);
+  width: 100%;
 }
+
 .searchInput {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid var(--foreground);
+  border-bottom: 1px solid var(--line);
   border-radius: 0;
-  padding: 10px 0;
+  padding: 10px 28px 10px 22px;
   background: transparent;
   color: var(--foreground);
-  font: 400 15px/1.3 var(--font-sans);
+  font: 400 14px/1.3 var(--font-sans);
   outline: none;
+  transition: border-color var(--duration-fast) ease;
 }
+
 .searchInput::placeholder {
   color: var(--muted);
 }
+
 .searchInput:focus {
-  border-bottom-width: 2px;
+  border-bottom-color: var(--foreground);
+  border-bottom-width: 1.5px;
 }
+
 .searchInput::-webkit-search-cancel-button {
   appearance: none;
 }
-.filterToggle,
-.filterFooter button {
+
+.searchClear {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--muted);
+  line-height: 1;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast) ease;
+}
+
+.searchClear:hover {
+  color: var(--foreground);
+}
+
+/* Toolbar right — filter toggle */
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: none;
+}
+
+.filterToggle {
   border: 0;
   background: transparent;
   color: var(--foreground);
-  font: 600 11px/1 var(--font-mono);
-  letter-spacing: 0.08em;
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.filterToggle:hover {
+  opacity: 0.7;
+}
+
+.filterToggleDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--foreground);
+  flex: none;
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity var(--duration-base) ease, transform var(--duration-base) var(--ease-spring);
+}
+
+.filterToggleDotActive {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Expanding filter panel */
@@ -71,141 +216,165 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transform: translateY(-6px);
-  transition: grid-template-rows 0.35s ease, opacity 0.25s ease, transform 0.35s ease;
+  transform: translateY(-4px);
+  transition: grid-template-rows 0.35s ease, opacity 0.22s ease, transform 0.32s ease;
   overflow: hidden;
 }
+
 .toolbarOpen .filterPanel {
   grid-template-rows: 1fr;
   opacity: 1;
   transform: none;
 }
-/* Single direct child — required for the 0fr collapse trick */
+
 .filterPanelInner {
   min-height: 0;
   padding-bottom: 22px;
 }
+
 .filters {
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 42px 24px;
-  padding: 24px 0 44px;
+  gap: 40px 24px;
+  padding: 24px 0 40px;
   border-top: 1px solid var(--line);
 }
+
 .filterGroup {
   border: 0;
   min-width: 0;
 }
+
 .filterLegend {
-  margin-bottom: 18px;
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
+  margin-bottom: 16px;
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--muted);
 }
+
 .filterEmpty {
   font: 400 12px/1.4 var(--font-sans);
   color: var(--muted);
 }
 
-/* Scrollable option lists for large collections */
+/* Scrollable option lists */
 .checkList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 220px;
+  gap: 9px;
+  max-height: 200px;
   overflow-y: auto;
   padding-right: 8px;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
-.checkList::-webkit-scrollbar {
-  width: 6px;
-}
-.checkList::-webkit-scrollbar-thumb {
-  background: var(--line);
-}
-.checkList::-webkit-scrollbar-track {
-  background: transparent;
-}
+
+.checkList::-webkit-scrollbar { width: 4px; }
+.checkList::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+.checkList::-webkit-scrollbar-track { background: transparent; }
+
 .checkOption {
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: 100%;
-  font: 400 13px/1.35 var(--font-sans);
+  font: 400 12px/1.35 var(--font-sans);
   cursor: pointer;
+  transition: color var(--duration-fast) ease;
 }
+
+.checkOption:hover {
+  color: var(--foreground);
+}
+
 .checkOption input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
+
 .checkBox {
-  width: 11px;
-  height: 11px;
-  border: 1px solid var(--foreground);
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line);
   flex: none;
+  transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
+
+.checkOption:hover .checkBox {
+  border-color: var(--foreground);
+}
+
 .checkOption input:checked + .checkBox {
   background: var(--foreground);
+  border-color: var(--foreground);
   box-shadow: inset 0 0 0 2px var(--background);
 }
+
 .checkText {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .filterCount {
   margin-left: auto;
-  padding-left: 12px;
-  font: 500 10px/1 var(--font-mono);
+  padding-left: 10px;
+  font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.06em;
   color: var(--muted);
   flex: none;
 }
 
-/* Palette */
+/* ---- Palette swatch chip row ---- */
 .paletteList {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  max-height: 220px;
+  gap: 8px;
+  max-height: 200px;
   overflow-y: auto;
   padding-right: 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
-.paletteList::-webkit-scrollbar {
-  width: 6px;
-}
-.paletteList::-webkit-scrollbar-thumb {
-  background: var(--line);
-}
+
+.paletteList::-webkit-scrollbar { width: 4px; }
+.paletteList::-webkit-scrollbar-thumb { background: var(--line); }
+
 .swatch {
   position: relative;
-  width: 26px;
-  height: 26px;
-  border: 1px solid transparent;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid transparent;
   border-radius: 50%;
   padding: 3px;
   background: transparent;
   cursor: pointer;
+  transition: border-color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-spring);
 }
+
+.swatch:hover {
+  transform: scale(1.12);
+}
+
 .swatch span {
   display: block;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(17, 17, 15, 0.15);
 }
+
 .swatchSelected {
   border-color: var(--foreground);
 }
+
 .swatchCount {
   position: absolute;
-  bottom: -14px;
+  bottom: -13px;
   left: 50%;
   transform: translateX(-50%);
   font: 500 7px/1 var(--font-mono);
@@ -213,315 +382,500 @@
   white-space: nowrap;
 }
 
-/* Palette Row UI (single row of color family chips) */
+/* Palette row chips (named colour family) */
 .paletteRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
+
 .paletteChip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 12px;
   background: transparent;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
 }
+
 .paletteChip:hover {
   border-color: var(--foreground);
   background: var(--surface);
 }
+
 .paletteChipSelected {
   border-color: var(--foreground);
   background: var(--surface);
 }
+
 .paletteChipColor {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(17, 17, 15, 0.1);
   background-color: var(--chip-color, #888888);
   flex-shrink: 0;
 }
+
 .paletteChipLabel {
-  font: 500 9px/1 var(--font-mono);
-  letter-spacing: 0.05em;
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--foreground);
   white-space: nowrap;
 }
-.paletteList::-webkit-scrollbar {
-  width: 6px;
-}
-.paletteList::-webkit-scrollbar-thumb {
-  background: var(--line);
-}
-.swatch {
-  position: relative;
-  width: 26px;
-  height: 26px;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  padding: 3px;
-  background: transparent;
-  cursor: pointer;
-}
-.swatch span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-}
-.swatchSelected {
-  border-color: var(--foreground);
-}
-.swatchCount {
-  position: absolute;
-  bottom: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font: 500 8px/1 var(--font-mono);
-  color: var(--muted);
-  font-style: normal;
-}
 
+/* ---- Filter footer ---- */
 .filterFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--line);
-  padding-top: 18px;
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.1em;
+  padding-top: 16px;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+.filterFooter button {
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.filterFooter button:hover {
+  opacity: 0.6;
+}
+
 .filterFooter button:disabled {
   color: var(--muted);
   cursor: default;
 }
 
-/* Index / sort bar */
+/* =============================================================================
+   Index / sort bar
+   ============================================================================= */
+
 .index {
   height: 44px;
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 24px;
   border-bottom: 1px solid var(--line);
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.12em;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  padding: 0 24px;
 }
+
 .index strong {
   margin-right: auto;
   font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.14em;
 }
+
 .sortControls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
+
 .sortLabel {
   margin-right: 6px;
   color: var(--muted);
 }
+
 .sortButton {
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.1em;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 6px 8px;
+  padding: 5px 7px;
   cursor: pointer;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
+
 .sortButton:hover {
   color: var(--foreground);
 }
+
 .sortButtonActive {
   color: var(--foreground);
   border-color: var(--foreground);
 }
+
 .indexMeta {
   color: var(--muted);
 }
+
 .indexMeta b {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--foreground);
 }
 
-/* Grid */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 20px;
-  row-gap: 40px;
-  padding-top: 28px;
+/* View mode toggle */
+.viewToggle {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--line);
+  overflow: hidden;
 }
 
-/* Card */
-.card {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  animation: cardIn 0.4s ease both;
-  transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease, box-shadow 0.5s ease;
-  will-change: transform;
-  transform-origin: center bottom;
-  filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0));
-}
-.card:hover {
-  transform: scale(1.022);
-  filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
-}
-.imageFrame {
-  aspect-ratio: 1 / 1;
-  background: var(--surface);
-  overflow: hidden;
+.viewToggleBtn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 5px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
 }
-.imageFrame::after {
-  content: " ";
-  position: absolute;
-  top: 0;
-  left: 0;
+
+.viewToggleBtn + .viewToggleBtn {
+  border-left: 1px solid var(--line);
+}
+
+.viewToggleBtn:hover {
+  color: var(--foreground);
+  background: var(--surface);
+}
+
+.viewToggleBtnActive {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.viewToggleBtnActive:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* =============================================================================
+   Grid / List views
+   ============================================================================= */
+
+.gridWrapper {
+  padding: 32px 24px 80px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 48px;
+}
+
+.gridList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* =============================================================================
+   Card — natural proportions
+   ============================================================================= */
+
+.card {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  /* Stagger in via CSS custom property passed from the component */
+  animation: cardIn 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--card-index, 0) * 40ms);
+  transition: transform var(--duration-slow) var(--ease-out),
+              box-shadow var(--duration-slow) ease;
+  will-change: transform;
+  transform-origin: center bottom;
+}
+
+.card:hover {
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Natural-proportion image frame — no forced aspect ratio */
+.imageFrame {
+  background: transparent;
+  overflow: hidden;
+  position: relative;
   width: 100%;
-  height: 100%;
+}
+
+/* Sheen reflection on hover */
+.imageFrame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
-    90deg,
+    105deg,
     transparent 0%,
-    rgba(245, 240, 220, 0.04) 30%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(245, 240, 220, 0.04) 70%,
+    rgba(255, 255, 250, 0.06) 40%,
+    rgba(255, 255, 250, 0.09) 50%,
+    rgba(255, 255, 250, 0.06) 60%,
     transparent 100%
   );
   opacity: 0;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
+
 .card:hover .imageFrame::after {
   opacity: 1;
   animation: galleryReflection var(--reflection-duration, 1000ms) ease-in-out forwards;
 }
+
+/* Image — let its natural proportions set the frame height, bounded at extremes */
 .cover {
-  width: 100%;
-  height: 100%;
+  /* Scoped equivalents of w-full h-auto block aspect-square object-cover. */
   display: block;
-  object-fit: contain;
-}
-.card:hover .labelTitle {
-  text-shadow:
-    0 0 0.4px currentColor,
-    0 0 0.4px currentColor;
-}
-.coverLoading {
   width: 100%;
-  height: 100%;
-  background: var(--surface);
-  animation: shimmer 2s infinite;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center;
+  /* Fade-in on load */
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
-@keyframes shimmer {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 0.9;
-  }
+
+.coverLoaded {
+  opacity: 1;
 }
-@keyframes galleryReflection {
-  0% {
-    transform: translateX(var(--reflection-start, -100%)) translateY(var(--reflection-y-start, -50%));
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(var(--reflection-end, 100%)) translateY(var(--reflection-y-end, 50%));
-  }
-}
+
 .coverFallback {
   width: 100%;
-  height: 100%;
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface);
   color: var(--muted);
-  font: 500 10px/1 var(--font-mono);
+  font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-/* White gallery catalogue label */
+@keyframes galleryReflection {
+  0% {
+    transform: translateX(var(--reflection-start, -100%)) translateY(var(--reflection-y-start, -50%));
+  }
+  50% { opacity: 1; }
+  100% {
+    transform: translateX(var(--reflection-end, 100%)) translateY(var(--reflection-y-end, 50%));
+  }
+}
+
+/* ---- White gallery catalogue label ---- */
 .label {
   background: var(--label);
   color: var(--label-foreground);
   border: 1px solid var(--line);
   border-top: 0;
-  padding: 16px 16px 18px;
+  padding: 14px 16px 16px;
+  flex: 1;
 }
+
 .labelTop {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.catNumber,
-.labelYear {
+
+.catNumber {
   font: 500 8px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-}
-.catNumber {
   transition: letter-spacing 0.7s ease;
 }
+
 .card:hover .catNumber {
   letter-spacing: 0.4em;
 }
+
+.labelYear {
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .labelTitle {
-  font: 700 13px/1.35 var(--font-mono);
+  font: 700 12px/1.3 var(--font-mono);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: text-shadow 0.38s ease;
+  transition: text-shadow 0.35s ease;
+  margin-bottom: 8px;
 }
+
+.card:hover .labelTitle {
+  text-shadow: 0 0 0.4px currentColor, 0 0 0.4px currentColor;
+}
+
+.labelBottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .labelArtist {
-  margin-top: 8px;
-  font: 400 10px/1.4 var(--font-mono);
+  font: 400 9px/1.4 var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labelCategory {
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line-subtle);
+  padding: 3px 5px;
+  white-space: nowrap;
+  flex: none;
+}
+
+/* =============================================================================
+   List row (list view)
+   ============================================================================= */
+
+.listRow {
+  display: grid;
+  grid-template-columns: 64px 1fr auto auto;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--foreground);
+  transition: background var(--duration-fast) ease;
+  animation: cardIn 0.4s var(--ease-out) both;
+  animation-delay: calc(var(--card-index, 0) * 25ms);
+}
+
+.listRow:hover {
+  background: var(--surface);
+  margin: 0 -24px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.listThumb {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  background: var(--surface);
+  flex: none;
+}
+
+.listThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.listMeta {
+  min-width: 0;
+}
+
+.listTitle {
+  font: 600 13px/1.3 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listArtist {
+  font: 400 10px/1.3 var(--font-mono);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-/* Empty states */
+.listYear {
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  flex: none;
+}
+
+.listCatalogue {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: none;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* =============================================================================
+   Empty states
+   ============================================================================= */
+
 .empty {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 80px 0;
-  font: 500 11px/1.4 var(--font-mono);
+  padding: 80px 24px;
+  font: 500 10px/1.4 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
 .emptyReset {
   border: 1px solid var(--foreground);
   background: transparent;
   color: var(--foreground);
-  font: 500 10px/1 var(--font-mono);
+  font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 8px 12px;
   cursor: pointer;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
 }
+
+.emptyReset:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* =============================================================================
+   Accessibility
+   ============================================================================= */
 
 .srOnly {
   position: absolute;
@@ -535,10 +889,14 @@
   border: 0;
 }
 
+/* =============================================================================
+   Entry animations
+   ============================================================================= */
+
 @keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -546,65 +904,103 @@
   }
 }
 
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 1100px) {
+  .archiveHeroTitle {
+    font-size: 44px;
+  }
+  .archiveHeroCount {
+    font-size: 38px;
+  }
+}
+
 @media (max-width: 800px) {
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 20px;
+    column-gap: 16px;
+    row-gap: 36px;
   }
   .filters {
     grid-template-columns: repeat(2, 1fr);
   }
   .index {
-    gap: 20px;
-    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .archiveHero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 36px 24px 28px;
+  }
+  .archiveHeroRight {
+    text-align: left;
   }
 }
 
-@media (max-width: 540px) {
+@media (max-width: 640px) {
   .archivePage {
-    padding: 56px 14px 48px; /* keep top clear of the fixed nav */
+    padding-top: 56px;
+  }
+  .archiveHero {
+    padding: 28px 16px 24px;
+  }
+  .archiveHeroTitle {
+    font-size: 36px;
+  }
+  .archiveHeroCount {
+    font-size: 30px;
+  }
+  .toolbar {
+    padding: 0 16px;
   }
   .toolbarTop {
-    height: 68px;
-    gap: 24px;
+    height: 60px;
+    gap: 16px;
   }
-  .searchLabel {
-    width: 100%;
+  .searchWrapper {
+    max-width: 100%;
   }
   .filters {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 28px;
   }
   .filterFooter {
     align-items: flex-start;
-    gap: 18px;
+    gap: 16px;
   }
   .index {
     height: auto;
-    padding: 10px 0;
+    padding: 8px 16px;
     gap: 8px;
-    margin-bottom: 4px;
     flex-wrap: wrap;
     align-items: center;
   }
   .index strong {
-    /* project count takes its own line */
     flex: 1 1 100%;
     margin-right: 0;
-    padding-top: 8px;
   }
   .sortControls {
     flex-wrap: wrap;
     gap: 2px;
   }
-  /* Hide the "Showing / Sorted" meta text — redundant on mobile */
   .indexMeta {
     display: none;
   }
+  .gridWrapper {
+    padding: 20px 16px 60px;
+  }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 14px;
-    row-gap: 36px;
-    padding-top: 12px;
+    column-gap: 12px;
+    row-gap: 32px;
+  }
+  .listRow {
+    grid-template-columns: 48px 1fr auto;
+  }
+  .listCatalogue {
+    display: none;
   }
 }

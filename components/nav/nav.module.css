@@ -11,6 +11,30 @@
   height: 56px;
   background: var(--background);
   border-bottom: 1px solid var(--line);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Frosted glass + shadow when scrolled */
+.navScrolled {
+  background: rgba(242, 240, 233, 0.88);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  box-shadow: 0 1px 0 var(--line), 0 4px 16px rgba(17, 17, 15, 0.06);
+}
+
+/* Scroll progress line — sits at the very bottom of the nav bar */
+.scrollProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--foreground);
+  transform: scaleX(0);
+  transform-origin: left;
+  /* Transition is driven by inline style for live scroll tracking */
+  transition: transform 0.05s linear;
+  pointer-events: none;
 }
 
 .navInner {
@@ -260,11 +284,13 @@
 @keyframes mobileMenuIn {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateX(12px);
+    clip-path: inset(0 0 0 100%);
   }
   to {
     opacity: 1;
     transform: none;
+    clip-path: inset(0 0 0 0%);
   }
 }
 

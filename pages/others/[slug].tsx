@@ -1,8 +1,9 @@
 import * as React from "react";
 import type { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
-import { fetchCmsOthers, fetchCmsOtherBySlug } from "@/lib/cms";
+import { fetchCmsOthers, fetchCmsOtherBySlug, fetchCmsProjects } from "@/lib/cms";
 import type { CmsOther } from "@/components/others/types";
+import type { CmsProject } from "@/components/archive/types";
 import { otherSlug } from "@/components/others/types";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { OtherDetailPage } from "@/components/others/OtherDetailPage";
@@ -10,6 +11,7 @@ import { OtherDetailPage } from "@/components/others/OtherDetailPage";
 export default function OtherPage({
   item,
   allItems,
+  projects,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   if (!item) {
     return (
@@ -17,7 +19,7 @@ export default function OtherPage({
         <Head>
           <title>Not Found — ARTBYDANI7</title>
         </Head>
-        <GlobalNav projects={[]} />
+        <GlobalNav projects={projects} />
         <div style={{ minHeight: "100vh", padding: "80px 24px" }}>
           <p>Entry not found.</p>
         </div>
@@ -35,7 +37,7 @@ export default function OtherPage({
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <GlobalNav projects={[]} />
+      <GlobalNav projects={projects} />
       <OtherDetailPage item={item} allItems={allItems} />
     </>
   );
@@ -53,16 +55,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps<{
   item: CmsOther | null;
   allItems: CmsOther[];
+  projects: CmsProject[];
 }> = async ({ params }) => {
   const slug = params?.slug as string;
   if (!slug) return { notFound: true };
 
-  const [item, allItems] = await Promise.all([
+  const [item, allItems, projects] = await Promise.all([
     fetchCmsOtherBySlug(slug),
     fetchCmsOthers(),
+    fetchCmsProjects(),
   ]);
 
   if (!item) return { notFound: true };
 
-  return { props: { item, allItems }, revalidate: 3600 };
+  return { props: { item, allItems, projects }, revalidate: 3600 };
 };

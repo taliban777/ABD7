@@ -16,29 +16,57 @@ interface ArchiveToolbarProps {
 }
 
 export function ArchiveToolbar(props: ArchiveToolbarProps) {
+  const hasActive = props.activeCount > 0;
+
   return (
-    <section className={`${styles.toolbar} ${props.isOpen ? styles.toolbarOpen : ""}`} aria-label="Archive controls">
+    <section
+      className={`${styles.toolbar} ${props.isOpen ? styles.toolbarOpen : ""}`}
+      aria-label="Archive controls"
+    >
       <div className={styles.toolbarTop}>
         <ArchiveSearch value={props.search} onChange={props.onSearchChange} />
-        <button
-          className={styles.filterToggle}
-          type="button"
-          onClick={props.onOpenChange}
-          aria-expanded={props.isOpen}
-          aria-controls="archive-filter-panel"
-        >
-          Filter {props.activeCount > 0 ? `(${props.activeCount})` : ""} {props.isOpen ? "−" : "+"}
-        </button>
+
+        <div className={styles.toolbarActions}>
+          <button
+            className={styles.filterToggle}
+            type="button"
+            onClick={props.onOpenChange}
+            aria-expanded={props.isOpen}
+            aria-controls="archive-filter-panel"
+          >
+            {/* Active dot indicator */}
+            <span
+              className={`${styles.filterToggleDot} ${hasActive ? styles.filterToggleDotActive : ""}`}
+              aria-hidden="true"
+            />
+            Filter{props.activeCount > 0 ? ` (${props.activeCount})` : ""}
+            {" "}
+            {props.isOpen ? "−" : "+"}
+          </button>
+        </div>
       </div>
-      <div className={styles.filterPanel} id="archive-filter-panel" aria-hidden={!props.isOpen}>
+
+      <div
+        className={styles.filterPanel}
+        id="archive-filter-panel"
+        aria-hidden={!props.isOpen}
+      >
         <div className={styles.filterPanelInner}>
-          <ArchiveFilters options={props.options} selected={props.selected} onToggle={props.onToggle} />
+          <ArchiveFilters
+            options={props.options}
+            selected={props.selected}
+            onToggle={props.onToggle}
+          />
           <div className={styles.filterFooter}>
-            <button type="button" onClick={props.onClear} disabled={props.activeCount === 0 && props.search.length === 0}>
+            <button
+              type="button"
+              onClick={props.onClear}
+              disabled={props.activeCount === 0 && props.search.length === 0}
+            >
               Clear Filters
             </button>
             <span>
-              {props.activeCount} {props.activeCount === 1 ? "Filter" : "Filters"} Selected
+              {props.activeCount} {props.activeCount === 1 ? "Filter" : "Filters"} Active
             </span>
           </div>
         </div>

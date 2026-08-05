@@ -26,7 +26,7 @@ export function OthersCard({ item, wide = false }: OthersCardProps) {
   return (
     <Link
       href={destination}
-      className={`${styles.card}${wide ? ` ${styles.cardWide}` : ""}`}
+      className={`w-fit mx-auto ${styles.card}${wide ? ` ${styles.cardWide}` : ""}`}
       style={
         {
           "--reflection-duration": `${reflectionDuration}ms`,
@@ -41,7 +41,7 @@ export function OthersCard({ item, wide = false }: OthersCardProps) {
         {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className={styles.image}
+            className={`w-full h-auto block ${styles.image}`}
             src={getOthersImageUrl(item.image)}
             alt={item.title}
             loading="lazy"
@@ -54,7 +54,7 @@ export function OthersCard({ item, wide = false }: OthersCardProps) {
         )}
       </div>
 
-      <div className={styles.label}>
+      <div className={`${styles.label} w-full`}>
         <h2 className={styles.labelTitle}>{item.title}</h2>
         {item.type ? <p className={styles.labelType}>{item.type}</p> : null}
       </div>
