@@ -413,30 +413,34 @@
   max-width: 120px;
 }
 
-/* ── Unified 3-column grid ─────────────────────────────────
-   One grid that holds both standard artwork cards and obi
-   pack tiles. Standard cards keep their natural image ratio;
-   obi packs fill their cell with a fixed-ratio desk scene.
-   ─────────────────────────────────────────────────────────── */
+/* ── Unified 3-column grid with dense bin-packing ────────────
+   CSS Grid with grid-auto-flow: dense automatically reorders items
+   to fill layout voids. Wide items (col-span-2) pack efficiently
+   with standard items (col-span-1) to eliminate empty cells.
+   ─────────────────────────────────────────────────────────────── */
 .unifiedGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
   padding-top: 28px;
+  /* Dense packing: auto-reorder items to fill gaps */
+  grid-auto-flow: dense;
   /* Items start at the top of their row — prevents tall cells from
-     stretching short neighbours and creating dead vertical space. */
+     stretching short neighbours. */
   align-items: start;
 }
 
 /* ── Obi Pack card ─────────────────────────────────────────
    A single grid cell containing 2–3 obi strips side-by-side
    on a warm cream background, like strips on a desk.
+   Always occupies a standard single column (col-span-1).
    ─────────────────────────────────────────────────────────── */
 .obiPackCard {
   display: flex;
   flex-direction: column;
   width: 100%;
   margin: 0;
+  grid-column: span 1;
   animation: cardIn 0.4s ease both;
   transition:
     transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -532,16 +536,24 @@
   filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
 }
 
-/* Wide banners span 2 grid columns */
+/* Standard card fills one column (implicit, but explicit for clarity) */
+.card {
+  grid-column: span 1;
+}
+
+/* Wide banners/horizontal artwork span 2 grid columns.
+   Dense packing will auto-reorder to fill gaps efficiently. */
 .cardWide {
   grid-column: span 2;
   align-self: start;
 }
 
 .imageFrame {
+  display: block;
   width: 100%;
   overflow: hidden;
   position: relative;
+  /* No padding — image edge aligns with frame border */
 }
 .imageFrame::after {
   content: " ";
@@ -570,7 +582,8 @@
   display: block;
   width: 100%;
   height: auto;
-  /* Let the image render at its natural aspect ratio with no distortion */
+  /* Fills frame edge-to-edge; no padding or letterboxing.
+     Natural aspect ratio preserved. */
 }
 .imageFallback {
   width: 100%;
@@ -585,15 +598,15 @@
   text-transform: uppercase;
 }
 
-/* Label */
+/* Label — sits flush beneath image with no gap */
 .label {
-  /* Stretch to the same width as the image frame above it. */
   width: 100%;
   background: var(--label);
   color: var(--label-foreground);
   border: 1px solid var(--line);
   border-top: 0;
-  padding: 16px 16px 18px;
+  /* Minimal padding: left/right match gutters, top/bottom tight */
+  padding: 12px 16px 14px;
 }
 .labelTitle {
   font: 700 13px/1.35 var(--font-mono);
