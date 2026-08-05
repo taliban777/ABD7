@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import styles from "./others.module.css";
 import { OthersCard } from "./OthersCard";
+import { ObiStripsShelf } from "./ObiStripsShelf";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { fetchCmsOthers } from "@/lib/cms";
 import type { CmsOther, OthersSelection, OthersFilterKey } from "./types";
@@ -31,10 +32,20 @@ export function OthersPage({ items }: OthersPageProps) {
     [safeItems, selected, search]
   );
 
-  const results = useMemo(
+  const allResults = useMemo(
     () => sortOthers(filterOthers(safeItems, { search, selected }), sort),
     [safeItems, search, selected, sort]
   );
+
+  /** Obi strips are identified by a type that includes "obi" (case-insensitive). */
+  const isObiStrip = (item: CmsOther) =>
+    typeof item.type === "string" && item.type.toLowerCase().includes("obi");
+
+  const obiResults = useMemo(() => allResults.filter(isObiStrip), [allResults]);
+  const gridResults = useMemo(() => allResults.filter((item) => !isObiStrip(item)), [allResults]);
+
+  /** Keep a stable total for the "results" count in the index bar. */
+  const results = allResults;
 
   const activeCount =
     selected.types.length + selected.projects.length;
@@ -201,7 +212,7 @@ export function OthersPage({ items }: OthersPageProps) {
           </span>
         </div>
 
-        {/* Grid */}
+        {/* Content */}
         {!hasItems ? (
           <p className={styles.empty}>
             The archive is currently empty. New entries will appear here as they are added.
@@ -216,15 +227,24 @@ export function OthersPage({ items }: OthersPageProps) {
             ) : null}
           </p>
         ) : (
-          <section
-            className={styles.grid}
-            aria-live="polite"
-            aria-label="Others collection"
-          >
-            {results.map((item) => (
-              <OthersCard key={item.id} item={item} />
-            ))}
-          </section>
+          <div aria-live="polite">
+            {/* ── Obi Strips Shelf ───────────────────────────── */}
+            {obiResults.length > 0 && (
+              <ObiStripsShelf items={obiResults} />
+            )}
+
+            {/* ── Primary Artwork Grid ───────────────────────── */}
+            {gridResults.length > 0 && (
+              <section
+                className={styles.primaryGrid}
+                aria-label="Others collection"
+              >
+                {gridResults.map((item) => (
+                  <OthersCard key={item.id} item={item} />
+                ))}
+              </section>
+            )}
+          </div>
         )}
       </main>
     </>
