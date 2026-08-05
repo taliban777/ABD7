@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import styles from "./nav.module.css";
 import type { CmsProject } from "@/components/archive/types";
+import { useScrollProgress } from "@/hooks/useScrollProgress";
 
 export interface GlobalNavProps {
   /** All CMS projects — used to derive the dynamic year list for the PROJECTS dropdown. */
@@ -46,6 +47,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const years = getUniqueYears(projects);
   const albumsInYear = selectedYear ? getProjectsByYear(projects, selectedYear) : [];
   const mobileAlbumsInYear = mobileYear ? getProjectsByYear(projects, mobileYear) : [];
+  const { progress, scrolled } = useScrollProgress();
 
   // Close menus on route change
   useEffect(() => {
@@ -113,7 +115,16 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   };
 
   return (
-    <nav className={styles.nav} aria-label="Site navigation">
+    <nav
+      className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}
+      aria-label="Site navigation"
+    >
+      {/* Scroll progress indicator — 2px line across the bottom of the nav */}
+      <div
+        className={styles.scrollProgress}
+        style={{ transform: `scaleX(${progress})` }}
+        aria-hidden="true"
+      />
       <div className={styles.navInner}>
         {/* Wordmark */}
         <Link href="/" className={styles.wordmark} aria-label="ARTBYDANI7 — Home">

@@ -1,127 +1,221 @@
-/* Project Detail Page Styles */
+/* =============================================================================
+   Project Detail Page — museum-quality digital catalogue
+   ============================================================================= */
 
 .detailPage {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  padding: 56px 24px 80px;
+  padding-top: 56px; /* fixed nav height */
 }
 
-/* ===== Return to Archive Link ===== */
+/* =============================================================================
+   Breadcrumb + sibling navigation
+   ============================================================================= */
 
-.returnLink,
-.returnLinkBottom {
-  margin-bottom: 48px;
+.breadcrumbBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--line);
+  gap: 24px;
 }
 
-.returnLinkBottom {
-  margin-top: 80px;
-  padding-top: 48px;
-  border-top: 1px solid var(--line);
-}
-
-.backButton {
-  display: inline-block;
-  font: 600 11px/1 var(--font-mono);
-  letter-spacing: 0.08em;
+.breadcrumbBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.18s ease;
+  white-space: nowrap;
+  flex: none;
 }
 
-.backButton:hover {
+.breadcrumbBack:hover {
   color: var(--foreground);
 }
 
-/* ===== Metadata Section ===== */
-
-.metadata {
-  margin-bottom: 64px;
-  padding-bottom: 48px;
-  border-bottom: 1px solid var(--line);
+.breadcrumbSiblings {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-.metadataContent {
-  max-width: 680px;
-  margin: 0 auto;
+.breadcrumbCatalogue {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: none;
+}
+
+.siblingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.18s ease;
+  max-width: 180px;
+}
+
+.siblingLink:hover {
+  color: var(--foreground);
+}
+
+.siblingLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* =============================================================================
+   Hero layout — metadata column + artwork column
+   ============================================================================= */
+
+.heroLayout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: calc(100vh - 56px - 56px); /* viewport minus nav and breadcrumb */
+}
+
+/* ---- Metadata column ---- */
+.metadataColumn {
+  border-right: 1px solid var(--line);
+  padding: 48px 32px;
+}
+
+.metadataSticky {
+  position: sticky;
+  top: calc(56px + 56px + 32px); /* nav + breadcrumb + breathing room */
+}
+
+.metaTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.metaTag {
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  color: var(--muted);
 }
 
 .title {
-  font: 800 72px/1 var(--font-mono);
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font: 300 38px/1.05 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-bottom: 12px;
+  text-wrap: balance;
 }
 
 .artist {
-  font: 500 22px/1.3 var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-align: center;
+  font: 400 14px/1.5 var(--font-display);
+  font-style: italic;
+  letter-spacing: 0.01em;
   color: var(--muted);
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
-.metadataFields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 32px;
-  text-align: center;
-}
-
-.metadataField {
+.metadataList {
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  margin-bottom: 36px;
 }
 
-.metadataField .label {
-  font: 600 10px/1 var(--font-mono);
+.metadataPair {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.metadataPair dt {
+  font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.metadataField .value {
-  font: 400 13px/1.4 var(--font-sans);
+.metadataPair dd {
+  font: 400 12px/1.4 var(--font-sans);
   color: var(--foreground);
 }
 
-/* ===== Artwork Section ===== */
+/* Palette mini-strip in sidebar */
+.metadataPaletteStrip {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.metadataPaletteSlice {
+  flex: 1;
+}
+
+/* ---- Artwork column ---- */
+.artworkColumn {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .artworkSection {
-  margin-bottom: 80px;
+  width: 100%;
+  height: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 48px;
 }
 
 .artworkSingleContainer {
   width: 100%;
-  max-width: 900px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+  max-width: 780px;
+  cursor: zoom-in;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  transition: transform 0.35s var(--ease-out);
 }
 
 .artworkSingleContainer:hover {
-  transform: scale(1.01);
+  transform: scale(1.015);
 }
 
 .artworkDualContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
+  gap: 24px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1100px;
 }
 
 .artworkSide {
-  cursor: pointer;
-  transition: transform 0.3s ease;
+  cursor: zoom-in;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  transition: transform 0.35s var(--ease-out);
 }
 
 .artworkSide:hover {
@@ -132,116 +226,315 @@
   width: 100%;
   height: auto;
   display: block;
-  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
 }
 
-/* ===== Palette Section ===== */
-
-.paletteSection {
-  margin-bottom: 80px;
-}
-
-.paletteContainer {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.paletteTitle {
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 32px;
-  text-align: center;
-}
-
-.paletteRow {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.paletteSpecimen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.paletteColor {
-  width: 120px;
-  height: 120px;
-  border: 1px solid var(--line);
-  background: white;
-  transition: transform 0.2s ease;
-  cursor: pointer;
-}
-
-.paletteSpecimen:hover .paletteColor {
-  transform: scale(1.05);
-}
-
-.paletteCode {
-  font: 400 10px/1.2 var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  text-align: center;
-  word-break: break-all;
-  max-width: 140px;
-}
-
-/* ===== Gallery Strip ===== */
+/* =============================================================================
+   Gallery filmstrip — scroll-snap
+   ============================================================================= */
 
 .gallerySection {
-  margin-bottom: 80px;
+  border-top: 1px solid var(--line);
+  padding: 0 32px 0;
+}
+
+.gallerySectionLabel {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 18px 0 16px;
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .galleryStrip {
   display: flex;
   flex-direction: row;
-  gap: 2px;
-  width: 100%;
+  gap: 3px;
   overflow-x: auto;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  padding: 20px 0 24px;
+}
+
+.galleryStrip::-webkit-scrollbar {
+  height: 3px;
+}
+
+.galleryStrip::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+
+.galleryStrip::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .galleryThumb {
-  flex: 1 1 0;
-  min-width: 160px;
-  cursor: pointer;
+  flex: none;
+  width: clamp(140px, 18vw, 220px);
+  height: clamp(140px, 18vw, 220px);
+  cursor: zoom-in;
   overflow: hidden;
-  transition: opacity 0.2s ease;
+  border: 0;
+  padding: 0;
+  background: var(--surface);
+  scroll-snap-align: start;
+  transition: opacity 0.2s ease, transform 0.22s ease;
 }
 
 .galleryThumb:hover {
-  opacity: 0.85;
+  opacity: 0.88;
+  transform: scale(0.98);
 }
 
 .galleryThumbImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  aspect-ratio: 1 / 1;
 }
 
-/* ===== Lightbox ===== */
+/* =============================================================================
+   Palette section
+   ============================================================================= */
+
+.paletteSection {
+  padding: 48px 32px;
+  border-top: 1px solid var(--line);
+}
+
+.paletteContainer {
+  max-width: 900px;
+}
+
+.paletteTitle {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* Proportional colour bar */
+.paletteBar {
+  display: flex;
+  height: 48px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.paletteBarSlice {
+  flex: 1;
+  transition: flex 0.3s ease;
+}
+
+.paletteBarSlice:hover {
+  flex: 1.4;
+}
+
+/* Hex code row */
+.paletteCodeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  list-style: none;
+  padding: 0;
+}
+
+.paletteCodeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paletteCodeDot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(17, 17, 15, 0.1);
+  flex: none;
+}
+
+.paletteCode {
+  font: 400 10px/1.2 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* =============================================================================
+   Related projects section
+   ============================================================================= */
+
+.relatedSection {
+  padding: 48px 32px 64px;
+  border-top: 1px solid var(--line);
+}
+
+.relatedContainer {
+  max-width: 1100px;
+}
+
+.relatedSectionTitle {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+.relatedGroup {
+  margin-bottom: 56px;
+}
+
+.relatedGroup:last-child {
+  margin-bottom: 0;
+}
+
+.relatedGroupTitle {
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.relatedItem {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: transform 0.28s var(--ease-out);
+}
+
+.relatedItem:hover {
+  transform: translateY(-4px);
+}
+
+.relatedImageContainer {
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--line-subtle);
+  /* Natural proportions with a floor */
+  min-height: 120px;
+  max-height: 280px;
+}
+
+.relatedImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  min-height: 120px;
+  max-height: 280px;
+}
+
+.relatedImagePlaceholder {
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 9px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.relatedLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.relatedMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.relatedCatalogue {
+  transition: letter-spacing 0.5s ease;
+}
+
+.relatedItem:hover .relatedCatalogue {
+  letter-spacing: 0.32em;
+}
+
+.relatedYear {
+  white-space: nowrap;
+}
+
+.relatedTitle {
+  font: 700 12px/1.3 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.relatedArtist {
+  font: 400 9px/1.4 var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* =============================================================================
+   Return link
+   ============================================================================= */
+
+.returnLinkBottom {
+  padding: 28px 32px 48px;
+  border-top: 1px solid var(--line);
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.backButton:hover {
+  color: var(--foreground);
+}
+
+/* =============================================================================
+   Lightbox
+   ============================================================================= */
 
 .lightboxOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+  inset: 0;
+  background: rgba(10, 10, 8, 0.97);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.18s ease both;
+  /* Prevent interaction with the page underneath */
+  touch-action: none;
 }
 
 .lightboxContent {
@@ -251,7 +544,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 48px 80px;
 }
 
 .lightboxImageContainer {
@@ -260,60 +553,79 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
 .lightboxImage {
-  width: 100%;
-  height: auto;
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 82vh;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  display: block;
+  user-select: none;
 }
 
+.lightboxCaption {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 400 11px/1.4 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80vw;
+}
+
+/* Close button — enlarged touch target */
 .lightboxClose {
   position: absolute;
   top: 20px;
   right: 20px;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  font: 600 20px/1 var(--font-mono);
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  font: 400 18px/1 var(--font-mono);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.18s ease, color 0.18s ease;
   z-index: 10001;
 }
 
 .lightboxClose:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
+/* Nav arrows */
 .lightboxNav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 50px;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
-  font: 600 24px/1 var(--font-mono);
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.18s ease, color 0.18s ease;
   z-index: 10001;
 }
 
 .lightboxNav:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
 }
 
 .lightboxPrev {
@@ -327,210 +639,117 @@
 .lightboxCounter {
   position: absolute;
   bottom: 20px;
-  right: 20px;
-  font: 500 11px/1 var(--font-mono);
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.5);
+  right: 24px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 1100px) {
+  .heroLayout {
+    grid-template-columns: 280px 1fr;
   }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ===== Related Projects Section ===== */
-
-.relatedSection {
-  margin-bottom: 40px;
-}
-
-.relatedContainer {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.relatedSectionTitle {
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 48px;
-  text-align: center;
-}
-
-.relatedGroup {
-  margin-bottom: 64px;
-}
-
-.relatedGroup:last-child {
-  margin-bottom: 0;
-}
-
-.relatedGroupTitle {
-  font: 600 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 32px;
-}
-
-.relatedGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-}
-
-.relatedItem {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: var(--foreground);
-  transition: transform 0.3s ease;
-}
-
-.relatedItem:hover {
-  transform: translateY(-4px);
-}
-
-.relatedImageContainer {
-  aspect-ratio: 1 / 1;
-  background: var(--surface);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-}
-
-.relatedImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.relatedImagePlaceholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 500 10px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.relatedLabel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.relatedMeta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  font: 500 8px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.relatedCatalogue {
-  transition: letter-spacing 0.3s ease;
-}
-
-.relatedItem:hover .relatedCatalogue {
-  letter-spacing: 0.3em;
-}
-
-.relatedYear {
-  white-space: nowrap;
-}
-
-.relatedTitle {
-  font: 700 13px/1.3 var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.relatedArtist {
-  font: 400 10px/1.4 var(--font-mono);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* ===== Responsive Design ===== */
-
-@media (max-width: 1024px) {
-  .detailPage {
-    padding: 56px 20px 64px;
-  }
-
-  .metadata {
-    margin-bottom: 48px;
-    padding-bottom: 36px;
-  }
-
   .title {
-    font-size: 52px;
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 860px) {
+  .heroLayout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    min-height: auto;
+  }
+
+  .metadataColumn {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 32px 20px;
+  }
+
+  .metadataSticky {
+    position: static;
+  }
+
+  .artworkColumn {
+    padding: 0;
+    background: var(--surface);
   }
 
   .artworkSection {
-    margin-bottom: 64px;
-  }
-
-  .artworkDualContainer {
-    grid-template-columns: 1fr;
-  }
-
-  .relatedGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-  }
-}
-
-@media (max-width: 768px) {
-  .detailPage {
-    padding: 56px 16px 48px;
-  }
-
-  .returnLink,
-  .returnLinkBottom {
-    margin-bottom: 36px;
-  }
-
-  .metadata {
-    margin-bottom: 40px;
-    padding-bottom: 28px;
+    padding: 32px 20px;
   }
 
   .title {
     font-size: 36px;
-    margin-bottom: 12px;
   }
 
-  .artist {
-    font-size: 16px;
-    margin-bottom: 24px;
+  .artworkDualContainer {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .metadataFields {
+  .relatedGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    gap: 20px;
   }
 
-  .artworkSection {
-    margin-bottom: 48px;
+  .breadcrumbBar {
+    padding: 14px 20px;
+    flex-wrap: wrap;
+  }
+
+  .breadcrumbSiblings {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .breadcrumbBar {
+    padding: 12px 16px;
+  }
+
+  .siblingLabel {
+    display: none;
+  }
+
+  .heroLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .metadataColumn {
+    padding: 24px 16px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .gallerySection {
+    padding: 0 16px 0;
+  }
+
+  .paletteSection {
+    padding: 36px 16px;
+  }
+
+  .relatedSection {
+    padding: 36px 16px 48px;
+  }
+
+  .returnLinkBottom {
+    padding: 20px 16px 40px;
   }
 
   .lightboxContent {
@@ -538,90 +757,23 @@
   }
 
   .lightboxNav {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+    width: 44px;
+    height: 44px;
   }
 
-  .lightboxPrev {
-    left: 10px;
-  }
-
-  .lightboxNext {
-    right: 10px;
-  }
-
-  .paletteSection {
-    margin-bottom: 48px;
-  }
+  .lightboxPrev { left: 6px; }
+  .lightboxNext { right: 6px; }
 
   .relatedGrid {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .relatedItem:hover {
-    transform: translateY(-2px);
-  }
-
-  .relatedImageContainer {
-    margin-bottom: 12px;
-  }
-
-  .paletteRow {
     gap: 16px;
   }
 
-  .paletteColor {
-    width: 80px;
-    height: 80px;
+  .artworkSection {
+    padding: 20px 16px;
   }
 
-  .galleryStrip {
-    gap: 1px;
-  }
-
-  .galleryThumb {
-    min-width: 120px;
-  }
-
-  .relatedSectionTitle {
-    margin-bottom: 36px;
-  }
-
-  .relatedGroup {
-    margin-bottom: 48px;
-  }
-}
-
-@media (max-width: 540px) {
-  .detailPage {
-    padding: 56px 12px 40px;
-  }
-
-  .title {
-    font-size: 26px;
-  }
-
-  .metadataFields {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .relatedImageContainer {
-    aspect-ratio: auto;
-    min-height: 160px;
-  }
-
-  .lightboxClose {
-    width: 35px;
-    height: 35px;
-    font-size: 18px;
-  }
-
-  .lightboxNav {
-    width: 35px;
-    height: 35px;
-    font-size: 16px;
+  .metadataPaletteStrip {
+    display: none; /* hidden on mobile — shown in palette section below */
   }
 }

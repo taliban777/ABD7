@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import type { CmsProject } from '@/components/archive/types';
-import { asArray, valueLabel, paletteValue, catalogueNumber } from '@/components/archive/types';
+import { asArray, valueLabel, paletteValue, catalogueNumber, projectSlug } from '@/components/archive/types';
 import { getProjectImageUrl, getGalleryThumbUrl } from '@/components/images/cloudinary';
 import styles from './project-detail.module.css';
 import { Lightbox } from './Lightbox';
@@ -25,23 +25,40 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
     .filter(Boolean)
     .join(', ');
 
-  // Calculate stable catalogue number
-  const chronological = [...allProjects].sort((a, b) => {
-    const aYear = a.year ?? 0;
-    const bYear = b.year ?? 0;
-    if (aYear !== bYear) return aYear - bYear;
-    return (a.createdAt || '').localeCompare(b.createdAt || '');
-  });
+  const categoryNames = asArray(project.categories)
+    .map(valueLabel)
+    .filter(Boolean);
+
+  const styleNames = asArray(project.style)
+    .map(valueLabel)
+    .filter(Boolean);
+
+  // Stable catalogue numbers — chronological
+  const chronological = useMemo(
+    () =>
+      [...allProjects].sort((a, b) => {
+        const aYear = a.year ?? 0;
+        const bYear = b.year ?? 0;
+        if (aYear !== bYear) return aYear - bYear;
+        return (a.createdAt || '').localeCompare(b.createdAt || '');
+      }),
+    [allProjects]
+  );
+
   const projectIndex = chronological.findIndex((p) => p.id === project.id);
   const catalogueNum = catalogueNumber(projectIndex >= 0 ? projectIndex : 0);
 
-  // Determine which images are available
+  // Sibling navigation — prev/next in chronological order
+  const prevProject = projectIndex > 0 ? chronological[projectIndex - 1] : null;
+  const nextProject = projectIndex < chronological.length - 1 ? chronological[projectIndex + 1] : null;
+
+  // Available images
   const hasFrontCover = !!project.frontCover;
   const hasBackCover = !!project.backCover;
   const galleryImages = project.gallery ?? [] as string[];
   const hasGallery = galleryImages.length > 0;
 
-  // Collect all images for lightbox: front cover, back cover, then gallery
+  // All images for lightbox: front → back → gallery
   const allImages = useMemo(() => {
     const images: Array<{ url: string; alt: string }> = [];
     if (project.frontCover) {
@@ -50,19 +67,19 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
     if (project.backCover) {
       images.push({ url: project.backCover, alt: `${project.title} — Back` });
     }
-    for (let i = 0; i < galleryImages.length; i++) {
-      images.push({ url: galleryImages[i], alt: `${project.title} — ${i + 1}` });
-    }
+    galleryImages.forEach((url, i) => {
+      images.push({ url, alt: `${project.title} — Image ${i + 1}` });
+    });
     return images;
   }, [project, galleryImages]);
 
-  // Palette colors
+  // Palette colours
   const paletteColors = useMemo(
     () => asArray(project.palette).map(paletteValue).filter(Boolean),
     [project.palette]
   );
 
-  // Related projects — by artist and style only
+  // Related projects — by artist and style
   const relatedByArtist = useMemo(() => {
     const artistSet = new Set(asArray(project.artists).map(valueLabel));
     return allProjects.filter(
@@ -86,158 +103,204 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
     setLightboxOpen(true);
   };
 
+  const lightboxOffset = 1 + (hasBackCover ? 1 : 0);
+
   return (
     <main className={styles.detailPage}>
-      {/* Return to Archive Link */}
-      <div className={styles.returnLink}>
-        <Link href="/collection" className={styles.backButton}>
-          ← Return to Archive
+
+      {/* ── Breadcrumb + sibling navigation ── */}
+      <nav className={styles.breadcrumbBar} aria-label="Archive navigation">
+        <Link href="/collection" className={styles.breadcrumbBack}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Archive
         </Link>
-      </div>
 
-      {/* Metadata Section */}
-      <section className={styles.metadata}>
-        <div className={styles.metadataContent}>
-          <h1 className={styles.title}>{project.title}</h1>
+        <div className={styles.breadcrumbSiblings}>
+          {prevProject ? (
+            <Link
+              href={`/projects/${projectSlug(prevProject)}`}
+              className={styles.siblingLink}
+              aria-label={`Previous work: ${prevProject.title}`}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M8 1L3 6l5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className={styles.siblingLabel}>{prevProject.title}</span>
+            </Link>
+          ) : <span />}
 
-          {artistNames && (
-            <p className={styles.artist}>{artistNames}</p>
-          )}
+          <span className={styles.breadcrumbCatalogue}>No. {catalogueNum}</span>
 
-          <div className={styles.metadataFields}>
-            {project.year && (
-              <div className={styles.metadataField}>
-                <span className={styles.label}>Year</span>
-                <span className={styles.value}>{project.year}</span>
+          {nextProject ? (
+            <Link
+              href={`/projects/${projectSlug(nextProject)}`}
+              className={styles.siblingLink}
+              aria-label={`Next work: ${nextProject.title}`}
+            >
+              <span className={styles.siblingLabel}>{nextProject.title}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M4 1l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+          ) : <span />}
+        </div>
+      </nav>
+
+      {/* ── Metadata + primary artwork ── */}
+      <div className={styles.heroLayout}>
+
+        {/* Left: metadata column */}
+        <aside className={styles.metadataColumn}>
+          <div className={styles.metadataSticky}>
+
+            {categoryNames.length > 0 && (
+              <div className={styles.metaTagRow}>
+                {categoryNames.map((cat) => (
+                  <span key={cat} className={styles.metaTag}>{cat}</span>
+                ))}
               </div>
             )}
 
-            <div className={styles.metadataField}>
-              <span className={styles.label}>Catalogue No.</span>
-              <span className={styles.value}>{catalogueNum}</span>
-            </div>
+            <h1 className={styles.title}>{project.title}</h1>
+
+            {artistNames && (
+              <p className={styles.artist}>{artistNames}</p>
+            )}
+
+            <dl className={styles.metadataList}>
+              {project.year && (
+                <div className={styles.metadataPair}>
+                  <dt>Year</dt>
+                  <dd>{project.year}</dd>
+                </div>
+              )}
+              <div className={styles.metadataPair}>
+                <dt>Catalogue</dt>
+                <dd>No. {catalogueNum}</dd>
+              </div>
+              {styleNames.length > 0 && (
+                <div className={styles.metadataPair}>
+                  <dt>Style</dt>
+                  <dd>{styleNames.join(', ')}</dd>
+                </div>
+              )}
+            </dl>
+
+            {/* Palette strip in sidebar on wide screens */}
+            {paletteColors.length > 0 && (
+              <div className={styles.metadataPaletteStrip} aria-hidden="true">
+                {paletteColors.map((color, i) => (
+                  <span
+                    key={i}
+                    className={styles.metadataPaletteSlice}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </aside>
 
-      {/* Artwork Display Section */}
-      {hasFrontCover && (
-        <section className={styles.artworkSection}>
-          {hasBackCover ? (
-            // Side-by-side: front and back cover
-            <div className={styles.artworkDualContainer}>
-              <div
-                className={styles.artworkSide}
-                onClick={() => handleImageClick(0)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
-                }}
-                aria-label="Front cover — click to view fullscreen"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getProjectImageUrl(project.frontCover)}
-                  alt={`${project.title} — Front`}
-                  className={styles.artworkImage}
-                  // LCP image — load eagerly, high priority
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore fetchpriority is valid HTML but not yet in React types
-                  fetchpriority="high"
-                  decoding="async"
-                />
-              </div>
-              <div
-                className={styles.artworkSide}
-                onClick={() => handleImageClick(1)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') handleImageClick(1);
-                }}
-                aria-label="Back cover — click to view fullscreen"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getProjectImageUrl(project.backCover!)}
-                  alt={`${project.title} — Back`}
-                  className={styles.artworkImage}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            </div>
-          ) : (
-            // Single artwork centered
-            <div
-              className={styles.artworkSingleContainer}
-              onClick={() => handleImageClick(0)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') handleImageClick(0);
-              }}
-              aria-label="Click to view artwork fullscreen"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getProjectImageUrl(project.frontCover)}
-                alt={project.title}
-                className={styles.artworkImage}
-                // LCP image — load eagerly, high priority
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore fetchpriority is valid HTML but not yet in React types
-                fetchpriority="high"
-                decoding="async"
-              />
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Gallery Strip — shown when additional images exist */}
-      {hasGallery && (
-        <section className={styles.gallerySection}>
-          <div className={styles.galleryStrip}>
-            {galleryImages.map((url, i) => {
-              // Offset index: front cover is 0, back cover is 1 if present
-              const lightboxOffset = 1 + (hasBackCover ? 1 : 0);
-              return (
-                <div
-                  key={i}
-                  className={styles.galleryThumb}
-                  onClick={() => handleImageClick(lightboxOffset + i)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') handleImageClick(lightboxOffset + i);
-                  }}
-                  aria-label={`Gallery image ${i + 1} — click to view fullscreen`}
+        {/* Right: primary artwork */}
+        <div className={styles.artworkColumn}>
+          {hasFrontCover && (
+            <section className={styles.artworkSection} aria-label="Primary artwork">
+              {hasBackCover ? (
+                <div className={styles.artworkDualContainer}>
+                  <button
+                    className={styles.artworkSide}
+                    onClick={() => handleImageClick(0)}
+                    aria-label="Front cover — click to view fullscreen"
+                    type="button"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getProjectImageUrl(project.frontCover)}
+                      alt={`${project.title} — Front`}
+                      className={styles.artworkImage}
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      fetchpriority="high"
+                      decoding="async"
+                    />
+                  </button>
+                  <button
+                    className={styles.artworkSide}
+                    onClick={() => handleImageClick(1)}
+                    aria-label="Back cover — click to view fullscreen"
+                    type="button"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getProjectImageUrl(project.backCover!)}
+                      alt={`${project.title} — Back`}
+                      className={styles.artworkImage}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className={styles.artworkSingleContainer}
+                  onClick={() => handleImageClick(0)}
+                  aria-label="Click to view artwork fullscreen"
+                  type="button"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={getGalleryThumbUrl(url)}
-                    alt={`${project.title} — ${i + 1}`}
-                    className={styles.galleryThumbImage}
-                    loading="lazy"
+                    src={getProjectImageUrl(project.frontCover)}
+                    alt={project.title}
+                    className={styles.artworkImage}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    fetchpriority="high"
                     decoding="async"
                   />
-                </div>
-              );
-            })}
+                </button>
+              )}
+            </section>
+          )}
+        </div>
+      </div>
+
+      {/* ── Gallery filmstrip ── */}
+      {hasGallery && (
+        <section className={styles.gallerySection} aria-label="Additional images">
+          <p className={styles.gallerySectionLabel}>Gallery</p>
+          <div className={styles.galleryStrip}>
+            {galleryImages.map((url, i) => (
+              <button
+                key={i}
+                className={styles.galleryThumb}
+                onClick={() => handleImageClick(lightboxOffset + i)}
+                aria-label={`Gallery image ${i + 1} — click to view fullscreen`}
+                type="button"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getGalleryThumbUrl(url)}
+                  alt={`${project.title} — ${i + 1}`}
+                  className={styles.galleryThumbImage}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+            ))}
           </div>
         </section>
       )}
 
-      {/* Palette Section */}
+      {/* ── Palette section ── */}
       {paletteColors.length > 0 && (
         <section className={styles.paletteSection}>
           <PaletteVisualization colors={paletteColors} />
         </section>
       )}
 
-      {/* Related Projects Section */}
+      {/* ── Related projects ── */}
       <section className={styles.relatedSection}>
         <RelatedProjects
           byArtist={relatedByArtist.slice(0, 3)}
@@ -246,14 +309,17 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
         />
       </section>
 
-      {/* Return to Archive Link (Bottom) */}
+      {/* ── Return link (bottom) ── */}
       <div className={styles.returnLinkBottom}>
         <Link href="/collection" className={styles.backButton}>
-          ← Return to Archive
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Return to Archive
         </Link>
       </div>
 
-      {/* Lightbox */}
+      {/* ── Lightbox ── */}
       {lightboxOpen && (
         <Lightbox
           images={allImages}

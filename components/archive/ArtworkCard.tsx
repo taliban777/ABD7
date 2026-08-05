@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styles from "./archive.module.css";
 import { CmsProject, asArray, projectSlug, valueLabel } from "./types";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
@@ -7,6 +8,8 @@ export interface ArtworkCardProps extends Partial<CmsProject> {
   catalogueNumber?: string;
   /** Destination for the card link. Falls back to /projects/[slug]. */
   href?: string;
+  /** Animation stagger index for entry animation. */
+  index?: number;
 }
 
 export function ArtworkCard({
@@ -15,24 +18,33 @@ export function ArtworkCard({
   slug,
   frontCover = "",
   artists = [],
+  categories = [],
   year,
   catalogueNumber = "",
   href,
+  index = 0,
 }: ArtworkCardProps) {
+  const [loaded, setLoaded] = useState(false);
+
   const artistNames = asArray(artists).map(valueLabel).filter(Boolean).join(", ");
+  const primaryCategory = asArray(categories).map(valueLabel).filter(Boolean)[0] ?? null;
   const destination = href || `/projects/${projectSlug({ slug, title, id })}`;
 
-  // Generate deterministic but randomized reflection variables based on card ID
+  // Generate deterministic but randomised reflection variables based on card ID
   const reflectionSeed = (id || title).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const reflectionDuration = 900 + ((reflectionSeed * 347) % 300); // 900-1200ms
-  const reflectionDirection = reflectionSeed % 2; // 0 or 1 for different directions
+  const reflectionDuration = 900 + ((reflectionSeed * 347) % 300);
+  const reflectionDirection = reflectionSeed % 2;
   const startX = reflectionDirection === 0 ? -100 : 100;
   const endX = reflectionDirection === 0 ? 100 : -100;
-  const startY = ((reflectionSeed * 73) % 40) - 20; // -20 to 20
-  const endY = -startY; // Opposite direction
+  const startY = ((reflectionSeed * 73) % 40) - 20;
+  const endY = -startY;
 
   return (
-    <a className={styles.card} href={destination}>
+    <a
+      className={styles.card}
+      href={destination}
+      style={{ "--card-index": index } as React.CSSProperties}
+    >
       <div
         className={styles.imageFrame}
         style={
@@ -49,11 +61,12 @@ export function ArtworkCard({
           // Plasmic CMS binding: projects.frontCover; host is intentionally CMS-defined.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className={styles.cover}
+            className={`${styles.cover} ${loaded ? styles.coverLoaded : ""}`}
             src={getArchiveImageUrl(frontCover)}
             alt={title}
             loading="lazy"
             decoding="async"
+            onLoad={() => setLoaded(true)}
           />
         ) : (
           <div className={styles.coverFallback} aria-hidden="true">
@@ -65,11 +78,20 @@ export function ArtworkCard({
       {/* White gallery catalogue label */}
       <div className={styles.label}>
         <div className={styles.labelTop}>
-          {catalogueNumber ? <span className={styles.catNumber}>No. {catalogueNumber}</span> : <span />}
+          {catalogueNumber ? (
+            <span className={styles.catNumber}>No.&nbsp;{catalogueNumber}</span>
+          ) : (
+            <span />
+          )}
           {year ? <span className={styles.labelYear}>{year}</span> : null}
         </div>
         <h2 className={styles.labelTitle}>{title}</h2>
-        <p className={styles.labelArtist}>{artistNames || "Unattributed"}</p>
+        <div className={styles.labelBottom}>
+          <p className={styles.labelArtist}>{artistNames || "Unattributed"}</p>
+          {primaryCategory ? (
+            <span className={styles.labelCategory}>{primaryCategory}</span>
+          ) : null}
+        </div>
       </div>
     </a>
   );
