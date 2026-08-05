@@ -78,29 +78,18 @@ export function RelatedProjects({
 
   if (!hasAny) return null;
 
+  // Combine both groups for a unified grid
+  const allRelated = [...byArtist, ...byStyle];
+
   return (
     <div className={styles.relatedContainer}>
       <h2 className={styles.relatedSectionTitle}>Related Projects</h2>
 
-      {hasArtist && (
-        <div className={styles.relatedGroup}>
-          <h3 className={styles.relatedGroupTitle}>More from this Artist</h3>
-          <div className={styles.relatedGrid}>
-            {byArtist.map((project) => (
-              <RelatedItem key={project.id} project={project} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {hasStyle && (
-        <div className={styles.relatedGroup}>
-          <h3 className={styles.relatedGroupTitle}>Similar Style</h3>
-          <div className={styles.relatedGrid}>
-            {byStyle.map((project) => (
-              <RelatedItem key={project.id} project={project} />
-            ))}
-          </div>
+      {allRelated.length > 0 && (
+        <div className={styles.relatedGrid}>
+          {allRelated.map((project) => (
+            <RelatedItem key={project.id} project={project} />
+          ))}
         </div>
       )}
     </div>

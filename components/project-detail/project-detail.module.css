@@ -445,21 +445,12 @@
 }
 
 .relatedGroup {
-  margin-bottom: 56px;
-}
-
-.relatedGroup:last-child {
   margin-bottom: 0;
+  display: contents;
 }
 
 .relatedGroupTitle {
-  font: 500 9px/1 var(--font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 28px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
+  display: none;
 }
 
 .relatedGrid {
@@ -485,23 +476,21 @@
   overflow: hidden;
   margin-bottom: 14px;
   border: 1px solid var(--line-subtle);
-  /* Natural proportions with a floor */
-  min-height: 120px;
-  max-height: 280px;
+  /* Fixed height: 160px gives uniform cards that fit 6 items (3x2) without scrolling */
+  height: 160px;
 }
 
 .relatedImage {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
   object-fit: contain;
-  min-height: 120px;
-  max-height: 280px;
+  padding: 8px;
 }
 
 .relatedImagePlaceholder {
   width: 100%;
-  min-height: 120px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -762,6 +751,8 @@
   .relatedGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+    max-height: 400px;
+    overflow-y: auto;
   }
 
   .breadcrumbBar {
@@ -836,6 +827,8 @@
   .relatedGrid {
     grid-template-columns: 1fr;
     gap: 16px;
+    max-height: 420px;
+    overflow-y: auto;
   }
 
   .artworkSection {
