@@ -155,9 +155,12 @@
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .title {
-    font-size: clamp(2.8rem, 16vw, 6rem);
-    white-space: normal;
-    word-break: break-word;
+    /* Keep the wordmark on one line at all times.
+       clamp(min, preferred, max): at 390px viewport, 11vw ≈ 43px — comfortably
+       fits "ARTBYDANI7" in Cormorant with letter-spacing 0.04em.
+       white-space: nowrap guarantees no orphan characters. */
+    font-size: clamp(2rem, 11vw, 6rem);
+    white-space: nowrap;
   }
 
   .paperBlock {

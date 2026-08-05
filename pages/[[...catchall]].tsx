@@ -7,7 +7,6 @@ import {
 } from "@plasmicapp/loader-nextjs";
 import type { GetStaticPaths, GetStaticProps } from "next";
 
-import Error from "next/error";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import HomePage from "@/components/home/HomePage";
@@ -53,7 +52,12 @@ export default function PlasmicLoaderPage(props: {
   }
 
   if (!plasmicData || plasmicData.entryCompMetas.length === 0) {
-    return <Error statusCode={404} />;
+    // Should not normally reach here — getStaticProps returns notFound: true
+    // for unknown paths. This is a belt-and-suspenders guard.
+    if (typeof window !== "undefined") {
+      window.location.replace("/404");
+    }
+    return null;
   }
   const pageMeta = plasmicData.entryCompMetas[0];
   return (
@@ -97,14 +101,14 @@ export const getStaticProps: GetStaticProps = async (context) => {
     plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
   } catch (err) {
     // Plasmic may throw if it has a redirect or other non-page response for
-    // this path. Treat it as "no Plasmic page" so Next falls through to 404
-    // or the dedicated route handles it.
+    // this path. Return notFound so Next.js renders the custom pages/404.tsx.
     console.log(`[v0] maybeFetchComponentData threw for ${plasmicPath}:`, err);
-    return { props: {} };
+    return { notFound: true };
   }
 
   if (!plasmicData) {
-    return { props: {} };
+    // No Plasmic content for this path — render the branded 404 page.
+    return { notFound: true };
   }
 
   const pageMeta = plasmicData.entryCompMetas[0];

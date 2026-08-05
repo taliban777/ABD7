@@ -1,0 +1,66 @@
+/* =========================================================
+   404 — stays on-brand with the editorial archive theme
+   ========================================================= */
+
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px 80px; /* top = fixed nav height */
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  max-width: 480px;
+}
+
+/* Large catalogue-style code number */
+.code {
+  font-family: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(6rem, 20vw, 14rem);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+}
+
+.title {
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  margin-top: 12px;
+}
+
+.body {
+  font: 400 12px/1.7 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  max-width: 340px;
+}
+
+.link {
+  display: inline-block;
+  margin-top: 8px;
+  border: 1px solid var(--foreground);
+  padding: 12px 28px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background 0.22s ease, color 0.22s ease;
+}
+
+.link:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
