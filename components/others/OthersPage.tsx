@@ -42,27 +42,35 @@ export function OthersPage({ items }: OthersPageProps) {
     typeof item.type === "string" && item.type.toLowerCase().includes("obi");
 
   /**
+   * Wide banners / horizontal artwork span 2 columns.
+   * Detected by type keywords: banner, horizontal, landscape, wide.
+   */
+  const isWide = (item: CmsOther) => {
+    const t = (item.type || "").toLowerCase();
+    return t.includes("banner") || t.includes("horizontal") || t.includes("landscape") || t.includes("wide");
+  };
+
+  /**
    * Build a flat list of grid tiles:
-   *  - Non-obi items become individual { kind: "card", item } tiles.
-   *  - Obi items are collected then chunked into groups of 3–4
+   *  - Non-obi items become individual { kind: "card", item, wide } tiles.
+   *  - Obi items are collected then chunked into groups of 2–3
    *    so they fill a single cell as { kind: "obi-pack", items[] }.
    *
    * Strategy: preserve original sort order for standard cards; obi
    * packs are inserted where the first obi strip appears in the list.
    */
   type GridTile =
-    | { kind: "card"; item: CmsOther }
+    | { kind: "card"; item: CmsOther; wide: boolean }
     | { kind: "obi-pack"; items: CmsOther[] };
 
   const gridTiles = useMemo<GridTile[]>(() => {
-    const OBI_PACK_SIZE = 3;
+    // Pack obi strips in groups of 2 (fits well in a single grid cell with even spacing)
+    const OBI_PACK_SIZE = 2;
     const tiles: GridTile[] = [];
     const pendingObis: CmsOther[] = [];
-    let firstObiInserted = false;
 
     const flushObis = () => {
       if (pendingObis.length === 0) return;
-      // chunk into groups of OBI_PACK_SIZE; last group gets whatever remains
       for (let i = 0; i < pendingObis.length; i += OBI_PACK_SIZE) {
         tiles.push({ kind: "obi-pack", items: pendingObis.slice(i, i + OBI_PACK_SIZE) });
       }
@@ -72,16 +80,13 @@ export function OthersPage({ items }: OthersPageProps) {
     for (const item of allResults) {
       if (isObiStrip(item)) {
         pendingObis.push(item);
-        firstObiInserted = true;
+        // flush as soon as we hit pack size so they interleave naturally
+        if (pendingObis.length >= OBI_PACK_SIZE) flushObis();
       } else {
-        // flush accumulated obis before inserting a standard card
-        if (pendingObis.length >= OBI_PACK_SIZE || (firstObiInserted && pendingObis.length > 0)) {
-          flushObis();
-        }
-        tiles.push({ kind: "card", item });
+        flushObis();
+        tiles.push({ kind: "card", item, wide: isWide(item) });
       }
     }
-    // flush any remaining obis at the end
     flushObis();
     return tiles;
   }, [allResults]);
@@ -283,6 +288,7 @@ export function OthersPage({ items }: OthersPageProps) {
                 <OthersCard
                   key={tile.item.id}
                   item={tile.item}
+                  wide={tile.wide}
                 />
               )
             )}

@@ -426,14 +426,14 @@
 }
 
 /* ── Obi Pack card ─────────────────────────────────────────
-   A single grid cell containing 3–4 obi strips side-by-side
+   A single grid cell containing 2–3 obi strips side-by-side
    on a warm cream background, like strips on a desk.
    ─────────────────────────────────────────────────────────── */
 .obiPackCard {
   display: flex;
   flex-direction: column;
-  text-decoration: none;
-  color: inherit;
+  width: 100%;
+  margin: 0;
   animation: cardIn 0.4s ease both;
   transition:
     transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -441,33 +441,30 @@
   will-change: transform;
 }
 .obiPackCard:hover {
-  transform: scale(1.018);
-  filter: drop-shadow(0 10px 22px rgba(255, 255, 255, 0.07));
+  transform: scale(1.022);
+  filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
 }
 
 /* The cream-background frame that holds the strips.
-   aspect-ratio 3/4 keeps the cell proportional. */
+   No fixed aspect-ratio — height is driven by the tallest strip image. */
 .obiPackFrame {
-  aspect-ratio: 3 / 4;
   background: #EFECE6;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   padding: 20px 16px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-bottom: none;
 }
 
-/* Individual strip inside the pack.
-   --obi-pack-count is set inline (3 or 4) so the width
-   calculation is exact regardless of group size. */
+/* Each strip shares the available width equally via flex: 1 1 0.
+   The image inside drives the height. */
 .obiPackStrip {
-  flex: 0 0 auto;
-  width: calc((100% - (var(--obi-pack-count, 3) - 1) * 10px) / var(--obi-pack-count, 3));
-  height: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -483,8 +480,7 @@
 .obiPackStripImage {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
   /* Paper-like drop shadow on each physical strip */
   filter: drop-shadow(0 4px 8px rgba(17, 17, 15, 0.18)) drop-shadow(0 1px 2px rgba(17, 17, 15, 0.12));
 }
@@ -515,12 +511,10 @@
 
 /* ── Card ────────────────────────────────────────────────── */
 .card {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  margin: 0 0 24px;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
+  margin: 0;
   text-decoration: none;
   color: inherit;
   animation: cardIn 0.4s ease both;
@@ -533,6 +527,11 @@
 .card:hover {
   transform: scale(1.022);
   filter: drop-shadow(0 12px 24px rgba(255, 255, 255, 0.08));
+}
+
+/* Wide banners span 2 grid columns */
+.cardWide {
+  grid-column: span 2;
 }
 
 .imageFrame {
@@ -567,7 +566,8 @@
   display: block;
   width: 100%;
   height: auto;
-  object-fit: contain;
+  /* Keep natural aspect ratio — no cropping, no letterboxing */
+  object-fit: fill;
 }
 .imageFallback {
   width: 100%;
@@ -611,7 +611,7 @@
   color: var(--muted);
 }
 
-/* ── Empty states ────────────────────────────────────────── */
+/* ── Empty states ────────��───────────────────────────────── */
 .empty {
   display: flex;
   align-items: center;

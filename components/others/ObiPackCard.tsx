@@ -19,10 +19,12 @@ export function ObiPackCard({ items }: ObiPackCardProps) {
 
   return (
     <div className={styles.obiPackCard}>
-      <div
-        className={styles.obiPackFrame}
-        style={{ "--obi-pack-count": items.length } as React.CSSProperties}
-      >
+      {/*
+        No fixed aspect-ratio here — the strips dictate the height.
+        The frame uses `display: flex` so strips sit side-by-side at
+        their natural proportions, sharing the available width equally.
+      */}
+      <div className={styles.obiPackFrame}>
         {items.map((item) => {
           const destination = `/others/${otherSlug(item)}`;
           return (
