@@ -9,6 +9,7 @@ import type { CmsProject } from "@/components/archive/types";
 
 export default function ExhibitionRoute({
   exhibition,
+  projects,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <>
@@ -19,8 +20,16 @@ export default function ExhibitionRoute({
           content={exhibition.description[0] ?? `Exhibition ${exhibition.number}: ${exhibition.title}`}
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content={`${exhibition.number} — ${exhibition.title} | Curations — ARTBYDANI7`} />
+        <meta property="og:description" content={exhibition.description[0] ?? `Exhibition ${exhibition.number}: ${exhibition.title}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${exhibition.number} — ${exhibition.title} | Curations — ARTBYDANI7`} />
+        <meta name="twitter:description" content={exhibition.description[0] ?? `Exhibition ${exhibition.number}: ${exhibition.title}`} />
+        <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
       </Head>
-      <ExhibitionPage exhibition={exhibition} />
+      <ExhibitionPage exhibition={exhibition} projects={projects} />
     </>
   );
 }
@@ -32,6 +41,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<{
   exhibition: CurationExhibition;
+  projects: CmsProject[];
 }> = async ({ params }) => {
   const id = params?.id as string;
   const config = EXHIBITIONS.find((e) => e.id === id);
@@ -41,5 +51,5 @@ export const getStaticProps: GetStaticProps<{
   const projects: CmsProject[] = await fetchCmsProjects();
   const exhibition = resolveExhibition(config, projects);
 
-  return { props: { exhibition }, revalidate: 3600 };
+  return { props: { exhibition, projects }, revalidate: 3600 };
 };

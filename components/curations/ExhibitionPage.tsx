@@ -6,13 +6,18 @@ import { ExhibitionLayout03 } from "./ExhibitionLayout03";
 import { ExhibitionLayout04 } from "./ExhibitionLayout04";
 import { ExhibitionLayout05 } from "./ExhibitionLayout05";
 import styles from "./curations.module.css";
+import { GlobalNav } from "@/components/nav/GlobalNav";
+import type { CmsProject } from "@/components/archive/types";
 
 interface ExhibitionPageProps {
   exhibition: CurationExhibition;
+  projects?: CmsProject[];
 }
 
-export function ExhibitionPage({ exhibition }: ExhibitionPageProps) {
+export function ExhibitionPage({ exhibition, projects = [] }: ExhibitionPageProps) {
   return (
+    <>
+    <GlobalNav projects={projects} />
     <main className={styles.exhibitionPage}>
       {/* Back to curations */}
       <Link href="/curations" className={styles.backLink}>
@@ -48,5 +53,6 @@ export function ExhibitionPage({ exhibition }: ExhibitionPageProps) {
       {exhibition.layout === "mali"     && <ExhibitionLayout04 exhibition={exhibition} />}
       {exhibition.layout === "fragment" && <ExhibitionLayout05 exhibition={exhibition} />}
     </main>
+    </>
   );
 }

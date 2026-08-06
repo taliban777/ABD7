@@ -173,22 +173,23 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     setSending(true);
 
     try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        clientType: form.clientType,
-        services: form.services,
-        vision: form.vision,
-        budget: form.budgetCustom,
-        deadline: form.deadline,
-        specificDate: form.specificDate,
-        inspirations: form.inspirations.map((p) => p.title),
-      };
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("email", form.email);
+      fd.append("clientType", form.clientType);
+      form.services.forEach((s) => fd.append("services", s));
+      fd.append("vision", form.vision);
+      fd.append("budget", String(form.budgetCustom));
+      fd.append("deadline", form.deadline);
+      if (form.specificDate) fd.append("specificDate", form.specificDate);
+      form.inspirations.forEach((p) => fd.append("inspirations", p.title));
+      // Attach reference files
+      files.forEach((f) => fd.append("files", f, f.name));
 
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: fd,
+        // No Content-Type header — browser sets it with the multipart boundary
       });
 
       const data = (await res.json()) as { ok: boolean; error?: string };
