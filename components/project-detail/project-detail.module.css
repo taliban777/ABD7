@@ -169,6 +169,24 @@
   color: var(--foreground);
 }
 
+/* Style descriptor tags — inline pills that wrap naturally */
+.styleTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-top: 1px;
+}
+
+.styleTag {
+  font: 500 8px/1 var(--font-mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
 /* Palette mini-strip in sidebar */
 .metadataPaletteStrip {
   display: flex;

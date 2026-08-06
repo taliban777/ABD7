@@ -183,7 +183,11 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
               {styleNames.length > 0 && (
                 <div className={styles.metadataPair}>
                   <dt>Style</dt>
-                  <dd>{styleNames.join(', ')}</dd>
+                  <dd className={styles.styleTagRow}>
+                    {styleNames.map((s) => (
+                      <span key={s} className={styles.styleTag}>{s}</span>
+                    ))}
+                  </dd>
                 </div>
               )}
             </dl>
