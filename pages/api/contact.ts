@@ -1,11 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import nodemailer from "nodemailer";
-import formidable from "formidable";
-import fs from "fs";
-import path from "path";
-
-// Disable Next.js body parser so formidable can handle multipart
-export const config = { api: { bodyParser: false } };
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 // Simple in-memory store: IP → { count, windowStart }
@@ -29,11 +23,6 @@ function isRateLimited(ip: string): boolean {
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif",
-  "application/pdf",
-]);
-
 const ALLOWED_SERVICES = new Set([
   "Creative Direction", "Single Art", "Brand Identity", "Print", "Other",
 ]);
@@ -48,27 +37,14 @@ const ALLOWED_DEADLINES = new Set([
 
 type ApiResponse = { ok: true } | { ok: false; error: string };
 
-/** Parse a multipart request with formidable */
-function parseForm(
-  req: NextApiRequest
-): Promise<{ fields: formidable.Fields; files: formidable.Files }> {
-  return new Promise((resolve, reject) => {
-    const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err);
-      else resolve({ fields, files });
-    });
-  });
-}
-
-/** Pull the first string value from a formidable field (string | string[]) */
-function field(v: formidable.Fields[string]): string {
+/** Pull the first string value from a JSON body field */
+function field(v: unknown): string {
   if (!v) return "";
-  return Array.isArray(v) ? (v[0] ?? "") : String(v);
+  return Array.isArray(v) ? String(v[0] ?? "") : String(v);
 }
 
-/** Pull a string array from a formidable field */
-function fieldArray(v: formidable.Fields[string]): string[] {
+/** Pull a string array from a JSON body field */
+function fieldArray(v: unknown): string[] {
   if (!v) return [];
   return (Array.isArray(v) ? v : [v]).map(String).filter(Boolean);
 }
@@ -101,30 +77,25 @@ export default async function handler(
     return res.status(429).json({ ok: false, error: "Too many submissions. Please try again later." });
   }
 
-  let fields: formidable.Fields;
-  let uploadedFiles: formidable.Files;
-
-  try {
-    ({ fields, files: uploadedFiles } = await parseForm(req));
-  } catch {
-    return res.status(400).json({ ok: false, error: "Could not parse form data." });
-  }
+  // Body is now JSON (files are pre-uploaded to Blob)
+  const body = req.body as Record<string, unknown>;
 
   // ─── Honeypot — bots fill hidden fields, humans don't ────────────────────
-  if (field(fields.website)) {
-    // Silently accept to avoid tipping off bots
+  if (field(body.website)) {
     return res.status(200).json({ ok: true });
   }
 
-  const name = field(fields.name).trim();
-  const email = field(fields.email).trim().toLowerCase();
-  const clientType = field(fields.clientType).trim();
-  const services = fieldArray(fields.services);
-  const vision = field(fields.vision).trim();
-  const budget = field(fields.budget);
-  const deadline = field(fields.deadline).trim();
-  const specificDate = field(fields.specificDate).trim();
-  const inspirations = fieldArray(fields.inspirations);
+  const name = field(body.name).trim();
+  const email = field(body.email).trim().toLowerCase();
+  const clientType = field(body.clientType).trim();
+  const services = fieldArray(body.services);
+  const vision = field(body.vision).trim();
+  const budget = field(body.budget);
+  const deadline = field(body.deadline).trim();
+  const specificDate = field(body.specificDate).trim();
+  const inspirations = fieldArray(body.inspirations);
+  // Pre-uploaded Blob URLs for reference files
+  const fileUrls = fieldArray(body.fileUrls).filter((u) => u.startsWith("https://"));
 
   // ─── Required fields ─────────────────────────────────────────────────────
   if (!name) {
@@ -209,6 +180,13 @@ export default async function handler(
       <td style="padding:8px 0;border-bottom:1px solid #e8e5dc;color:#6f6d66;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;">Inspirations</td>
       <td style="padding:8px 0;border-bottom:1px solid #e8e5dc;">${escHtml(inspirations.join(", "))}</td>
     </tr>` : ""}
+    ${fileUrls.length > 0 ? `
+    <tr>
+      <td style="padding:8px 0;border-bottom:1px solid #e8e5dc;color:#6f6d66;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;vertical-align:top;">References</td>
+      <td style="padding:8px 0;border-bottom:1px solid #e8e5dc;">
+        ${fileUrls.map((u, i) => `<a href="${escHtml(u)}" style="display:block;margin-bottom:4px;">Reference ${i + 1}</a>`).join("")}
+      </td>
+    </tr>` : ""}
     <tr>
       <td style="padding:8px 0;vertical-align:top;color:#6f6d66;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;">Vision</td>
       <td style="padding:8px 0;white-space:pre-wrap;">${escHtml(vision || "—")}</td>
@@ -216,28 +194,6 @@ export default async function handler(
   </table>
   <p style="margin-top:32px;font-size:10px;color:#6f6d66;">Sent via artbydani7.com contact form</p>
 </div>`.trim();
-
-  // ─── File validation ─────────────────────────────────────────────────────
-  const fileList = uploadedFiles.files
-    ? Array.isArray(uploadedFiles.files)
-      ? uploadedFiles.files
-      : [uploadedFiles.files]
-    : [];
-
-  for (const f of fileList) {
-    const file = f as formidable.File;
-    if (file.mimetype && !ALLOWED_MIME_TYPES.has(file.mimetype)) {
-      return res.status(400).json({ ok: false, error: `File type not allowed: ${file.mimetype}. Please upload images or PDFs only.` });
-    }
-  }
-
-  const attachments: nodemailer.SendMailOptions["attachments"] = fileList
-    .filter((f): f is formidable.File => !!f && typeof (f as formidable.File).filepath === "string")
-    .map((f) => ({
-      filename: (f as formidable.File).originalFilename ?? path.basename((f as formidable.File).filepath),
-      content: fs.readFileSync((f as formidable.File).filepath),
-      contentType: (f as formidable.File).mimetype ?? "application/octet-stream",
-    }));
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
@@ -256,15 +212,7 @@ export default async function handler(
       replyTo: email,
       subject: `New brief from ${name} — ARTBYDANI7`,
       html,
-      attachments,
     });
-
-    // Clean up temp files
-    for (const f of fileList) {
-      try {
-        if ((f as formidable.File).filepath) fs.unlinkSync((f as formidable.File).filepath);
-      } catch { /* ignore cleanup errors */ }
-    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
