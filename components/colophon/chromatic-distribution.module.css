@@ -32,11 +32,10 @@
   display: block;
 }
 
-/* Strip container with scrolling on mobile */
+/* Strip container — always full width, never scrolls */
 .stripContainer {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   margin-bottom: 20px;
 }
 
@@ -44,7 +43,6 @@
 .strip {
   display: flex;
   width: 100%;
-  min-width: 100%;
   height: 80px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -225,10 +223,7 @@
     gap: 8px;
   }
 
-  /* On touch devices, expand strip for easier interaction */
-  .segment {
-    min-width: 32px;
-  }
+
 }
 
 @media (max-width: 480px) {

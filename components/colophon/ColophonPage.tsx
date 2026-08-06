@@ -243,10 +243,7 @@ export function ColophonPage({ projects = [], lastUpdated }: ColophonPageProps) 
 
         {/* Footer */}
         <footer className={styles.colophonFooter}>
-          <p>
-            All content copyright ARTBYDANI7. Archive statistics generated at
-            build time from CMS data.
-          </p>
+          <p>All content copyright ARTBYDANI7.</p>
         </footer>
       </main>
     </>
