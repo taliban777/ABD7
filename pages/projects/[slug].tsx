@@ -55,15 +55,11 @@ export default function ProjectPage({
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://artbydani7.com/projects/${projectSlug(project)}`} />
-        {project.frontCover && (
-          <meta property="og:image" content={project.frontCover} />
-        )}
+        {project.frontCover && <meta property="og:image" content={project.frontCover} />}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${project.title} — ARTBYDANI7`} />
         <meta name="twitter:description" content={description} />
-        {project.frontCover && (
-          <meta name="twitter:image" content={project.frontCover} />
-        )}
+        {project.frontCover && <meta name="twitter:image" content={project.frontCover} />}
       </Head>
       <GlobalNav projects={allProjects} />
       <ProjectDetailPage project={project} allProjects={allProjects} />
