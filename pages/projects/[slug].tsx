@@ -34,15 +34,32 @@ export default function ProjectPage({
     .filter(Boolean)
     .join(", ");
 
+  const categoryNames = asArray(project.categories).map(valueLabel).filter(Boolean);
+  const description = [
+    project.title,
+    categoryNames.length ? categoryNames.join(", ") : null,
+    project.year ? String(project.year) : null,
+    artistNames ? `by ${artistNames}` : null,
+    "— ARTBYDANI7 archive.",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <>
       <Head>
         <title>{project.title} — ARTBYDANI7</title>
-        <meta
-          name="description"
-          content={`${project.title} by ${artistNames || "ARTBYDANI7"}`}
-        />
+        <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content={`${project.title} — ARTBYDANI7`} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://artbydani7.com/projects/${projectSlug(project)}`} />
+        {project.frontCover && <meta property="og:image" content={project.frontCover} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${project.title} — ARTBYDANI7`} />
+        <meta name="twitter:description" content={description} />
+        {project.frontCover && <meta name="twitter:image" content={project.frontCover} />}
       </Head>
       <GlobalNav projects={allProjects} />
       <ProjectDetailPage project={project} allProjects={allProjects} />

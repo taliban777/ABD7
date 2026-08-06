@@ -77,6 +77,17 @@ img {
   background: var(--foreground);
 }
 
+/* Accessible focus ring — visible only for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+/* Suppress the ring for mouse/touch interactions */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Smooth scroll progress for the page */
 @property --scroll-progress {
   syntax: '<number>';

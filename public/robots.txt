@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://artbydani7.com/sitemap.xml

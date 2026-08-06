@@ -36,23 +36,41 @@
   transform: translateY(0);
 }
 
-/* The opaque paper block — sits exactly centred, width proportional
-   to the title length. Artwork peeks out on all four sides. */
+/* The hero block — transparent so artwork shows through everywhere.
+   A radial gradient scrim sits behind the typography as a pseudo-element,
+   darkening/lightening at the centre and fading to nothing at the edges. */
 .paperBlock {
   position: relative;
   z-index: 2;
-  background: var(--background);
-  /* Thin top and bottom border in the muted line colour — catalogue feel */
-  border-top:    1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  background: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 36px;
-  padding: 48px 64px 44px;
+  padding: 80px 100px 72px;
   pointer-events: auto;
   /* Gentle fade-in on mount */
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Radial scrim — wide ellipse so the horizontal and vertical edges
+   all feather gradually with no hard stop */
+.paperBlock::before {
+  content: "";
+  position: absolute;
+  inset: -160% -120%;
+  background: radial-gradient(
+    ellipse 38% 28% at 50% 50%,
+    color-mix(in srgb, var(--background) 90%, transparent) 0%,
+    color-mix(in srgb, var(--background) 78%, transparent) 18%,
+    color-mix(in srgb, var(--background) 50%, transparent) 38%,
+    color-mix(in srgb, var(--background) 20%, transparent) 56%,
+    color-mix(in srgb, var(--background) 5%, transparent) 72%,
+    transparent 88%
+  );
+  pointer-events: none;
+  z-index: -1;
 }
 
 @keyframes blockSettle {
@@ -114,7 +132,6 @@
   padding: 13px 30px;
   line-height: 1;
   border-radius: 0;
-  outline: none;
   /* Smooth inversion — no jump */
   transition:
     background 0.28s ease,
@@ -152,6 +169,29 @@
   pointer-events: none;
 }
 
+/* ── Reduced motion ──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .paperBlock {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .enterBtn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .panelLift {
+    transition-duration: 0.01ms !important;
+  }
+
+  .panelLiftReduced {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .title {
@@ -164,12 +204,8 @@
   }
 
   .paperBlock {
-    padding: 36px 28px 32px;
+    padding: 60px 24px 52px;
     gap: 28px;
-    /* Full width on mobile so artwork can't peek left/right — 
-       the vertical bleed is enough to preserve the effect */
     width: 100%;
-    border-left:  none;
-    border-right: none;
   }
 }

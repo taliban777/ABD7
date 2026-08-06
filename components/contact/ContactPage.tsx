@@ -98,6 +98,8 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [projectSearch, setProjectSearch] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   // envelope animation: idle → folding → sealed → open
   const [envelopeStage, setEnvelopeStage] = useState<"idle" | "folding" | "sealed" | "open">("idle");
   const [dragActive, setDragActive] = useState(false);
@@ -165,8 +167,45 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const removeFile = (index: number) =>
     setFiles((prev) => prev.filter((_, i) => i !== index));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+    setSending(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("email", form.email);
+      fd.append("clientType", form.clientType);
+      form.services.forEach((s) => fd.append("services", s));
+      fd.append("vision", form.vision);
+      fd.append("budget", String(form.budgetCustom));
+      fd.append("deadline", form.deadline);
+      if (form.specificDate) fd.append("specificDate", form.specificDate);
+      form.inspirations.forEach((p) => fd.append("inspirations", p.title));
+      // Attach reference files
+      files.forEach((f) => fd.append("files", f, f.name));
+
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        body: fd,
+        // No Content-Type header — browser sets it with the multipart boundary
+      });
+
+      const data = (await res.json()) as { ok: boolean; error?: string };
+
+      if (!data.ok) {
+        setSending(false);
+        setSubmitError(data.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+    } catch {
+      setSending(false);
+      setSubmitError("Network error. Please check your connection and try again.");
+      return;
+    }
+
+    setSending(false);
     setEnvelopeStage("folding");
     // after fold animation completes → sealed
     setTimeout(() => setEnvelopeStage("sealed"), 900);
@@ -612,11 +651,15 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={!form.email || !form.name}
+              disabled={!form.email || !form.name || sending}
             >
-              Submit Brief
+              {sending ? "Sending…" : "Submit Brief"}
             </button>
-
+            {submitError && (
+              <p className={styles.submitError} role="alert">
+                {submitError}
+              </p>
+            )}
           </div>
           </form>
         </div>

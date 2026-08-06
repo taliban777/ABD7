@@ -10,6 +10,7 @@ export default function NotFound() {
         <title>Not Found — ARTBYDANI7</title>
         <meta name="description" content="The page you are looking for does not exist." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex" />
       </Head>
       <GlobalNav projects={[]} />
       <main className={styles.page}>

@@ -18,7 +18,6 @@ export function ArtworkCard({
   slug,
   frontCover = "",
   artists = [],
-  categories = [],
   year,
   catalogueNumber = "",
   href,
@@ -27,7 +26,6 @@ export function ArtworkCard({
   const [loaded, setLoaded] = useState(false);
 
   const artistNames = asArray(artists).map(valueLabel).filter(Boolean).join(", ");
-  const primaryCategory = asArray(categories).map(valueLabel).filter(Boolean)[0] ?? null;
   const destination = href || `/projects/${projectSlug({ slug, title, id })}`;
 
   // Generate deterministic but randomised reflection variables based on card ID
@@ -88,9 +86,6 @@ export function ArtworkCard({
         <h2 className={styles.labelTitle}>{title}</h2>
         <div className={styles.labelBottom}>
           <p className={styles.labelArtist}>{artistNames || "Unattributed"}</p>
-          {primaryCategory ? (
-            <span className={styles.labelCategory}>{primaryCategory}</span>
-          ) : null}
         </div>
       </div>
     </a>

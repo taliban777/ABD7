@@ -1,13 +1,18 @@
 import type { CurationExhibition } from "./types";
 import { CurationsIndexCard } from "./CurationsIndexCard";
 import styles from "./curations.module.css";
+import { GlobalNav } from "@/components/nav/GlobalNav";
+import type { CmsProject } from "@/components/archive/types";
 
 interface CurationsPageProps {
   exhibitions: CurationExhibition[];
+  projects?: CmsProject[];
 }
 
-export function CurationsPage({ exhibitions }: CurationsPageProps) {
+export function CurationsPage({ exhibitions, projects = [] }: CurationsPageProps) {
   return (
+    <>
+    <GlobalNav projects={projects} />
     <main className={styles.page}>
       {/* Header */}
       <header className={styles.header}>
@@ -28,5 +33,6 @@ export function CurationsPage({ exhibitions }: CurationsPageProps) {
         ))}
       </ol>
     </main>
+    </>
   );
 }
