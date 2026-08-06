@@ -88,9 +88,6 @@ export function ArtworkCard({
         <h2 className={styles.labelTitle}>{title}</h2>
         <div className={styles.labelBottom}>
           <p className={styles.labelArtist}>{artistNames || "Unattributed"}</p>
-          {primaryCategory ? (
-            <span className={styles.labelCategory}>{primaryCategory}</span>
-          ) : null}
         </div>
       </div>
     </a>

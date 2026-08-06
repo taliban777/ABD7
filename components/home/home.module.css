@@ -36,23 +36,39 @@
   transform: translateY(0);
 }
 
-/* The opaque paper block — sits exactly centred, width proportional
-   to the title length. Artwork peeks out on all four sides. */
+/* The hero block — transparent so artwork shows through everywhere.
+   A radial gradient scrim sits behind the typography as a pseudo-element,
+   darkening/lightening at the centre and fading to nothing at the edges. */
 .paperBlock {
   position: relative;
   z-index: 2;
-  background: var(--background);
-  /* Thin top and bottom border in the muted line colour — catalogue feel */
-  border-top:    1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  background: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 36px;
-  padding: 48px 64px 44px;
+  padding: 80px 100px 72px;
   pointer-events: auto;
   /* Gentle fade-in on mount */
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Radial scrim — centered on the block, darker/more opaque at core,
+   fully transparent past the content bounds */
+.paperBlock::before {
+  content: "";
+  position: absolute;
+  inset: -40% -30%;
+  background: radial-gradient(
+    ellipse 68% 60% at 50% 50%,
+    color-mix(in srgb, var(--background) 88%, transparent) 0%,
+    color-mix(in srgb, var(--background) 68%, transparent) 28%,
+    color-mix(in srgb, var(--background) 32%, transparent) 58%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: -1;
 }
 
 @keyframes blockSettle {
@@ -186,12 +202,8 @@
   }
 
   .paperBlock {
-    padding: 36px 28px 32px;
+    padding: 60px 24px 52px;
     gap: 28px;
-    /* Full width on mobile so artwork can't peek left/right — 
-       the vertical bleed is enough to preserve the effect */
     width: 100%;
-    border-left:  none;
-    border-right: none;
   }
 }
