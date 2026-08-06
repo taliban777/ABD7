@@ -74,26 +74,24 @@ export default function HomePage({ projects = [] }: HomePageProps) {
         <ArtworkStripWall projects={projects} />
       </div>
 
-      {/* ── Floating glassmorphic overlay ── */}
+      {/* ── Title + button, no card ── */}
       <div ref={panelRef} className={styles.panel}>
-        <div className={styles.glassCard}>
-          <h1 className={styles.title}>ARTBYDANI7</h1>
+        <h1 className={styles.title}>ARTBYDANI7</h1>
 
-          <button
-            type="button"
-            className={styles.enterBtn}
-            onClick={reveal}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                reveal();
-              }
-            }}
-            aria-label="Enter the ARTBYDANI7 collection"
-          >
-            Enter Collection
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.enterBtn}
+          onClick={reveal}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              reveal();
+            }
+          }}
+          aria-label="Enter the ARTBYDANI7 collection"
+        >
+          Enter Collection
+        </button>
       </div>
     </div>
   );
