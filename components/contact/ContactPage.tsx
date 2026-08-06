@@ -57,6 +57,14 @@ const DEADLINES: Deadline[] = [
   "Specific Date",
 ];
 
+const BUDGET_PRESETS: { label: string; value: number }[] = [
+  { label: "$1K", value: 1000 },
+  { label: "$5K", value: 5000 },
+  { label: "$15K", value: 15000 },
+  { label: "$50K", value: 50000 },
+  { label: "$100K+", value: 100000 },
+];
+
 interface FormState {
   clientType: ClientType | "";
   services: ServiceType[];
@@ -193,16 +201,47 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     <>
       <GlobalNav projects={safeProjects} />
       <main className={styles.page}>
-        {/* Page header */}
-        <header className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Begin a Project</h1>
-          <p className={styles.pageDesc}>
-            Fill out the brief below. The more detail you provide, the more
-            considered the response.
-          </p>
-        </header>
+        <div className={styles.layout}>
+          {/* ─── Left: sticky context panel ─── */}
+          <aside className={styles.contextPanel}>
+            <div className={styles.contextInner}>
+              <p className={styles.eyebrow}>Contact</p>
+              <h1 className={styles.pageTitle}>Begin a Project</h1>
+              <p className={styles.pageDesc}>
+                Fill out the brief to the right. The more detail you provide,
+                the more considered the response. Every enquiry is read and
+                answered personally.
+              </p>
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+              <div className={styles.statusRow}>
+                <span className={styles.statusDot} aria-hidden="true" />
+                <span className={styles.statusText}>
+                  Currently taking commissions for Q3 / Q4
+                </span>
+              </div>
+
+              <dl className={styles.contextMeta}>
+                <div className={styles.metaBlock}>
+                  <dt className={styles.metaLabel}>Direct</dt>
+                  <dd className={styles.metaValue}>
+                    <a
+                      href="mailto:studio@artbydani7.com"
+                      className={styles.metaLink}
+                    >
+                      studio@artbydani7.com
+                    </a>
+                  </dd>
+                </div>
+                <div className={styles.metaBlock}>
+                  <dt className={styles.metaLabel}>Response time</dt>
+                  <dd className={styles.metaValue}>2–3 business days</dd>
+                </div>
+              </dl>
+            </div>
+          </aside>
+
+          {/* ─── Right: brief builder ─── */}
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {/* ─── 1. Who are you? ─── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>01 — Who are you?</h2>
@@ -437,7 +476,19 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
           {/* ─── 7. Budget willingness ─── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>07 — How much are you willing to give?</h2>
-            <div className={styles.budgetSliderContainer}>
+            <div className={styles.budgetReadout}>
+              <span className={styles.budgetAmount}>
+                ${form.budgetCustom.toLocaleString("en-US")}
+              </span>
+              <span className={styles.budgetCaption}>Estimated budget</span>
+            </div>
+            <div
+              className={styles.budgetTrack}
+              style={{
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ["--fill" as any]: `${(form.budgetCustom / 1000000) * 100}%`,
+              }}
+            >
               <input
                 type="range"
                 min="0"
@@ -450,9 +501,23 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                 className={styles.budgetSlider}
                 aria-label="Budget range slider"
               />
-              <div className={styles.budgetPreview}>
-                ${form.budgetCustom.toLocaleString("en-US")}
-              </div>
+            </div>
+            <div className={styles.budgetPresets}>
+              {BUDGET_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  className={`${styles.budgetPreset} ${
+                    form.budgetCustom === preset.value ? styles.budgetPresetActive : ""
+                  }`}
+                  onClick={() =>
+                    setForm((f) => ({ ...f, budgetCustom: preset.value }))
+                  }
+                  aria-pressed={form.budgetCustom === preset.value}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
           </section>
 
@@ -504,7 +569,8 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
               Response within 2–3 business days.
             </span>
           </div>
-        </form>
+          </form>
+        </div>
       </main>
     </>
   );
