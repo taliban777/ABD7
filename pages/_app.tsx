@@ -15,6 +15,7 @@ const cormorant = Cormorant({
   style: ["normal", "italic"],
   variable: "--font-cormorant",
   display: "swap",
+  preload: true,
 });
 
 export default function App({ Component, pageProps }: AppProps) {

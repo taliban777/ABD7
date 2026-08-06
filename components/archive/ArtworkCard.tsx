@@ -39,7 +39,7 @@ export function ArtworkCard({
 
   return (
     <a
-      className={`${styles.card} w-fit mx-auto`}
+      className={styles.card}
       href={destination}
       style={{ "--card-index": index } as React.CSSProperties}
     >
@@ -59,7 +59,7 @@ export function ArtworkCard({
           // Plasmic CMS binding: projects.frontCover; host is intentionally CMS-defined.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className={`w-full h-auto block aspect-square object-cover ${styles.cover} ${loaded ? styles.coverLoaded : ""}`}
+            className={`${styles.cover} ${loaded ? styles.coverLoaded : ""}`}
             src={getArchiveImageUrl(frontCover)}
             alt={title}
             loading="lazy"
@@ -74,7 +74,7 @@ export function ArtworkCard({
       </div>
 
       {/* White gallery catalogue label */}
-      <div className={`${styles.label} w-full`}>
+      <div className={styles.label}>
         <div className={styles.labelTop}>
           {catalogueNumber ? (
             <span className={styles.catNumber}>No.&nbsp;{catalogueNumber}</span>

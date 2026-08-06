@@ -499,6 +499,18 @@
   border-bottom-width: 2px;
 }
 
+.fieldInputError {
+  border-bottom-color: #b94343;
+}
+
+.fieldError {
+  display: block;
+  margin-top: 6px;
+  font: 400 10px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  color: #b94343;
+}
+
 /* Submit */
 .submitRow {
   padding: 48px 0;

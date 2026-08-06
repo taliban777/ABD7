@@ -14,6 +14,9 @@ export interface GlobalNavProps {
 
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
+] as const;
+
+const NAV_LINKS_AFTER_PROJECTS = [
   { label: "OTHERS", href: "/others" },
   { label: "CURATIONS", href: "/curations" },
 ] as const;
@@ -149,7 +152,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             </li>
           ))}
 
-          {/* PROJECTS dropdown */}
+          {/* PROJECTS dropdown — immediately after HOME */}
           <li className={styles.dropdownItem}>
             <button
               ref={triggerRef}
@@ -242,7 +245,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             )}
           </li>
 
-          {NAV_LINKS_RIGHT.map(({ label, href }) => (
+          {[...NAV_LINKS_AFTER_PROJECTS, ...NAV_LINKS_RIGHT].map(({ label, href }) => (
             <li key={href}>
               <Link
                 href={href}
@@ -318,8 +321,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             </li>
           ))}
 
-
-            {/* PROJECTS — expandable by year */}
+            {/* PROJECTS — expandable by year, immediately after HOME */}
             <li className={styles.mobileGroup}>
               <button
                 type="button"
@@ -378,7 +380,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
               )}
             </li>
 
-            {NAV_LINKS_RIGHT.map(({ label, href }) => (
+            {[...NAV_LINKS_AFTER_PROJECTS, ...NAV_LINKS_RIGHT].map(({ label, href }) => (
               <li key={href}>
                 <Link
                   href={href}

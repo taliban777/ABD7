@@ -13,7 +13,7 @@ export function CurationsPage({ exhibitions, projects = [] }: CurationsPageProps
   return (
     <>
     <GlobalNav projects={projects} />
-    <main className={styles.page}>
+    <main className={styles.page} aria-label="Curated exhibitions">
       {/* Header */}
       <header className={styles.header}>
         <h1 className={styles.pageTitle}>Curations</h1>

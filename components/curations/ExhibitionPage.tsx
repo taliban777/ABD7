@@ -18,7 +18,7 @@ export function ExhibitionPage({ exhibition, projects = [] }: ExhibitionPageProp
   return (
     <>
     <GlobalNav projects={projects} />
-    <main className={styles.exhibitionPage}>
+    <main className={styles.exhibitionPage} aria-label={`Exhibition: ${exhibition.title}`}>
       {/* Back to curations */}
       <Link href="/curations" className={styles.backLink}>
         ← Curations

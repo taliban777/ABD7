@@ -107,6 +107,7 @@
 
 .navLinkActive::after {
   transform: scaleX(1);
+  transition: transform 0.22s ease;
 }
 
 /* Button-reset nav link (for PROJECTS trigger) */

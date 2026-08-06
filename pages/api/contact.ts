@@ -35,16 +35,15 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const ALLOWED_SERVICES = new Set([
-  "Creative Direction", "Photography", "Art Direction",
-  "Visual Identity", "Retouching", "Consultation",
+  "Creative Direction", "Single Art", "Brand Identity", "Print", "Other",
 ]);
 
 const ALLOWED_CLIENT_TYPES = new Set([
-  "Individual", "Brand", "Agency", "Record Label", "Other",
+  "Agency", "Artist", "Record Label", "Brand", "Business", "Other",
 ]);
 
 const ALLOWED_DEADLINES = new Set([
-  "Flexible", "1–2 Weeks", "1 Month", "3 Months", "Specific Date",
+  "Flexible", "2 Weeks", "1 Month", "3 Months", "Specific Date",
 ]);
 
 type ApiResponse = { ok: true } | { ok: false; error: string };

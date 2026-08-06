@@ -4,6 +4,7 @@ import Head from "next/head";
 import { fetchCmsProjects, fetchCmsProjectBySlug } from "@/lib/cms";
 import type { CmsProject } from "@/components/archive/types";
 import { valueLabel, asArray, projectSlug } from "@/components/archive/types";
+import { getOgImageUrl } from "@/components/images/cloudinary";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import { ProjectDetailPage } from "@/components/project-detail/ProjectDetailPage";
 
@@ -56,11 +57,38 @@ export default function ProjectPage({
         <link rel="canonical" href={`https://artbydani7.com/projects/${projectSlug(project)}`} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://artbydani7.com/projects/${projectSlug(project)}`} />
-        {project.frontCover && <meta property="og:image" content={project.frontCover} />}
+        {project.frontCover && <meta property="og:image" content={getOgImageUrl(project.frontCover)} />}
+        {project.frontCover && <meta property="og:image:width" content="1200" />}
+        {project.frontCover && <meta property="og:image:height" content="630" />}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${project.title} — ARTBYDANI7`} />
         <meta name="twitter:description" content={description} />
-        {project.frontCover && <meta name="twitter:image" content={project.frontCover} />}
+        {project.frontCover && <meta name="twitter:image" content={getOgImageUrl(project.frontCover)} />}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "VisualArtwork",
+              name: project.title,
+              url: `https://artbydani7.com/projects/${projectSlug(project)}`,
+              image: project.frontCover ? getOgImageUrl(project.frontCover) : undefined,
+              creator: asArray(project.artists)
+                .map(valueLabel)
+                .filter(Boolean)
+                .map((name) => ({ "@type": "Person", name })),
+              dateCreated: project.year ? String(project.year) : undefined,
+              artform: asArray(project.categories).map(valueLabel).filter(Boolean).join(", ") || undefined,
+              artMedium: asArray(project.style).map(valueLabel).filter(Boolean).join(", ") || undefined,
+              description: description,
+              publisher: {
+                "@type": "Organization",
+                name: "ARTBYDANI7",
+                url: "https://artbydani7.com",
+              },
+            }),
+          }}
+        />
       </Head>
       <GlobalNav projects={allProjects} />
       <ProjectDetailPage project={project} allProjects={allProjects} />
