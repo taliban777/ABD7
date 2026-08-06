@@ -6,6 +6,7 @@ import type { CmsOther } from './types';
 import { otherSlug } from './types';
 import { getOthersHeroImageUrl, getOthersGalleryThumbUrl } from '@/components/images/cloudinary';
 import styles from './others.module.css';
+import { Lightbox } from '@/components/project-detail/Lightbox';
 
 export interface OtherDetailPageProps {
   item: CmsOther;
@@ -271,59 +272,13 @@ export function OtherDetailPage({ item, allItems }: OtherDetailPageProps) {
       </div>
 
       {/* Lightbox */}
-      {lightboxOpen && allImages[lightboxIndex] && (
-        <div
-          className={styles.lightboxOverlay}
-          onClick={() => setLightboxOpen(false)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button
-              className={styles.lightboxClose}
-              onClick={() => setLightboxOpen(false)}
-              aria-label="Close lightbox"
-              type="button"
-            >
-              ✕
-            </button>
-            <div className={styles.lightboxImageContainer}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getOthersHeroImageUrl(allImages[lightboxIndex].url)}
-                alt={allImages[lightboxIndex].alt}
-                className={styles.lightboxImage}
-              />
-            </div>
-            {allImages.length > 1 && (
-              <>
-                <button
-                  className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
-                  onClick={() =>
-                    setLightboxIndex((lightboxIndex - 1 + allImages.length) % allImages.length)
-                  }
-                  aria-label="Previous image"
-                  type="button"
-                >
-                  ←
-                </button>
-                <button
-                  className={`${styles.lightboxNav} ${styles.lightboxNext}`}
-                  onClick={() =>
-                    setLightboxIndex((lightboxIndex + 1) % allImages.length)
-                  }
-                  aria-label="Next image"
-                  type="button"
-                >
-                  →
-                </button>
-                <div className={styles.lightboxCounter}>
-                  {lightboxIndex + 1} / {allImages.length}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      {lightboxOpen && (
+        <Lightbox
+          images={allImages}
+          currentIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={setLightboxIndex}
+        />
       )}
     </main>
   );
