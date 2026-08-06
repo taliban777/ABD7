@@ -53,9 +53,6 @@ const DEADLINES: Deadline[] = [
   "Specific Date",
 ];
 
-// All selectable values contain only 7s (7, 77, 777, …). The slider snaps to the nearest.
-const LUCKY_VALUES = [7, 77, 777, 7777, 77777, 777777];
-
 const BUDGET_PRESETS: { label: string; value: number }[] = [
   { label: "$77", value: 77 },
   { label: "$777", value: 777 },
@@ -84,7 +81,7 @@ const INITIAL: FormState = {
   vision: "",
   inspirations: [],
   budget: "",
-  budgetCustom: 7,
+  budgetCustom: 0,
   deadline: "",
   specificDate: "",
   email: "",
@@ -99,6 +96,8 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [projectSearch, setProjectSearch] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // envelope animation: idle → folding → sealed → open
+  const [envelopeStage, setEnvelopeStage] = useState<"idle" | "folding" | "sealed" | "open">("idle");
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,31 +165,87 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setEnvelopeStage("folding");
+    // after fold animation completes → sealed
+    setTimeout(() => setEnvelopeStage("sealed"), 900);
+    // then show the submitted state (envelope centred on screen)
+    setTimeout(() => setSubmitted(true), 900);
   };
 
   if (submitted) {
+    const summaryRows: { label: string; value: string }[] = [
+      { label: "Name", value: form.name || "—" },
+      { label: "Email", value: form.email || "—" },
+      { label: "Client type", value: form.clientType || "—" },
+      { label: "Services", value: form.services.length ? form.services.join(", ") : "—" },
+      { label: "Budget", value: form.budgetCustom > 0 ? `$${form.budgetCustom.toLocaleString("en-US")}` : "—" },
+      { label: "Deadline", value: form.deadline === "Specific Date" && form.specificDate ? form.specificDate : form.deadline || "—" },
+      { label: "Vision", value: form.vision ? (form.vision.length > 120 ? form.vision.slice(0, 120) + "…" : form.vision) : "—" },
+    ];
+
     return (
       <>
         <GlobalNav projects={safeProjects} />
         <main className={styles.page}>
-          <div className={styles.confirmationWrap}>
-            <h1 className={styles.confirmationTitle}>Brief Received</h1>
-            <p className={styles.confirmationBody}>
-              Thank you, {form.name || "for reaching out"}. Your project brief
-              has been received. Expect a response within 7–77 hours.
-            </p>
-            <button
-              type="button"
-              className={styles.resetBtn}
-              onClick={() => {
-                setForm(INITIAL);
-                setFiles([]);
-                setSubmitted(false);
-              }}
+          <div className={styles.envelopeScene}>
+            {/* The envelope */}
+            <div
+              className={`${styles.envelope} ${envelopeStage === "folding" ? styles.envelopeFolding : ""} ${envelopeStage === "sealed" || envelopeStage === "open" ? styles.envelopeSealed : ""} ${envelopeStage === "open" ? styles.envelopeOpen : ""}`}
+              onClick={() => envelopeStage === "sealed" && setEnvelopeStage("open")}
+              role={envelopeStage === "sealed" ? "button" : undefined}
+              tabIndex={envelopeStage === "sealed" ? 0 : undefined}
+              aria-label={envelopeStage === "sealed" ? "Open brief summary" : undefined}
+              onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && envelopeStage === "sealed") setEnvelopeStage("open"); }}
             >
-              Start a New Brief
-            </button>
+              {/* Envelope body */}
+              <div className={styles.envelopeBody}>
+                {/* Back flap (bottom triangle) */}
+                <div className={styles.envFlapBottom} />
+                {/* Left triangle */}
+                <div className={styles.envFlapLeft} />
+                {/* Right triangle */}
+                <div className={styles.envFlapRight} />
+                {/* Front flap (top, folds down) */}
+                <div className={styles.envFlapTop} />
+                {/* Seal dot */}
+                <div className={styles.envSeal} aria-hidden="true">
+                  <span>7</span>
+                </div>
+                {/* Hint label shown when sealed */}
+                {envelopeStage === "sealed" && (
+                  <p className={styles.envelopeHint}>tap to open</p>
+                )}
+              </div>
+
+              {/* Letter / brief summary — slides out when open */}
+              <div className={styles.envelopeLetter} aria-hidden={envelopeStage !== "open"}>
+                <p className={styles.letterEyebrow}>Your Brief</p>
+                <dl className={styles.letterBody}>
+                  {summaryRows.map((row) => (
+                    <div key={row.label} className={styles.letterRow}>
+                      <dt className={styles.letterLabel}>{row.label}</dt>
+                      <dd className={styles.letterValue}>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className={styles.letterFooter}>
+                  Expect a response within 7–77 hours.
+                </p>
+                <button
+                  type="button"
+                  className={styles.resetBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setForm(INITIAL);
+                    setFiles([]);
+                    setSubmitted(false);
+                    setEnvelopeStage("idle");
+                  }}
+                >
+                  Start a New Brief
+                </button>
+              </div>
+            </div>
           </div>
         </main>
       </>
@@ -258,7 +313,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             </div>
           </section>
 
-          {/* ─── 2. What do you need? ─── */}
+          {/* ─── 2. What do you need? ��── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>02 — What do you need?</h2>
             <div className={styles.chipGrid}>
@@ -479,17 +534,17 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
               className={styles.budgetTrack}
               style={{
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ["--fill" as any]: `${(LUCKY_VALUES.indexOf(form.budgetCustom) / (LUCKY_VALUES.length - 1)) * 100}%`,
+                ["--fill" as any]: `${(form.budgetCustom / 1000000) * 100}%`,
               }}
             >
               <input
                 type="range"
                 min="0"
-                max={LUCKY_VALUES.length - 1}
-                step="1"
-                value={LUCKY_VALUES.indexOf(form.budgetCustom)}
+                max="1000000"
+                step="1000"
+                value={form.budgetCustom}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, budgetCustom: LUCKY_VALUES[Number(e.target.value)] }))
+                  setForm((f) => ({ ...f, budgetCustom: Number(e.target.value) }))
                 }
                 className={styles.budgetSlider}
                 aria-label="Budget range slider"
