@@ -49,7 +49,10 @@
   flex-direction: column;
   align-items: center;
   gap: 36px;
-  padding: 48px 64px 44px;
+  padding: 32px 40px 28px;
+  /* Constrain width so artwork bleeds on both sides */
+  width: fit-content;
+  max-width: min(480px, 78vw);
   pointer-events: auto;
   /* Gentle fade-in on mount */
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
