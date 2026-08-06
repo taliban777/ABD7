@@ -20,39 +20,40 @@
 }
 
 /* ── Hero panel ──────────────────────────────────────────────────────────
-   A solid paper rectangle that lifts out of the way on click.
-   No radial glow — clean, editorial separation between the
-   moving artwork and the typography.
+   A floating glassmorphic card that sits above the grid without
+   occluding it — artwork visible underneath and on all sides.
    ─────────────────────────────────────────────────────────────────────── */
 .panel {
   position: fixed;
   inset: 0;
   z-index: 10;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 36px;
+  /* Let pointer events pass through to the strip wall */
   pointer-events: none;
   will-change: transform;
   transform: translateY(0);
 }
 
-/* The opaque paper block — sits exactly centred, width proportional
-   to the title length. Artwork peeks out on all four sides. */
-.paperBlock {
-  position: relative;
-  z-index: 2;
-  background: var(--background);
-  /* Thin top and bottom border in the muted line colour — catalogue feel */
-  border-top:    1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 36px;
-  padding: 48px 64px 44px;
-  pointer-events: auto;
-  /* Gentle fade-in on mount */
-  animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+
+/* Radial gradient scrim — sits behind the title, fades to transparent */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 42% at 50% 50%,
+    color-mix(in srgb, var(--background) 78%, transparent) 0%,
+    color-mix(in srgb, var(--background) 50%, transparent) 30%,
+    color-mix(in srgb, var(--background) 18%, transparent) 60%,
+    transparent 100%
+  );
 }
 
 @keyframes blockSettle {
@@ -163,13 +164,5 @@
     white-space: nowrap;
   }
 
-  .paperBlock {
-    padding: 36px 28px 32px;
-    gap: 28px;
-    /* Full width on mobile so artwork can't peek left/right — 
-       the vertical bleed is enough to preserve the effect */
-    width: 100%;
-    border-left:  none;
-    border-right: none;
-  }
+
 }

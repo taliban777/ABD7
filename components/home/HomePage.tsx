@@ -69,31 +69,29 @@ export default function HomePage({ projects = [] }: HomePageProps) {
 
   return (
     <div className={styles.root}>
-      {/* ── Strip wall layer (CMS artwork behind the paper block) ── */}
+      {/* ── Strip wall layer — full bleed, interactive ── */}
       <div className={styles.stripLayer}>
         <ArtworkStripWall projects={projects} />
       </div>
 
-      {/* ── Hero panel (opaque paper block + typography) ─────────── */}
+      {/* ── Title + button, no card ── */}
       <div ref={panelRef} className={styles.panel}>
-        <div className={styles.paperBlock}>
-          <h1 className={styles.title}>ARTBYDANI7</h1>
+        <h1 className={styles.title}>ARTBYDANI7</h1>
 
-          <button
-            type="button"
-            className={styles.enterBtn}
-            onClick={reveal}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                reveal();
-              }
-            }}
-            aria-label="Enter the ARTBYDANI7 collection"
-          >
-            Enter Collection
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.enterBtn}
+          onClick={reveal}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              reveal();
+            }
+          }}
+          aria-label="Enter the ARTBYDANI7 collection"
+        >
+          Enter Collection
+        </button>
       </div>
     </div>
   );

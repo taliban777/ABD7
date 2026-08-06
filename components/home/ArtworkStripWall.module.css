@@ -82,21 +82,25 @@
 
 /* ── Tile ────────────────────────────────────────────────
    No margins. Tiles are flush with each other.
-   Hover is handled entirely in CSS — no JS state, no
-   re-renders, no compositor layer promotions mid-animation.
+   Hover: scale lift + shadow simulate a physical sleeve
+   being pulled forward off a display shelf.
    ─────────────────────────────────────────────────────── */
 .tile {
   flex: 0 0 140px;
   width: 140px;
   height: 140px;
-  overflow: hidden;
+  overflow: visible; /* allow shadow + scale to bleed outside */
   position: relative;
   cursor: default;
   margin: 0;
-
-  /* Only transition opacity — skip transform/box-shadow to
-     avoid triggering stacking context changes during animation. */
-  transition: opacity 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Default subdued state — all tiles dimmed at rest */
+  opacity: 0.4;
+  transition:
+    opacity   300ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease,
+    z-index   0ms;
+  z-index: 1;
 }
 
 .tile img {
@@ -104,36 +108,29 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Desaturated at rest */
-  filter: saturate(0.55) brightness(0.68);
-  transition: filter 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Desaturated + dark at rest */
+  filter: saturate(0.45) brightness(0.65);
+  transition: filter 300ms cubic-bezier(0.25, 0.1, 0.25, 1);
   user-select: none;
   pointer-events: none;
 }
 
-/* ── Pure-CSS hover: row acts as the hover context ───────
-   PERFORMANCE: siblings dim using ONLY opacity — a compositor-
-   friendly property that needs no repaint. We deliberately do
-   NOT transition `filter` on the non-hovered tiles: animating
-   saturate/brightness across hundreds of images at once forces
-   a full repaint every frame and causes the hover lag.
-
-   The expensive `filter` change is scoped to the single tile
-   the pointer is actually over, so only one image ever repaints.
+/* ── Pure-CSS hover ───────────────────────────────────────
+   The hovered tile lifts with scale + shadow.
+   Siblings in the same row stay dimmed (opacity only —
+   avoids repainting hundreds of filter values per frame).
    ─────────────────────────────────────────────────────── */
 
-/* When any tile in the row is hovered, dim the others (opacity only) */
-.row:has(.tile:hover) .tile {
-  opacity: 0.4;
-}
-
-/* The directly hovered tile stays fully opaque and gets colour back */
-.row:has(.tile:hover) .tile:hover {
+/* Hovered tile: full colour, lifted, paper shadow */
+.tile:hover {
   opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 4px 10px rgba(0, 0, 0, 0.25);
+  z-index: 30;
 }
 
 .tile:hover img {
-  filter: saturate(1) brightness(0.94);
+  filter: saturate(1) brightness(0.97);
 }
 
 /* ── Reduced motion: freeze all drift ────────────────── */
