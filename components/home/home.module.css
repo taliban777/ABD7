@@ -40,6 +40,22 @@
 
 
 
+/* Radial gradient scrim — sits behind the title, fades to transparent */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 42% at 50% 50%,
+    color-mix(in srgb, var(--background) 78%, transparent) 0%,
+    color-mix(in srgb, var(--background) 50%, transparent) 30%,
+    color-mix(in srgb, var(--background) 18%, transparent) 60%,
+    transparent 100%
+  );
+}
+
 @keyframes blockSettle {
   from {
     opacity: 0;
