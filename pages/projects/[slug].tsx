@@ -79,7 +79,7 @@ export default function ProjectPage({
                 .map((name) => ({ "@type": "Person", name })),
               dateCreated: project.year ? String(project.year) : undefined,
               artform: asArray(project.categories).map(valueLabel).filter(Boolean).join(", ") || undefined,
-              artMedium: asArray(project.medium).map(valueLabel).filter(Boolean).join(", ") || undefined,
+              artMedium: asArray(project.style).map(valueLabel).filter(Boolean).join(", ") || undefined,
               description: description,
               publisher: {
                 "@type": "Organization",

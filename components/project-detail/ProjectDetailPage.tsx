@@ -55,7 +55,7 @@ export function ProjectDetailPage({ project, allProjects }: ProjectDetailPagePro
   // Available images
   const hasFrontCover = !!project.frontCover;
   const hasBackCover = !!project.backCover;
-  const galleryImages = project.gallery ?? [] as string[];
+  const galleryImages = useMemo(() => project.gallery ?? ([] as string[]), [project.gallery]);
   const hasGallery = galleryImages.length > 0;
 
   // All images for lightbox: front → back → gallery
