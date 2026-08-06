@@ -100,6 +100,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   // Field-level errors shown after first submit attempt
   const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string }>({});
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -187,27 +188,50 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     setAttemptedSubmit(true);
     if (!validate()) return;
     setSubmitError(null);
+
+    // ── Step 1: upload any reference files to Blob first ──────────────────
+    let fileUrls: string[] = [];
+    if (files.length > 0) {
+      setUploadingFiles(true);
+      try {
+        const uploads = await Promise.all(
+          files.map(async (file) => {
+            const fd = new FormData();
+            fd.append("file", file, file.name);
+            const res = await fetch("/api/upload-reference", { method: "POST", body: fd });
+            const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+            if (!data.ok) throw new Error(data.error ?? "Upload failed");
+            return data.url as string;
+          })
+        );
+        fileUrls = uploads;
+      } catch (err) {
+        setUploadingFiles(false);
+        setSubmitError(err instanceof Error ? err.message : "File upload failed. Please try again.");
+        return;
+      }
+      setUploadingFiles(false);
+    }
+
+    // ── Step 2: submit the brief as JSON with Blob URLs ────────────────────
     setSending(true);
-
     try {
-      const fd = new FormData();
-      fd.append("website", ""); // honeypot — must remain empty
-      fd.append("name", form.name);
-      fd.append("email", form.email);
-      fd.append("clientType", form.clientType);
-      form.services.forEach((s) => fd.append("services", s));
-      fd.append("vision", form.vision);
-      fd.append("budget", String(form.budgetCustom));
-      fd.append("deadline", form.deadline);
-      if (form.specificDate) fd.append("specificDate", form.specificDate);
-      form.inspirations.forEach((p) => fd.append("inspirations", p.title));
-      // Attach reference files
-      files.forEach((f) => fd.append("files", f, f.name));
-
       const res = await fetch("/api/contact", {
         method: "POST",
-        body: fd,
-        // No Content-Type header — browser sets it with the multipart boundary
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          website: "", // honeypot — must remain empty
+          name: form.name,
+          email: form.email,
+          clientType: form.clientType,
+          services: form.services,
+          vision: form.vision,
+          budget: String(form.budgetCustom),
+          deadline: form.deadline,
+          specificDate: form.specificDate || undefined,
+          inspirations: form.inspirations.map((p) => p.title),
+          fileUrls,
+        }),
       });
 
       const data = (await res.json()) as { ok: boolean; error?: string };
@@ -694,9 +718,9 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={sending}
+              disabled={sending || uploadingFiles}
             >
-              {sending ? "Sending…" : "Submit Brief"}
+              {uploadingFiles ? "Uploading references…" : sending ? "Sending…" : "Submit Brief"}
             </button>
             {submitError && (
               <p className={styles.submitError} role="alert">
