@@ -105,18 +105,6 @@ export function ArchivePage({ projects = [], initialYear }: ArchivePageProps) {
       <main className={styles.archivePage}>
 
         {/* Editorial hero header */}
-        <header className={styles.archiveHero}>
-          <div className={styles.archiveHeroLeft}>
-            <h1 className={styles.archiveHeroTitle}>
-              The <em>Collection</em>
-            </h1>
-          </div>
-          <div className={styles.archiveHeroRight}>
-            <span className={styles.archiveHeroCount}>{safeProjects.length}</span>
-            <span className={styles.archiveHeroMeta}>Works catalogued</span>
-          </div>
-        </header>
-
         {/* Sticky toolbar */}
         <ArchiveToolbar
           isOpen={isOpen}
