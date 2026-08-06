@@ -16,7 +16,7 @@
 
 /* Frosted glass + shadow when scrolled */
 .navScrolled {
-  background: rgba(242, 240, 233, 0.88);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   box-shadow: 0 1px 0 var(--line), 0 4px 16px rgba(17, 17, 15, 0.06);
@@ -216,6 +216,30 @@
   font: 400 10px/1 var(--font-mono);
   color: var(--muted);
   letter-spacing: 0.08em;
+}
+
+/* =========================================================
+   Theme toggle button
+   ========================================================= */
+
+.themeToggle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.themeToggle:hover {
+  color: var(--foreground);
+  border-color: var(--foreground);
+  background: var(--surface);
 }
 
 /* =========================================================
