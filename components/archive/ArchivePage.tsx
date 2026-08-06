@@ -104,22 +104,6 @@ export function ArchivePage({ projects = [], initialYear }: ArchivePageProps) {
       <GlobalNav projects={safeProjects} />
       <main className={styles.archivePage} aria-label="Artwork archive">
 
-        {/* Editorial hero header */}
-        <header className={styles.archiveHero}>
-          <div className={styles.archiveHeroLeft}>
-            <p className={styles.archiveHeroLabel}>Archive</p>
-            <h1 className={styles.archiveHeroTitle}>
-              The <em>Collection</em>
-            </h1>
-          </div>
-          {safeProjects.length > 0 && (
-            <div className={styles.archiveHeroRight}>
-              <span className={styles.archiveHeroCount}>{safeProjects.length}</span>
-              <p className={styles.archiveHeroMeta}>Works</p>
-            </div>
-          )}
-        </header>
-
         {/* Sticky toolbar */}
         <ArchiveToolbar
           isOpen={isOpen}
