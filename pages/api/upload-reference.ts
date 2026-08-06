@@ -17,7 +17,7 @@ export default async function handler(
     const jsonResponse = await handleUpload({
       body: req.body,
       request: req,
-      onBeforeGenerateToken: async (pathname) => {
+      onBeforeGenerateToken: async () => {
         return {
           allowedContentTypes: [
             "image/jpeg",
