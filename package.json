@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@netlify/plugin-nextjs": "^5.15.13",
     "@plasmicapp/loader-nextjs": "^2.0.17",
     "@vercel/blob": "^2.7.0",
     "formidable": "^3.5.4",
