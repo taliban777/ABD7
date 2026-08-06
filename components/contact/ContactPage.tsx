@@ -55,6 +55,8 @@ const DEADLINES: Deadline[] = [
 
 const BUDGET_PRESETS: { label: string; value: number }[] = [
   { label: "$77", value: 77 },
+  { label: "$177", value: 177 },
+  { label: "$277", value: 277 },
   { label: "$777", value: 777 },
   { label: "$7,777", value: 7777 },
   { label: "$77,777", value: 77777 },
