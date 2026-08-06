@@ -12,7 +12,6 @@ export interface GlobalNavProps {
 
 const NAV_LINKS = [
   { label: "HOME", href: "/" },
-  { label: "COLLECTION", href: "/collection" },
   { label: "OTHERS", href: "/others" },
   { label: "CURATIONS", href: "/curations" },
 ] as const;

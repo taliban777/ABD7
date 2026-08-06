@@ -22,6 +22,7 @@ export default function CurationsRoute({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Curations — ARTBYDANI7" />
         <meta property="og:description" content="Five curated readings of the archive. Each exhibition proposes a different way of seeing." />
+        <link rel="canonical" href="https://artbydani7.com/curations" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://artbydani7.com/curations" />
         <meta property="og:image" content="https://artbydani7.com/og-image.png" />

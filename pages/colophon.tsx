@@ -20,6 +20,7 @@ export default function ColophonRoute({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Colophon — ARTBYDANI7" />
         <meta property="og:description" content="Technical notes and archive statistics for ARTBYDANI7." />
+        <link rel="canonical" href="https://artbydani7.com/colophon" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://artbydani7.com/colophon" />
         <meta property="og:image" content="https://artbydani7.com/og-image.png" />

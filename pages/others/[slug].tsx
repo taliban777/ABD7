@@ -36,6 +36,16 @@ export default function OtherPage({
           content={`${item.title}${item.type ? ` — ${item.type}` : ""}`}
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={`https://artbydani7.com/others/${otherSlug(item)}`} />
+        <meta property="og:title" content={`${item.title} — ARTBYDANI7`} />
+        <meta property="og:description" content={`${item.title}${item.type ? ` — ${item.type}` : ""}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://artbydani7.com/others/${otherSlug(item)}`} />
+        <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${item.title} — ARTBYDANI7`} />
+        <meta name="twitter:description" content={`${item.title}${item.type ? ` — ${item.type}` : ""}`} />
+        <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
       </Head>
       <GlobalNav projects={projects} />
       <OtherDetailPage item={item} allItems={allItems} />

@@ -21,6 +21,7 @@ export default function CollectionRoute({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Collection — ARTBYDANI7" />
         <meta property="og:description" content="A curated digital archive of artwork by ARTBYDANI7. Browse the complete collection." />
+        <link rel="canonical" href="https://artbydani7.com/collection" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://artbydani7.com/collection" />
         <meta property="og:image" content="https://artbydani7.com/og-image.png" />

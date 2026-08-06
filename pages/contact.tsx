@@ -19,6 +19,7 @@ export default function ContactRoute({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Begin a Project — ARTBYDANI7" />
         <meta property="og:description" content="Commission a project with ARTBYDANI7. Fill out the creative brief." />
+        <link rel="canonical" href="https://artbydani7.com/contact" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://artbydani7.com/contact" />
         <meta property="og:image" content="https://artbydani7.com/og-image.png" />

@@ -30,6 +30,16 @@ export default function PlasmicLoaderPage(props: {
           <title>ARTBYDANI7</title>
           <meta name="description" content="Independent art direction and visual archive." />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="canonical" href="https://artbydani7.com/" />
+          <meta property="og:title" content="ARTBYDANI7" />
+          <meta property="og:description" content="Independent art direction and visual archive." />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://artbydani7.com/" />
+          <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="ARTBYDANI7" />
+          <meta name="twitter:description" content="Independent art direction and visual archive." />
+          <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
         </Head>
         <HomePage projects={projects} />
       </>

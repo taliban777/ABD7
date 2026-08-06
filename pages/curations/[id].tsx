@@ -22,7 +22,9 @@ export default function ExhibitionRoute({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content={`${exhibition.number} — ${exhibition.title} | Curations — ARTBYDANI7`} />
         <meta property="og:description" content={exhibition.description[0] ?? `Exhibition ${exhibition.number}: ${exhibition.title}`} />
+        <link rel="canonical" href={`https://artbydani7.com/curations/${exhibition.id}`} />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://artbydani7.com/curations/${exhibition.id}`} />
         <meta property="og:image" content="https://artbydani7.com/og-image.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${exhibition.number} — ${exhibition.title} | Curations — ARTBYDANI7`} />
