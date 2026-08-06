@@ -73,9 +73,6 @@ export function OthersPage({ items, projects = [] }: OthersPageProps) {
         {/* Header */}
         <header className={styles.header}>
           <h1 className={styles.pageTitle}>OTHERS</h1>
-          <p className={styles.pageSubtitle}>
-            {safeItems.length} {safeItems.length === 1 ? "Entry" : "Entries"} in Archive
-          </p>
         </header>
 
         {/* Type filter buttons */}
