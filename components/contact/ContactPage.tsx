@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
+
 import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
@@ -198,11 +198,17 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
         // through the serverless function, so there is no payload size limit.
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const blob = await upload(file.name, file, {
-              access: "public",
-              handleUploadUrl: "/api/upload-reference",
+            const res = await fetch("/api/upload-reference", {
+              method: "POST",
+              headers: {
+                "Content-Type": file.type,
+                "x-filename": encodeURIComponent(file.name),
+              },
+              body: file,
             });
-            return blob.url;
+            const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+            if (!data.ok) throw new Error(data.error ?? "Upload failed");
+            return data.url as string;
           })
         );
         fileUrls = uploads;
