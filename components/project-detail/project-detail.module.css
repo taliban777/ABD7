@@ -147,13 +147,14 @@
 }
 
 .metadataPair dt {
-  flex: 0 0 80px;
+  flex: 0 0 96px;
   min-width: 0;
   font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .metadataPair dd {
