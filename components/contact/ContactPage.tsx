@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
@@ -147,19 +148,10 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       inspirations: f.inspirations.filter((p) => p.id !== id),
     }));
 
-  // Vercel's serverless platform hard-limits request bodies to 4.5 MB.
-  // Enforce 4 MB client-side so users see a clear error instead of a
-  // cryptic FUNCTION_PAYLOAD_TOO_LARGE platform rejection.
-  const MAX_FILE_BYTES = 4 * 1024 * 1024;
-
+  // Files are uploaded directly from the browser to Vercel Blob's edge
+  // (client upload), so there is no serverless function payload limit.
   const filterFiles = (incoming: File[]): File[] => {
-    const oversized = incoming.filter((f) => f.size > MAX_FILE_BYTES);
-    if (oversized.length > 0) {
-      setSubmitError(
-        `File${oversized.length > 1 ? "s" : ""} too large: ${oversized.map((f) => f.name).join(", ")}. Each file must be under 4 MB.`
-      );
-    }
-    return incoming.filter((f) => f.type.startsWith("image/") && f.size <= MAX_FILE_BYTES);
+    return incoming.filter((f) => f.type.startsWith("image/"));
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -197,31 +189,20 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     if (!validate()) return;
     setSubmitError(null);
 
-    // Guard against any oversized files before hitting the API
-    const oversized = files.filter((f) => f.size > MAX_FILE_BYTES);
-    if (oversized.length > 0) {
-      setSubmitError(
-        `File${oversized.length > 1 ? "s" : ""} too large: ${oversized.map((f) => f.name).join(", ")}. Each file must be under 4 MB.`
-      );
-      return;
-    }
-
     let fileUrls: string[] = [];
     if (files.length > 0) {
       setUploadingFiles(true);
       try {
+        // upload() sends files directly from the browser to Vercel Blob's edge.
+        // The API route only issues a short-lived token — no file bytes pass
+        // through the serverless function, so there is no payload size limit.
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const fd = new FormData();
-            fd.append("file", file, file.name);
-            const res = await fetch("/api/upload-reference", { method: "POST", body: fd });
-            if (!res.ok && res.headers.get("content-type")?.includes("application/json") === false) {
-              // Vercel platform rejection (e.g. payload too large) — not JSON
-              throw new Error("File too large. Please keep each file under 4 MB.");
-            }
-            const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
-            if (!data.ok) throw new Error(data.error ?? "Upload failed");
-            return data.url as string;
+            const blob = await upload(file.name, file, {
+              access: "public",
+              handleUploadUrl: "/api/upload-reference",
+            });
+            return blob.url;
           })
         );
         fileUrls = uploads;
@@ -460,7 +441,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                   Drag &amp; drop images, or click to browse
                 </span>
                 <span className={styles.dropzoneHint}>
-                  JPG, PNG, WEBP, GIF — multiple files supported
+                  JPG, PNG, WEBP, GIF — no size limit, multiple files supported
                 </span>
                 <input
                   ref={fileInputRef}
