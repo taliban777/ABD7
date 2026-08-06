@@ -100,6 +100,9 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  // Field-level errors shown after first submit attempt
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string }>({});
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   // envelope animation: idle → folding → sealed → open
   const [envelopeStage, setEnvelopeStage] = useState<"idle" | "folding" | "sealed" | "open">("idle");
   const [dragActive, setDragActive] = useState(false);
@@ -167,8 +170,22 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
   const removeFile = (index: number) =>
     setFiles((prev) => prev.filter((_, i) => i !== index));
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  const validate = (): boolean => {
+    const errors: { name?: string; email?: string } = {};
+    if (!form.name.trim()) errors.name = "Name is required.";
+    else if (form.name.trim().length > 120) errors.name = "Name is too long.";
+    if (!form.email.trim()) errors.email = "Email is required.";
+    else if (!EMAIL_RE.test(form.email.trim())) errors.email = "Enter a valid email address.";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
+    if (!validate()) return;
     setSubmitError(null);
     setSending(true);
 
@@ -629,29 +646,45 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                 <span className={styles.fieldName}>Email</span>
                 <input
                   type="email"
-                  className={styles.fieldInput}
+                  className={`${styles.fieldInput} ${fieldErrors.email ? styles.fieldInputError : ""}`}
                   placeholder="your@email.com"
                   value={form.email}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, email: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, email: e.target.value }));
+                    if (attemptedSubmit) setFieldErrors((fe) => ({ ...fe, email: undefined }));
+                  }}
                   required
                   aria-required="true"
+                  aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                  aria-invalid={!!fieldErrors.email}
                 />
+                {fieldErrors.email && (
+                  <span id="email-error" className={styles.fieldError} role="alert">
+                    {fieldErrors.email}
+                  </span>
+                )}
               </label>
               <label className={styles.fieldLabel}>
                 <span className={styles.fieldName}>Name</span>
                 <input
                   type="text"
-                  className={styles.fieldInput}
+                  className={`${styles.fieldInput} ${fieldErrors.name ? styles.fieldInputError : ""}`}
                   placeholder="Your name or organisation"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, name: e.target.value }));
+                    if (attemptedSubmit) setFieldErrors((fe) => ({ ...fe, name: undefined }));
+                  }}
                   required
                   aria-required="true"
+                  aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                  aria-invalid={!!fieldErrors.name}
                 />
+                {fieldErrors.name && (
+                  <span id="name-error" className={styles.fieldError} role="alert">
+                    {fieldErrors.name}
+                  </span>
+                )}
               </label>
             </div>
           </section>
@@ -661,7 +694,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={!form.email || !form.name || sending}
+              disabled={sending}
             >
               {sending ? "Sending…" : "Submit Brief"}
             </button>

@@ -64,6 +64,31 @@ export default function ProjectPage({
         <meta name="twitter:title" content={`${project.title} — ARTBYDANI7`} />
         <meta name="twitter:description" content={description} />
         {project.frontCover && <meta name="twitter:image" content={getOgImageUrl(project.frontCover)} />}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "VisualArtwork",
+              name: project.title,
+              url: `https://artbydani7.com/projects/${projectSlug(project)}`,
+              image: project.frontCover ? getOgImageUrl(project.frontCover) : undefined,
+              creator: asArray(project.artists)
+                .map(valueLabel)
+                .filter(Boolean)
+                .map((name) => ({ "@type": "Person", name })),
+              dateCreated: project.year ? String(project.year) : undefined,
+              artform: asArray(project.categories).map(valueLabel).filter(Boolean).join(", ") || undefined,
+              artMedium: asArray(project.medium).map(valueLabel).filter(Boolean).join(", ") || undefined,
+              description: description,
+              publisher: {
+                "@type": "Organization",
+                name: "ARTBYDANI7",
+                url: "https://artbydani7.com",
+              },
+            }),
+          }}
+        />
       </Head>
       <GlobalNav projects={allProjects} />
       <ProjectDetailPage project={project} allProjects={allProjects} />
