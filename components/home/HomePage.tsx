@@ -69,14 +69,14 @@ export default function HomePage({ projects = [] }: HomePageProps) {
 
   return (
     <div className={styles.root}>
-      {/* ── Strip wall layer (CMS artwork behind the paper block) ── */}
+      {/* ── Strip wall layer — full bleed, interactive ── */}
       <div className={styles.stripLayer}>
         <ArtworkStripWall projects={projects} />
       </div>
 
-      {/* ── Hero panel (opaque paper block + typography) ─────────── */}
+      {/* ── Floating glassmorphic overlay ── */}
       <div ref={panelRef} className={styles.panel}>
-        <div className={styles.paperBlock}>
+        <div className={styles.glassCard}>
           <h1 className={styles.title}>ARTBYDANI7</h1>
 
           <button
