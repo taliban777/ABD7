@@ -27,10 +27,8 @@ function getInitialTheme(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (stored === "light" || stored === "dark") return stored;
-    // Respect OS preference only on first visit
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    // Default to light regardless of OS preference
+    return "light";
   } catch {
     return "light";
   }
