@@ -18,6 +18,15 @@ export default function OthersRoute({
           content="The wider creative archive of ARTBYDANI7 — posters, branding, logos, experiments and design artefacts."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Others — ARTBYDANI7" />
+        <meta property="og:description" content="The wider creative archive of ARTBYDANI7 — posters, branding, logos, experiments and design artefacts." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://artbydani7.com/others" />
+        <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Others — ARTBYDANI7" />
+        <meta name="twitter:description" content="The wider creative archive of ARTBYDANI7 — posters, branding, logos, experiments and design artefacts." />
+        <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
       </Head>
       <OthersPage items={items} projects={projects} />
     </>

@@ -114,7 +114,6 @@
   padding: 13px 30px;
   line-height: 1;
   border-radius: 0;
-  outline: none;
   /* Smooth inversion — no jump */
   transition:
     background 0.28s ease,
@@ -150,6 +149,29 @@
   transition: transform 0.42s ease;
   transform: translateY(-104%) !important;
   pointer-events: none;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .paperBlock {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .enterBtn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .panelLift {
+    transition-duration: 0.01ms !important;
+  }
+
+  .panelLiftReduced {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */

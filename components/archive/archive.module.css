@@ -904,6 +904,19 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .card:hover .imageFrame::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* =============================================================================
    Responsive
    ============================================================================= */

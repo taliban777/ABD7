@@ -17,6 +17,15 @@ export default function ContactRoute({
           content="Commission a project with ARTBYDANI7. Fill out the creative brief."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Begin a Project — ARTBYDANI7" />
+        <meta property="og:description" content="Commission a project with ARTBYDANI7. Fill out the creative brief." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://artbydani7.com/contact" />
+        <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Begin a Project — ARTBYDANI7" />
+        <meta name="twitter:description" content="Commission a project with ARTBYDANI7. Fill out the creative brief." />
+        <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
       </Head>
       <ContactPage projects={projects} />
     </>

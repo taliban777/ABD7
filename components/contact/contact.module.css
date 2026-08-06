@@ -537,6 +537,13 @@
   color: var(--muted);
 }
 
+.submitError {
+  font: 400 11px/1.5 var(--font-mono);
+  color: #b94343;
+  margin-top: 4px;
+  flex: 1 1 100%;
+}
+
 /* ═══════════════════════════════════════
    ENVELOPE SUBMISSION ANIMATION
    ═══════════════════════════════════════ */

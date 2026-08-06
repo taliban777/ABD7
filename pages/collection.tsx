@@ -17,8 +17,17 @@ export default function CollectionRoute({
     <>
       <Head>
         <title>Collection — ARTBYDANI7</title>
-        <meta name="description" content="The ARTBYDANI7 project archive." />
+        <meta name="description" content="A curated digital archive of artwork by ARTBYDANI7. Browse the complete collection." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Collection — ARTBYDANI7" />
+        <meta property="og:description" content="A curated digital archive of artwork by ARTBYDANI7. Browse the complete collection." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://artbydani7.com/collection" />
+        <meta property="og:image" content="https://artbydani7.com/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Collection — ARTBYDANI7" />
+        <meta name="twitter:description" content="A curated digital archive of artwork by ARTBYDANI7. Browse the complete collection." />
+        <meta name="twitter:image" content="https://artbydani7.com/og-image.png" />
       </Head>
       <ArchivePage projects={projects} initialYear={yearParam} />
     </>
