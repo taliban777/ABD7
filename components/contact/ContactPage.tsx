@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-
 import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, valueLabel } from "@/components/archive/types";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import { upload } from "@vercel/blob/client";
 
 export interface ContactPageProps {
   projects?: CmsProject[];
@@ -148,8 +148,6 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       inspirations: f.inspirations.filter((p) => p.id !== id),
     }));
 
-  // Files are uploaded directly from the browser to Vercel Blob's edge
-  // (client upload), so there is no serverless function payload limit.
   const filterFiles = (incoming: File[]): File[] => {
     return incoming.filter((f) => f.type.startsWith("image/"));
   };
@@ -193,22 +191,17 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     if (files.length > 0) {
       setUploadingFiles(true);
       try {
-        // upload() sends files directly from the browser to Vercel Blob's edge.
-        // The API route only issues a short-lived token — no file bytes pass
-        // through the serverless function, so there is no payload size limit.
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const res = await fetch("/api/upload-reference", {
-              method: "POST",
-              headers: {
-                "Content-Type": file.type,
-                "x-filename": encodeURIComponent(file.name),
-              },
-              body: file,
-            });
-            const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
-            if (!data.ok) throw new Error(data.error ?? "Upload failed");
-            return data.url as string;
+            const newBlob = await upload(
+              `contact-references/${Date.now()}-${file.name}`,
+              file,
+              {
+                access: "public",
+                handleUploadUrl: "/api/upload-reference",
+              }
+            );
+            return newBlob.url;
           })
         );
         fileUrls = uploads;
