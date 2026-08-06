@@ -154,7 +154,8 @@
 .metadataPair dd {
   flex: 1 1 auto;
   min-width: 0;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .metadataPair dt {
@@ -167,24 +168,6 @@
 .metadataPair dd {
   font: 400 12px/1.4 var(--font-sans);
   color: var(--foreground);
-}
-
-/* Style descriptor tags — inline pills that wrap naturally */
-.styleTagRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding-top: 1px;
-}
-
-.styleTag {
-  font: 500 8px/1 var(--font-mono);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  padding: 4px 7px;
-  white-space: nowrap;
 }
 
 /* Palette mini-strip in sidebar */
@@ -743,11 +726,11 @@
 
 @media (max-width: 640px) {
   .metadataPair {
-    grid-template-columns: minmax(120px, 34%) minmax(0, 1fr);
-    gap: 20px;
+    gap: 12px;
   }
 
   .metadataPair dt {
+    flex: 0 0 72px;
     white-space: nowrap;
   }
 
