@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { getProjectImageUrl } from '@/components/images/cloudinary';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import styles from './project-detail.module.css';
 
 export interface LightboxProps {
@@ -15,6 +16,9 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
   // Touch tracking for swipe gestures
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+
+  // Trap focus within the dialog while it is open; restore focus on close.
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
 
   // ── Body scroll lock ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -72,11 +76,13 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
 
   return (
     <div
+      ref={trapRef}
       className={styles.lightboxOverlay}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Lightbox: ${currentImage.alt}`}
+      tabIndex={-1}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

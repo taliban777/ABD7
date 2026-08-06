@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import styles from "./nav.module.css";
 import type { CmsProject } from "@/components/archive/types";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useTheme } from "@/context/ThemeContext";
 
 export interface GlobalNavProps {
@@ -49,6 +50,8 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const mobileAlbumsInYear = mobileYear ? getProjectsByYear(projects, mobileYear) : [];
   const { progress, scrolled } = useScrollProgress();
   const { theme, toggleTheme } = useTheme();
+  // Trap focus within the mobile menu dialog while open; restore on close.
+  const mobileMenuRef = useFocusTrap<HTMLDivElement>(mobileOpen);
 
   // Close menus on route change
   useEffect(() => {
@@ -293,11 +296,13 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
       {/* Mobile menu overlay */}
       {mobileOpen && (
         <div
+          ref={mobileMenuRef}
           id="mobile-menu"
           className={styles.mobileMenu}
           role="dialog"
           aria-modal="true"
           aria-label="Site navigation"
+          tabIndex={-1}
         >
           <ul className={styles.mobileLinks} role="list">
           {NAV_LINKS.map(({ label, href }) => (
@@ -319,7 +324,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
               <button
                 type="button"
                 className={styles.mobileLink}
-                aria-expanded={mobileYear !== null || years.length > 0}
+                aria-expanded={mobileYear !== null}
                 onClick={() => setMobileYear((y) => (y === null ? (years[0] ?? null) : null))}
               >
                 PROJECTS

@@ -35,24 +35,29 @@ function getInitialTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  // Start from the SSR default so the first client render matches the server
+  // HTML exactly — this prevents hydration mismatches in theme-dependent UI
+  // (e.g. the nav toggle icon). There is NO visual flash: the inline script in
+  // _document.tsx has already set <html data-theme> to the stored value before
+  // first paint. We reconcile React state to that stored value right after mount.
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Resolve theme after mount (avoids SSR mismatch)
+  // After hydration, adopt the persisted theme (post-hydration update, safe).
   useEffect(() => {
-    const resolved = getInitialTheme();
-    setTheme(resolved);
-    setMounted(true);
+    setTheme(getInitialTheme());
+    setHydrated(true);
   }, []);
 
-  // Sync to <html data-theme="..."> and localStorage
+  // Sync to <html data-theme="..."> and localStorage. Skip the first run so we
+  // don't clobber the attribute the bootstrap script set before reconciliation.
   useEffect(() => {
-    if (!mounted) return;
+    if (!hydrated) return;
     document.documentElement.setAttribute("data-theme", theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {}
-  }, [theme, mounted]);
+  }, [theme, hydrated]);
 
   const toggleTheme = () =>
     setTheme((t) => (t === "light" ? "dark" : "light"));
