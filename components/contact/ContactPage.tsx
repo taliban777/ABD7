@@ -174,6 +174,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
 
     try {
       const fd = new FormData();
+      fd.append("website", ""); // honeypot — must remain empty
       fd.append("name", form.name);
       fd.append("email", form.email);
       fd.append("clientType", form.clientType);
@@ -331,6 +332,15 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
 
           {/* ─── Right: brief builder ─── */}
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
+            {/* Honeypot — hidden from real users, bots fill it and get silently rejected */}
+            <input
+              type="text"
+              name="website"
+              aria-hidden="true"
+              tabIndex={-1}
+              autoComplete="off"
+              style={{ position: "absolute", left: "-9999px", opacity: 0, pointerEvents: "none" }}
+            />
           {/* ─── 1. Who are you? ─── */}
           <section className={styles.section}>
             <h2 className={styles.sectionLabel}>01 — Who are you?</h2>

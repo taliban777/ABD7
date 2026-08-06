@@ -7,6 +7,46 @@ import path from "path";
 // Disable Next.js body parser so formidable can handle multipart
 export const config = { api: { bodyParser: false } };
 
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// Simple in-memory store: IP → { count, windowStart }
+// Resets per deploy (stateless), good enough for a personal portfolio.
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5; // max submissions per IP per hour
+const ipStore = new Map<string, { count: number; windowStart: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipStore.get(ip);
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    ipStore.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return true;
+  entry.count++;
+  return false;
+}
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif",
+  "application/pdf",
+]);
+
+const ALLOWED_SERVICES = new Set([
+  "Creative Direction", "Photography", "Art Direction",
+  "Visual Identity", "Retouching", "Consultation",
+]);
+
+const ALLOWED_CLIENT_TYPES = new Set([
+  "Individual", "Brand", "Agency", "Record Label", "Other",
+]);
+
+const ALLOWED_DEADLINES = new Set([
+  "Flexible", "1–2 Weeks", "1 Month", "3 Months", "Specific Date",
+]);
+
 type ApiResponse = { ok: true } | { ok: false; error: string };
 
 /** Parse a multipart request with formidable */
@@ -52,6 +92,16 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
+  // ─── Rate limit ───────────────────────────────────────────────────────────
+  const ip =
+    (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim() ??
+    req.socket.remoteAddress ??
+    "unknown";
+
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ ok: false, error: "Too many submissions. Please try again later." });
+  }
+
   let fields: formidable.Fields;
   let uploadedFiles: formidable.Files;
 
@@ -61,18 +111,61 @@ export default async function handler(
     return res.status(400).json({ ok: false, error: "Could not parse form data." });
   }
 
-  const name = field(fields.name);
-  const email = field(fields.email);
-  const clientType = field(fields.clientType);
+  // ─── Honeypot — bots fill hidden fields, humans don't ────────────────────
+  if (field(fields.website)) {
+    // Silently accept to avoid tipping off bots
+    return res.status(200).json({ ok: true });
+  }
+
+  const name = field(fields.name).trim();
+  const email = field(fields.email).trim().toLowerCase();
+  const clientType = field(fields.clientType).trim();
   const services = fieldArray(fields.services);
-  const vision = field(fields.vision);
+  const vision = field(fields.vision).trim();
   const budget = field(fields.budget);
-  const deadline = field(fields.deadline);
-  const specificDate = field(fields.specificDate);
+  const deadline = field(fields.deadline).trim();
+  const specificDate = field(fields.specificDate).trim();
   const inspirations = fieldArray(fields.inspirations);
 
-  if (!name || !email) {
-    return res.status(400).json({ ok: false, error: "Name and email are required." });
+  // ─── Required fields ─────────────────────────────────────────────────────
+  if (!name) {
+    return res.status(400).json({ ok: false, error: "Name is required." });
+  }
+  if (name.length > 120) {
+    return res.status(400).json({ ok: false, error: "Name is too long." });
+  }
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "Email is required." });
+  }
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ ok: false, error: "Please enter a valid email address." });
+  }
+  if (email.length > 254) {
+    return res.status(400).json({ ok: false, error: "Email is too long." });
+  }
+
+  // ─── Optional field sanitisation ─────────────────────────────────────────
+  if (clientType && !ALLOWED_CLIENT_TYPES.has(clientType)) {
+    return res.status(400).json({ ok: false, error: "Invalid client type." });
+  }
+  if (services.some((s) => !ALLOWED_SERVICES.has(s))) {
+    return res.status(400).json({ ok: false, error: "Invalid service selection." });
+  }
+  if (vision.length > 4000) {
+    return res.status(400).json({ ok: false, error: "Vision is too long (max 4000 characters)." });
+  }
+  const budgetNum = Number(budget);
+  if (budget && (isNaN(budgetNum) || budgetNum < 0 || budgetNum > 10_000_000)) {
+    return res.status(400).json({ ok: false, error: "Invalid budget value." });
+  }
+  if (deadline && !ALLOWED_DEADLINES.has(deadline)) {
+    return res.status(400).json({ ok: false, error: "Invalid deadline option." });
+  }
+  if (specificDate && !/^\d{4}-\d{2}-\d{2}$/.test(specificDate)) {
+    return res.status(400).json({ ok: false, error: "Invalid date format." });
+  }
+  if (inspirations.some((s) => s.length > 200)) {
+    return res.status(400).json({ ok: false, error: "Inspiration entry is too long." });
   }
 
   const deadlineDisplay =
@@ -80,7 +173,6 @@ export default async function handler(
       ? `Specific Date — ${specificDate}`
       : deadline || "—";
 
-  const budgetNum = Number(budget);
   const budgetDisplay = budgetNum > 0 ? `$${budgetNum.toLocaleString("en-US")}` : "—";
 
   const html = `
@@ -126,12 +218,19 @@ export default async function handler(
   <p style="margin-top:32px;font-size:10px;color:#6f6d66;">Sent via artbydani7.com contact form</p>
 </div>`.trim();
 
-  // Build nodemailer attachments from uploaded files
+  // ─── File validation ─────────────────────────────────────────────────────
   const fileList = uploadedFiles.files
     ? Array.isArray(uploadedFiles.files)
       ? uploadedFiles.files
       : [uploadedFiles.files]
     : [];
+
+  for (const f of fileList) {
+    const file = f as formidable.File;
+    if (file.mimetype && !ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      return res.status(400).json({ ok: false, error: `File type not allowed: ${file.mimetype}. Please upload images or PDFs only.` });
+    }
+  }
 
   const attachments: nodemailer.SendMailOptions["attachments"] = fileList
     .filter((f): f is formidable.File => !!f && typeof (f as formidable.File).filepath === "string")
