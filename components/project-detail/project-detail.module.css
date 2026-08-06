@@ -82,7 +82,7 @@
 
 .heroLayout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 280px 1fr;
   min-height: calc(100vh - 56px - 56px); /* viewport minus nav and breadcrumb */
 }
 
@@ -195,12 +195,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 40px 48px;
 }
 
 .artworkSingleContainer {
   width: 100%;
-  max-width: 780px;
+  max-width: 960px;
   cursor: zoom-in;
   border: 0;
   background: transparent;
@@ -215,9 +215,9 @@
 .artworkDualContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 32px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 100%;
 }
 
 .artworkSide {
@@ -662,10 +662,13 @@
 
 @media (max-width: 1100px) {
   .heroLayout {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 260px 1fr;
   }
   .title {
     font-size: 30px;
+  }
+  .artworkSection {
+    padding: 32px 36px;
   }
 }
 
