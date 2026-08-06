@@ -56,16 +56,17 @@ html, body {
   --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.72);
 }
 
-html {
-  color-scheme: light dark;
-}
-
 [data-theme="light"] {
   color-scheme: light;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
+}
+
+/* Fallback before JS applies data-theme — matches the bootstrap script default */
+:root:not([data-theme]) {
+  color-scheme: light;
 }
 
 body {

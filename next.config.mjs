@@ -1,11 +1,6 @@
-import crypto from "crypto";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Guarantee a unique build ID on every dev restart so stale chunk
-  // references from a previous .next build are never served.
-  generateBuildId: async () => crypto.randomUUID(),
   // The archive route was renamed from /test to /collection. Redirect any
   // lingering references so there are no broken routes in production.
   async redirects() {
@@ -22,6 +17,8 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
       // Immutable cache for Next.js hashed static chunks (JS/CSS)

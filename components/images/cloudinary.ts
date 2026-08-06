@@ -130,6 +130,20 @@ export function getOthersImageUrl(url: string): string {
 }
 
 /**
+ * Get an Open Graph image URL — 1200×630 crop for social sharing previews.
+ * Crawlers (Facebook, Twitter, Slack, iMessage) time out on large originals.
+ * Parameters: w_1200,h_630,c_fill,g_auto,q_auto:good,f_jpg
+ * - c_fill + g_auto: smart centre crop to OG dimensions
+ * - f_jpg: force JPEG — PNG is blocked by some crawlers, WebP by others
+ */
+export function getOgImageUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_1200,h_630,c_fill,g_auto,q_auto:good,f_jpg");
+}
+
+/**
  * Get a hero image URL for the Others detail page — high res, aspect-ratio preserved.
  */
 export function getOthersHeroImageUrl(url: string): string {
