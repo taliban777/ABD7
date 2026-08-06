@@ -12,12 +12,10 @@ export interface ContactPageProps {
 
 type ClientType = "Agency" | "Artist" | "Record Label" | "Brand" | "Business" | "Other";
 type ServiceType =
-  | "Album Cover"
-  | "EP"
-  | "Single"
+  | "Creative Direction"
+  | "Single Art"
   | "Brand Identity"
   | "Print"
-  | "Creative Direction"
   | "Other";
 type BudgetRange =
   | "Under $500"
@@ -41,12 +39,10 @@ const CLIENT_TYPES: ClientType[] = [
   "Other",
 ];
 const SERVICE_TYPES: ServiceType[] = [
-  "Album Cover",
-  "EP",
-  "Single",
+  "Creative Direction",
+  "Single Art",
   "Brand Identity",
   "Print",
-  "Creative Direction",
   "Other",
 ];
 const DEADLINES: Deadline[] = [
@@ -57,13 +53,17 @@ const DEADLINES: Deadline[] = [
   "Specific Date",
 ];
 
+// All selectable values contain only 7s (7, 77, 777, …). The slider snaps to the nearest.
+const LUCKY_VALUES = [7, 77, 777, 7777, 77777, 777777];
+
 const BUDGET_PRESETS: { label: string; value: number }[] = [
-  { label: "$1K", value: 1000 },
-  { label: "$5K", value: 5000 },
-  { label: "$15K", value: 15000 },
-  { label: "$50K", value: 50000 },
-  { label: "$100K+", value: 100000 },
+  { label: "$77", value: 77 },
+  { label: "$777", value: 777 },
+  { label: "$7,777", value: 7777 },
+  { label: "$77,777", value: 77777 },
+  { label: "$77,777+", value: 777777 },
 ];
+
 
 interface FormState {
   clientType: ClientType | "";
@@ -84,7 +84,7 @@ const INITIAL: FormState = {
   vision: "",
   inspirations: [],
   budget: "",
-  budgetCustom: 0,
+  budgetCustom: 7,
   deadline: "",
   specificDate: "",
   email: "",
@@ -178,7 +178,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             <h1 className={styles.confirmationTitle}>Brief Received</h1>
             <p className={styles.confirmationBody}>
               Thank you, {form.name || "for reaching out"}. Your project brief
-              has been received. Expect a response within 2–3 business days.
+              has been received. Expect a response within 7–77 hours.
             </p>
             <button
               type="button"
@@ -213,28 +213,21 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                 answered personally.
               </p>
 
-              <div className={styles.statusRow}>
-                <span className={styles.statusDot} aria-hidden="true" />
-                <span className={styles.statusText}>
-                  Currently taking commissions for Q3 / Q4
-                </span>
-              </div>
-
               <dl className={styles.contextMeta}>
                 <div className={styles.metaBlock}>
                   <dt className={styles.metaLabel}>Direct</dt>
                   <dd className={styles.metaValue}>
                     <a
-                      href="mailto:studio@artbydani7.com"
+                      href="mailto:info@artbydani7.com"
                       className={styles.metaLink}
                     >
-                      studio@artbydani7.com
+                      info@artbydani7.com
                     </a>
                   </dd>
                 </div>
                 <div className={styles.metaBlock}>
                   <dt className={styles.metaLabel}>Response time</dt>
-                  <dd className={styles.metaValue}>2–3 business days</dd>
+                  <dd className={styles.metaValue}>7–77 hours</dd>
                 </div>
               </dl>
             </div>
@@ -486,20 +479,21 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
               className={styles.budgetTrack}
               style={{
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ["--fill" as any]: `${(form.budgetCustom / 1000000) * 100}%`,
+                ["--fill" as any]: `${(LUCKY_VALUES.indexOf(form.budgetCustom) / (LUCKY_VALUES.length - 1)) * 100}%`,
               }}
             >
               <input
                 type="range"
                 min="0"
-                max="1000000"
-                step="10000"
-                value={form.budgetCustom}
+                max={LUCKY_VALUES.length - 1}
+                step="1"
+                value={LUCKY_VALUES.indexOf(form.budgetCustom)}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, budgetCustom: Number(e.target.value) }))
+                  setForm((f) => ({ ...f, budgetCustom: LUCKY_VALUES[Number(e.target.value)] }))
                 }
                 className={styles.budgetSlider}
                 aria-label="Budget range slider"
+                aria-valuetext={`$${form.budgetCustom.toLocaleString("en-US")}`}
               />
             </div>
             <div className={styles.budgetPresets}>
@@ -565,9 +559,7 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             >
               Submit Brief
             </button>
-            <span className={styles.submitNote}>
-              Response within 2–3 business days.
-            </span>
+
           </div>
           </form>
         </div>
