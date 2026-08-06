@@ -1,36 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { put } from "@vercel/blob";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "application/pdf",
-]);
-
-function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-
-    stream.on("data", (chunk) => {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    });
-
-    stream.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
-
-    stream.on("error", reject);
-  });
-}
+import { handleUpload } from "@vercel/blob/client";
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,58 +13,37 @@ export default async function handler(
     });
   }
 
-  const filename = req.headers["x-filename"] as string | undefined;
-
-  const contentType =
-    (req.headers["content-type"] as string | undefined) ??
-    "application/octet-stream";
-
-  if (!filename) {
-    return res.status(400).json({
-      ok: false,
-      error: "Missing filename",
-    });
-  }
-
-  const mime = contentType.split(";")[0].trim();
-
-  if (!ALLOWED_TYPES.has(mime)) {
-    return res.status(400).json({
-      ok: false,
-      error: "File type not allowed",
-    });
-  }
-
   try {
-    const buffer = await streamToBuffer(req);
-
-    // Hard safety limit
-    if (buffer.length > 4 * 1024 * 1024) {
-      return res.status(413).json({
-        ok: false,
-        error: "File exceeds 4MB limit",
-      });
-    }
-
-    const blob = await put(
-      `contact-references/${Date.now()}-${filename}`,
-      buffer,
-      {
-        access: "public",
-        contentType: mime,
-      }
-    );
-
-    return res.status(200).json({
-      ok: true,
-      url: blob.url,
+    const jsonResponse = await handleUpload({
+      body: req.body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        return {
+          allowedContentTypes: [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "application/pdf",
+          ],
+          maximumSizeInBytes: 20 * 1024 * 1024, // 20MB limit
+          tokenPayload: JSON.stringify({}),
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        // This fires asynchronously once the client finishes the upload
+        console.log("Upload completed:", blob.url);
+      },
     });
+
+    return res.status(200).json(jsonResponse);
   } catch (error) {
     console.error("[upload-reference]", error);
-
-    return res.status(500).json({
+    
+    return res.status(400).json({
       ok: false,
-      error: "Upload failed",
+      error: (error as Error).message,
     });
   }
 }
