@@ -3,8 +3,16 @@ import formidable from "formidable";
 import fs from "fs";
 import { put } from "@vercel/blob";
 
-// Disable Next.js body parser so formidable can handle multipart
-export const config = { api: { bodyParser: false } };
+// Disable Next.js body parser so formidable can handle multipart.
+// responseLimit and bodyParser.sizeLimit cap at 4 MB to stay under
+// Vercel's hard 4.5 MB platform limit for serverless function payloads.
+export const config = {
+  api: {
+    bodyParser: false,
+    responseLimit: false,
+    sizeLimit: "4mb",
+  },
+};
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -15,8 +23,8 @@ const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
 ]);
 
-// 20 MB per file
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+// 4 MB per file — must stay under Vercel's 4.5 MB platform limit
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 type ApiResponse = { ok: true; url: string } | { ok: false; error: string };
 

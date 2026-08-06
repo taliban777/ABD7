@@ -147,19 +147,31 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       inspirations: f.inspirations.filter((p) => p.id !== id),
     }));
 
+  // Vercel's serverless platform hard-limits request bodies to 4.5 MB.
+  // Enforce 4 MB client-side so users see a clear error instead of a
+  // cryptic FUNCTION_PAYLOAD_TOO_LARGE platform rejection.
+  const MAX_FILE_BYTES = 4 * 1024 * 1024;
+
+  const filterFiles = (incoming: File[]): File[] => {
+    const oversized = incoming.filter((f) => f.size > MAX_FILE_BYTES);
+    if (oversized.length > 0) {
+      setSubmitError(
+        `File${oversized.length > 1 ? "s" : ""} too large: ${oversized.map((f) => f.name).join(", ")}. Each file must be under 4 MB.`
+      );
+    }
+    return incoming.filter((f) => f.type.startsWith("image/") && f.size <= MAX_FILE_BYTES);
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    const dropped = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith("image/")
-    );
+    const dropped = filterFiles(Array.from(e.dataTransfer.files));
     setFiles((prev) => [...prev, ...dropped]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files ?? []).filter((f) =>
-      f.type.startsWith("image/")
-    );
+    const selected = filterFiles(Array.from(e.target.files ?? []));
     setFiles((prev) => [...prev, ...selected]);
     e.target.value = "";
   };
@@ -185,6 +197,15 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     if (!validate()) return;
     setSubmitError(null);
 
+    // Guard against any oversized files before hitting the API
+    const oversized = files.filter((f) => f.size > MAX_FILE_BYTES);
+    if (oversized.length > 0) {
+      setSubmitError(
+        `File${oversized.length > 1 ? "s" : ""} too large: ${oversized.map((f) => f.name).join(", ")}. Each file must be under 4 MB.`
+      );
+      return;
+    }
+
     let fileUrls: string[] = [];
     if (files.length > 0) {
       setUploadingFiles(true);
@@ -194,6 +215,10 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
             const fd = new FormData();
             fd.append("file", file, file.name);
             const res = await fetch("/api/upload-reference", { method: "POST", body: fd });
+            if (!res.ok && res.headers.get("content-type")?.includes("application/json") === false) {
+              // Vercel platform rejection (e.g. payload too large) — not JSON
+              throw new Error("File too large. Please keep each file under 4 MB.");
+            }
             const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
             if (!data.ok) throw new Error(data.error ?? "Upload failed");
             return data.url as string;
