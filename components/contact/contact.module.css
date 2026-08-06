@@ -9,31 +9,110 @@
   padding: 56px 0 120px; /* top = nav height */
 }
 
-/* Header */
-.pageHeader {
-  padding: 64px 24px 40px;
-  max-width: 600px;
+/* Two-column editorial layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  max-width: 1240px;
   margin: 0 auto;
-  text-align: center;
+  padding: 48px 32px;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 5fr 7fr;
+    gap: 80px;
+    padding: 72px 40px;
+  }
+}
+
+/* ─── Left: sticky context panel ─── */
+.contextPanel {
+  position: relative;
+}
+
+@media (min-width: 900px) {
+  .contextPanel {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+  }
+}
+
+.contextInner {
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  font: 700 11px/1 var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
 }
 
 .pageTitle {
-  font: 400 32px/1.1 var(--font-sans);
-  letter-spacing: -0.01em;
-  margin-bottom: 16px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  margin-bottom: 24px;
 }
 
 .pageDesc {
-  font: 400 14px/1.6 var(--font-sans);
+  font: 400 15px/1.6 var(--font-sans);
   color: var(--muted);
-  max-width: 440px;
+  max-width: 400px;
+  margin-bottom: 36px;
+}
+
+/* Context meta */
+.contextMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+}
+
+.metaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metaLabel {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metaValue {
+  font: 400 15px/1.3 var(--font-sans);
+  color: var(--foreground);
+}
+
+.metaLink {
+  border-bottom: 1px solid var(--foreground);
+  padding-bottom: 1px;
+  transition: opacity 0.16s ease;
+}
+
+.metaLink:hover {
+  opacity: 0.6;
 }
 
 /* Form */
 .form {
-  padding: 0 24px;
-  max-width: 640px;
-  margin: 0 auto;
+  min-width: 0;
+}
+
+.form .section:first-child {
+  padding-top: 0;
 }
 
 /* Section */
@@ -57,16 +136,22 @@
   gap: 8px;
 }
 
+.chipGrid {
+  gap: 10px;
+  margin-top: 4px;
+}
+
 .chip {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--foreground);
-  font: 700 11px/1 var(--font-mono);
-  letter-spacing: 0.1em;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 10px 16px;
+  padding: 11px 18px;
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .chip:hover {
@@ -77,6 +162,7 @@
   border-color: var(--foreground);
   background: var(--foreground);
   color: var(--background);
+  transform: scale(1.03);
 }
 
 /* Vision textarea */
@@ -451,25 +537,233 @@
   color: var(--muted);
 }
 
-/* Confirmation */
-.confirmationWrap {
-  padding: 80px 24px;
-  max-width: 560px;
-  margin: 0 auto;
-  text-align: center;
+/* ═══════════════════════════════════════
+   ENVELOPE SUBMISSION ANIMATION
+   ═══════════════════════════════════════ */
+
+/* Full-screen centred stage */
+.envelopeScene {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
 }
 
-.confirmationTitle {
-  font: 400 28px/1.1 var(--font-sans);
+/* Outer envelope wrapper — controls entrance + open states */
+.envelope {
+  position: relative;
+  width: min(320px, 90vw);
+  /* starts as a collapsed card, expands when open */
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: envDrop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes envDrop {
+  from { opacity: 0; transform: translateY(-60px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.envelopeOpen {
+  width: min(400px, 96vw);
+}
+
+/* The paper envelope body */
+.envelopeBody {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.618 / 1;
+  background: var(--background);
+  border: 1.5px solid var(--foreground);
+  overflow: hidden;
+  cursor: default;
+}
+
+.envelopeSealed .envelopeBody {
+  cursor: pointer;
+}
+
+/* ── Triangle panels that make up the envelope interior ── */
+
+/* Bottom centre triangle */
+.envFlapBottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 55%;
+  background: var(--background);
+  clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+  border-top: 1.5px solid var(--line);
+}
+
+/* Left triangle */
+.envFlapLeft {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 50%;
+  background: var(--surface, color-mix(in srgb, var(--background) 92%, var(--foreground)));
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+  border-right: 1.5px solid var(--line);
+}
+
+/* Right triangle */
+.envFlapRight {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 50%;
+  background: var(--surface, color-mix(in srgb, var(--background) 92%, var(--foreground)));
+  clip-path: polygon(100% 0%, 0% 50%, 100% 100%);
+  border-left: 1.5px solid var(--line);
+}
+
+/* Top flap — folds down on submit, folds up on open */
+.envFlapTop {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 52%;
+  background: var(--background);
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+  border-bottom: 1.5px solid var(--line);
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s ease;
+  backface-visibility: hidden;
+}
+
+/* Fold the flap down when submitting */
+.envelopeFolding .envFlapTop {
+  transform: rotateX(160deg);
+  background: color-mix(in srgb, var(--background) 80%, var(--foreground));
+}
+
+/* Keep flap folded when sealed */
+.envelopeSealed .envFlapTop {
+  transform: rotateX(160deg);
+}
+
+/* Flip flap back up when opening */
+.envelopeOpen .envFlapTop {
+  transform: rotateX(-160deg);
+}
+
+/* Wax seal */
+.envSeal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--foreground);
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 13px/1 var(--font-mono);
+  color: var(--foreground);
+  letter-spacing: 0;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+  z-index: 2;
+}
+
+.envelopeSealed .envSeal,
+.envelopeOpen .envSeal {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* "tap to open" hint */
+.envelopeHint {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: hintPulse 1.8s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* ── Letter / brief summary ── */
+
+.envelopeLetter {
+  position: relative;
+  margin-top: -2px;
+  border: 1.5px solid var(--foreground);
+  border-top: none;
+  background: var(--background);
+  padding: 28px 24px 24px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition:
+    max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s,
+    opacity 0.4s ease 0.45s,
+    transform 0.4s ease 0.45s;
+  pointer-events: none;
+}
+
+.envelopeOpen .envelopeLetter {
+  max-height: 700px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.letterEyebrow {
+  font: 700 10px/1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
   margin-bottom: 20px;
 }
 
-.confirmationBody {
-  font: 400 14px/1.6 var(--font-sans);
-  color: var(--muted);
-  margin-bottom: 36px;
+.letterBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
+.letterRow {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.letterLabel {
+  font: 600 9px/1.3 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.letterValue {
+  font: 400 12px/1.4 var(--font-sans);
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+.letterFooter {
+  font: 400 10px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+/* ── Reset button (shared) ── */
 .resetBtn {
   border: 1px solid var(--foreground);
   background: transparent;
@@ -488,18 +782,48 @@
 }
 
 /* Budget slider */
-.budgetSliderContainer {
+.budgetReadout {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.budgetAmount {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.budgetCaption {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.budgetTrack {
+  --fill: 0%;
+  position: relative;
+  padding: 8px 0;
 }
 
 .budgetSlider {
-  flex: 1;
-  min-width: 200px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--line);
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 0;
+  background: linear-gradient(
+    to right,
+    var(--foreground) 0%,
+    var(--foreground) var(--fill),
+    var(--line) var(--fill),
+    var(--line) 100%
+  );
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -509,13 +833,13 @@
 .budgetSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--foreground);
+  background: var(--background);
   cursor: pointer;
-  border: none;
-  transition: transform 0.12s ease;
+  border: 2px solid var(--foreground);
+  transition: transform 0.14s ease;
 }
 
 .budgetSlider::-webkit-slider-thumb:hover {
@@ -523,25 +847,47 @@
 }
 
 .budgetSlider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--foreground);
+  background: var(--background);
   cursor: pointer;
-  border: none;
-  transition: transform 0.12s ease;
+  border: 2px solid var(--foreground);
+  transition: transform 0.14s ease;
 }
 
 .budgetSlider::-moz-range-thumb:hover {
   transform: scale(1.2);
 }
 
-.budgetPreview {
-  font: 700 16px/1 var(--font-mono);
-  letter-spacing: -0.02em;
+/* Budget presets */
+.budgetPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.budgetPreset {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.budgetPreset:hover {
+  border-color: var(--foreground);
   color: var(--foreground);
-  min-width: 150px;
-  text-align: right;
+}
+
+.budgetPresetActive {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
 }
 
 /* Utility */
@@ -560,29 +906,12 @@
 /* ─── Responsive ─── */
 
 @media (max-width: 540px) {
-  .pageHeader {
-    padding: 40px 20px 32px;
-  }
-  .pageTitle {
-    font-size: 26px;
-  }
-  .form {
-    padding: 0 20px;
+  .layout {
+    padding: 32px 20px;
+    gap: 40px;
   }
   .section {
     padding: 36px 0;
-  }
-  .budgetSliderContainer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-  .budgetPreview {
-    min-width: 0;
-    text-align: left;
-  }
-  .budgetSlider {
-    width: 100%;
   }
   .confirmationWrap {
     padding: 56px 20px;
