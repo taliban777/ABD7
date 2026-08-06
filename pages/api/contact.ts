@@ -1,11 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import nodemailer from "nodemailer";
-import formidable from "formidable";
-import fs from "fs";
-import path from "path";
 
-// Disable Next.js body parser so formidable can handle multipart
-export const config = { api: { bodyParser: false } };
+
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 // Simple in-memory store: IP → { count, windowStart }
@@ -29,11 +25,6 @@ function isRateLimited(ip: string): boolean {
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif",
-  "application/pdf",
-]);
-
 const ALLOWED_SERVICES = new Set([
   "Creative Direction", "Single Art", "Brand Identity", "Print", "Other",
 ]);
@@ -47,31 +38,6 @@ const ALLOWED_DEADLINES = new Set([
 ]);
 
 type ApiResponse = { ok: true } | { ok: false; error: string };
-
-/** Parse a multipart request with formidable */
-function parseForm(
-  req: NextApiRequest
-): Promise<{ fields: formidable.Fields; files: formidable.Files }> {
-  return new Promise((resolve, reject) => {
-    const form = formidable({ multiples: true, maxFileSize: 10 * 1024 * 1024 });
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err);
-      else resolve({ fields, files });
-    });
-  });
-}
-
-/** Pull the first string value from a formidable field (string | string[]) */
-function field(v: formidable.Fields[string]): string {
-  if (!v) return "";
-  return Array.isArray(v) ? (v[0] ?? "") : String(v);
-}
-
-/** Pull a string array from a formidable field */
-function fieldArray(v: formidable.Fields[string]): string[] {
-  if (!v) return [];
-  return (Array.isArray(v) ? v : [v]).map(String).filter(Boolean);
-}
 
 /** Minimal HTML escape for user-supplied content */
 function escHtml(str: string): string {
