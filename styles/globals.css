@@ -39,8 +39,33 @@ html, body {
   background: var(--background);
 }
 
+/* Dark mode overrides — activated by data-theme="dark" on <html> */
+[data-theme="dark"] {
+  --background: #0e0e0c;
+  --foreground: #f0ede4;
+  --surface: #1a1a17;
+  --surface-elevated: #1f1f1c;
+  --muted: #8a887f;
+  --line: #2a2a26;
+  --line-subtle: #222220;
+  --label: #161613;
+  --label-foreground: #f0ede4;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.52), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-overlay: 0 24px 64px rgba(0, 0, 0, 0.72);
+}
+
 html {
-  color-scheme: light only;
+  color-scheme: light dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {

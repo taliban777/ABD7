@@ -2,6 +2,7 @@ import type { AppProps } from "next/app";
 import localFont from "next/font/local";
 import { Cormorant } from "next/font/google";
 import "@/styles/globals.css";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = localFont({ src: "./fonts/GeistVF.woff", variable: "--font-geist-sans" });
 const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff", variable: "--font-geist-mono" });
@@ -18,11 +19,13 @@ const cormorant = Cormorant({
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
-      style={{ minHeight: "100%", display: "contents" }}
-    >
-      <Component {...pageProps} />
-    </div>
+    <ThemeProvider>
+      <div
+        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
+        style={{ minHeight: "100%", display: "contents" }}
+      >
+        <Component {...pageProps} />
+      </div>
+    </ThemeProvider>
   );
 }

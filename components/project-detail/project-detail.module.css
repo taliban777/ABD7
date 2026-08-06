@@ -82,7 +82,7 @@
 
 .heroLayout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 280px 1fr;
   min-height: calc(100vh - 56px - 56px); /* viewport minus nav and breadcrumb */
 }
 
@@ -147,24 +147,20 @@
 }
 
 .metadataPair dt {
-  flex: 0 0 120px;
+  flex: 0 0 80px;
   min-width: 0;
-}
-
-.metadataPair dd {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.metadataPair dt {
   font: 500 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .metadataPair dd {
+  flex: 1 1 0;
+  min-width: 0;
+  word-break: normal;
+  overflow-wrap: normal;
   font: 400 12px/1.4 var(--font-sans);
   color: var(--foreground);
 }
@@ -195,12 +191,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 40px 48px;
 }
 
 .artworkSingleContainer {
   width: 100%;
-  max-width: 780px;
+  max-width: 960px;
   cursor: zoom-in;
   border: 0;
   background: transparent;
@@ -215,9 +211,9 @@
 .artworkDualContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 32px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 100%;
 }
 
 .artworkSide {
@@ -365,7 +361,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 1px solid rgba(17, 17, 15, 0.1);
+  border: 1px solid var(--line-subtle);
   flex: none;
 }
 
@@ -662,10 +658,13 @@
 
 @media (max-width: 1100px) {
   .heroLayout {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 260px 1fr;
   }
   .title {
     font-size: 30px;
+  }
+  .artworkSection {
+    padding: 32px 36px;
   }
 }
 
@@ -721,15 +720,6 @@
 }
 
 @media (max-width: 640px) {
-  .metadataPair {
-    grid-template-columns: minmax(120px, 34%) minmax(0, 1fr);
-    gap: 20px;
-  }
-
-  .metadataPair dt {
-    white-space: nowrap;
-  }
-
   .breadcrumbBar {
     padding: 12px 16px;
   }

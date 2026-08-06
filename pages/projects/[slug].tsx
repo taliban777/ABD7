@@ -53,6 +53,7 @@ export default function ProjectPage({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content={`${project.title} — ARTBYDANI7`} />
         <meta property="og:description" content={description} />
+        <link rel="canonical" href={`https://artbydani7.com/projects/${projectSlug(project)}`} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://artbydani7.com/projects/${projectSlug(project)}`} />
         {project.frontCover && <meta property="og:image" content={project.frontCover} />}

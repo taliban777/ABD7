@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /plasmic-host
+Disallow: /api/
 
 Sitemap: https://artbydani7.com/sitemap.xml
