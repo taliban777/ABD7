@@ -54,18 +54,19 @@
   animation: blockSettle 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Radial scrim — centered on the block, darker/more opaque at core,
-   fully transparent past the content bounds */
+/* Radial scrim — centered on the block, opaque at core,
+   dissolves to fully transparent well beyond the block edges */
 .paperBlock::before {
   content: "";
   position: absolute;
-  inset: -40% -30%;
+  inset: -120% -80%;
   background: radial-gradient(
-    ellipse 68% 60% at 50% 50%,
-    color-mix(in srgb, var(--background) 88%, transparent) 0%,
-    color-mix(in srgb, var(--background) 68%, transparent) 28%,
-    color-mix(in srgb, var(--background) 32%, transparent) 58%,
-    transparent 100%
+    ellipse 45% 38% at 50% 50%,
+    color-mix(in srgb, var(--background) 92%, transparent) 0%,
+    color-mix(in srgb, var(--background) 80%, transparent) 20%,
+    color-mix(in srgb, var(--background) 52%, transparent) 42%,
+    color-mix(in srgb, var(--background) 18%, transparent) 65%,
+    transparent 85%
   );
   pointer-events: none;
   z-index: -1;
