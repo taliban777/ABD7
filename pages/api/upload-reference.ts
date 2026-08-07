@@ -3,9 +3,7 @@ import { handleUpload } from "@vercel/blob/client";
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
+    bodyParser: false,
   },
 };
 
@@ -47,7 +45,7 @@ export default async function handler(
 
     return res.status(400).json({
       ok: false,
-      error: (error as Error).message,
+      error: error instanceof Error ? error.message : "Upload failed",
     });
   }
 }
