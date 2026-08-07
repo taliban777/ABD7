@@ -101,8 +101,9 @@ export function getRelatedImageUrl(url: string): string {
 
 /**
  * Get a small square thumbnail for use in the homepage strip wall.
- * Parameters: w_240,h_240,c_fill,q_auto:eco,f_auto
- * - w_240,h_240: tiny square, sufficient for strip wall density
+ * Parameters: w_140,h_140,c_fill,q_auto:eco,f_auto
+ * - w_140,h_140: tiles are displayed at exactly 140 × 140 px (TILE_SIZE),
+ *   so 240 px was delivering ~70% more data than required.
  * - c_fill: fill the square, crop if needed
  * - q_auto:eco: lower quality tier — keeps the page very fast
  * - f_auto: automatic format selection (WebP, AVIF)
@@ -111,7 +112,7 @@ export function getStripThumbnailUrl(url: string): string {
   if (!url) return "";
   if (!isCloudinaryUrl(url)) return url;
 
-  return injectTransformation(url, "w_240,h_240,c_fill,q_auto:eco,f_auto");
+  return injectTransformation(url, "w_140,h_140,c_fill,q_auto:eco,f_auto");
 }
 
 /**

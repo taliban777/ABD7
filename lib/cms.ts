@@ -62,6 +62,29 @@ const PLASMIC_CMS_PUBLIC_TOKEN = useEnvCreds
   : VERIFIED_PLASMIC_CMS_PUBLIC_TOKEN;
 
 // ---------------------------------------------------------------------------
+// In-process request deduplication cache
+// ---------------------------------------------------------------------------
+
+/**
+ * Module-level promise cache keyed by CMS model ID.
+ *
+ * During a single ISR revalidation (or `next build`) multiple getStaticProps
+ * handlers run concurrently in the same Node process and all call
+ * fetchAllCmsRows("projects"). Without this cache each call fires independent
+ * HTTP requests to the Plasmic CMS API — typically 2–3 paginated requests
+ * each — so 8 pages × 3 requests = 24 outbound fetches for the same data.
+ *
+ * Storing the *Promise* (not the resolved value) means concurrent callers that
+ * arrive before the first request resolves still share the single in-flight
+ * fetch rather than racing to start their own.
+ *
+ * The cache is intentionally never cleared: it lives for the lifetime of the
+ * Node worker process. ISR spins up a fresh worker per revalidation cycle, so
+ * stale data is never a concern.
+ */
+const rowCache = new Map<string, Promise<unknown[]>>();
+
+// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
@@ -255,7 +278,7 @@ export function findProjectBySlug(
  * @param modelId - The Plasmic CMS table/model identifier (e.g. "projects")
  * @returns Array of all CMS row objects retrieved from Plasmic
  */
-export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
+async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
   const allRows: unknown[] = [];
 
   // Preferred path: direct CMS Data API with offset pagination.
@@ -359,6 +382,20 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
   }
 
   return allRows;
+}
+
+/**
+ * Fetch all CMS rows for a given model — public, cached entry point.
+ *
+ * Stores the Promise (not the resolved value) so concurrent getStaticProps
+ * callers that arrive before the first request resolves still share the
+ * single in-flight fetch instead of each firing their own.
+ */
+export function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
+  if (!rowCache.has(modelId)) {
+    rowCache.set(modelId, _fetchAllCmsRowsUncached(modelId));
+  }
+  return rowCache.get(modelId)!;
 }
 
 /**
