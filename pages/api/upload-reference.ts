@@ -53,15 +53,12 @@ export default async function handler(
 
   try {
     const blob = await put(pathname, body, {
-      access: "private",
+      access: "public",
       contentType,
       addRandomSuffix: false,
     });
 
-    // For private blobs, blob.url requires auth (403 for anyone without a token).
-    // blob.downloadUrl is a pre-signed time-limited URL that anyone can open,
-    // making it safe to include in the contact email.
-    return res.status(200).json({ ok: true, url: blob.downloadUrl });
+    return res.status(200).json({ ok: true, url: blob.url });
   } catch (err) {
     console.error("[upload-reference] put error:", err);
     return res.status(500).json({
