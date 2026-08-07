@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
-// Disable Next.js body parser — we collect the raw stream ourselves.
 export const config = { api: { bodyParser: false } };
 
 const ALLOWED_TYPES = new Set([
@@ -13,15 +12,7 @@ const ALLOWED_TYPES = new Set([
   "application/pdf",
 ]);
 
-/** Collect the raw request stream into a Buffer. */
-function rawBody(req: NextApiRequest): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks)));
-    req.on("error", reject);
-  });
-}
+const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,40 +23,59 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const rawFilename = req.headers["x-filename"] as string | undefined;
-  const contentType = (req.headers["content-type"] ?? "application/octet-stream").split(";")[0].trim();
+  // Collect raw body so handleUpload can parse it
+  const chunks: Buffer[] = [];
+  await new Promise<void>((resolve, reject) => {
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    req.on("end", resolve);
+    req.on("error", reject);
+  });
+  const rawBody = Buffer.concat(chunks).toString("utf-8");
 
-  if (!rawFilename) {
-    return res.status(400).json({ ok: false, error: "Missing x-filename header" });
-  }
-
-  if (!ALLOWED_TYPES.has(contentType)) {
-    return res.status(400).json({ ok: false, error: "File type not allowed" });
-  }
-
-  let body: Buffer;
+  let body: HandleUploadBody;
   try {
-    body = await rawBody(req);
-  } catch (err) {
-    console.error("[upload-reference] stream error:", err);
-    return res.status(500).json({ ok: false, error: "Failed to read file" });
+    body = JSON.parse(rawBody) as HandleUploadBody;
+  } catch {
+    return res.status(400).json({ ok: false, error: "Invalid request body" });
   }
-
-  if (body.length === 0) {
-    return res.status(400).json({ ok: false, error: "Empty file received" });
-  }
-
-  const filename = decodeURIComponent(rawFilename).replace(/[^a-zA-Z0-9._-]/g, "_");
 
   try {
-    const blob = await put(
-      `contact-references/${Date.now()}-${filename}`,
+    const jsonResponse = await handleUpload({
       body,
-      { access: "public", contentType }
-    );
-    return res.status(200).json({ ok: true, url: blob.url });
+      request: req as Parameters<typeof handleUpload>[0]["request"],
+      onBeforeGenerateToken: async (pathname) => {
+        const ext = pathname.split(".").pop()?.toLowerCase() ?? "";
+        const mimeMap: Record<string, string> = {
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          png: "image/png",
+          webp: "image/webp",
+          gif: "image/gif",
+          pdf: "application/pdf",
+        };
+        const mime = mimeMap[ext] ?? "application/octet-stream";
+
+        if (!ALLOWED_TYPES.has(mime)) {
+          throw new Error("File type not allowed");
+        }
+
+        return {
+          allowedContentTypes: Array.from(ALLOWED_TYPES),
+          maximumSizeInBytes: MAX_BYTES,
+          tokenPayload: JSON.stringify({ pathname }),
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        console.log("[upload-reference] upload completed:", blob.url);
+      },
+    });
+
+    return res.status(200).json(jsonResponse);
   } catch (err) {
-    console.error("[upload-reference] blob put error:", err);
-    return res.status(500).json({ ok: false, error: "Upload failed" });
+    console.error("[upload-reference] handleUpload error:", err);
+    return res.status(400).json({
+      ok: false,
+      error: err instanceof Error ? err.message : "Upload failed",
+    });
   }
 }
