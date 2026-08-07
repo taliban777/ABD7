@@ -3,7 +3,9 @@ import { handleUpload } from "@vercel/blob/client";
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
   },
 };
 
@@ -13,17 +15,19 @@ export default async function handler(
 ) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
+
     return res.status(405).json({
+      ok: false,
       error: "Method not allowed",
     });
   }
 
   try {
-    const response = await handleUpload({
+    const jsonResponse = await handleUpload({
       body: req.body,
       request: req,
 
-      onBeforeGenerateToken: async (pathname) => {
+      onBeforeGenerateToken: async () => {
         return {
           allowedContentTypes: [
             "image/jpeg",
@@ -32,17 +36,21 @@ export default async function handler(
             "image/gif",
             "application/pdf",
           ],
+
           maximumSizeInBytes: 20 * 1024 * 1024,
+
           addRandomSuffix: true,
         };
       },
     });
 
-    return res.status(200).json(response);
+    return res.status(200).json(jsonResponse);
+
   } catch (error) {
-    console.error("Blob upload token error:", error);
+    console.error("[upload-reference]", error);
 
     return res.status(400).json({
+      ok: false,
       error:
         error instanceof Error
           ? error.message
