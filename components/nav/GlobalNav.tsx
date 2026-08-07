@@ -19,9 +19,6 @@ const NAV_LINKS = [
 const NAV_LINKS_AFTER_PROJECTS = [
   { label: "OTHERS", href: "/others" },
   { label: "CURATIONS", href: "/curations" },
-] as const;
-
-const NAV_LINKS_RIGHT = [
   { label: "COLOPHON", href: "/colophon" },
   { label: "CONTACT", href: "/contact" },
 ] as const;
@@ -57,6 +54,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const mobileMenuRef = useFocusTrap<HTMLDivElement>(mobileOpen);
 
   // Close menus on route change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleRouteChange = () => {
       setDropdownOpen(false);
@@ -245,7 +243,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
             )}
           </li>
 
-          {[...NAV_LINKS_AFTER_PROJECTS, ...NAV_LINKS_RIGHT].map(({ label, href }) => (
+          {NAV_LINKS_AFTER_PROJECTS.map(({ label, href }) => (
             <li key={href}>
               <Link
                 href={href}
@@ -380,7 +378,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
               )}
             </li>
 
-            {[...NAV_LINKS_AFTER_PROJECTS, ...NAV_LINKS_RIGHT].map(({ label, href }) => (
+            {NAV_LINKS_AFTER_PROJECTS.map(({ label, href }) => (
               <li key={href}>
                 <Link
                   href={href}

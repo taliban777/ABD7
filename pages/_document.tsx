@@ -7,11 +7,11 @@ const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem("artbydani7-
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" suppressHydrationWarning>
       <Head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </Head>
-      <body>
+      <body suppressHydrationWarning>
         <Main />
         <NextScript />
       </body>

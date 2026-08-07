@@ -3,7 +3,7 @@
 /**
  * ArtworkStripWall
  *
- * Six horizontal strips of CMS artwork thumbnails drifting via pure CSS
+ * Eight horizontal strips of CMS artwork thumbnails drifting via pure CSS
  * @keyframes — no requestAnimationFrame, no JS per-frame work.
  *
  * Distribution rules:
@@ -13,9 +13,13 @@
  *    across neighbours is minimised.
  *  - The shuffled list is duplicated enough times to fill the CSS keyframe
  *    loop without a visible seam.
+ *
+ * SSR NOTE: This component renders nothing on the server (useEffect guard).
+ * The wall is purely decorative — skipping SSR eliminates the hydration
+ * mismatch that would otherwise arise from the large deterministic tile DOM.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getStripThumbnailUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
@@ -29,12 +33,14 @@ const UNIT      = TILE_SIZE; // 140 px per step (zero gap)
 // dir  1 = rightward (CSS: driftRight — starts at -loopWidth, ends at 0)
 // dir -1 = leftward  (CSS: driftLeft  — starts at 0, ends at -loopWidth)
 const ROW_CONFIG = [
-  { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest
-  { dir: -1 as const, speed: 3.4 },  // row 1 — leftward
-  { dir:  1 as const, speed: 2.2 },  // row 2 — rightward, very slow
-  { dir: -1 as const, speed: 3.8 },  // row 3 — leftward
-  { dir:  1 as const, speed: 2.9 },  // row 4 — rightward
-  { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
+  { dir: -1 as const, speed: 2.4 },  // row 0 — leftward (new top row)
+  { dir:  1 as const, speed: 2.6 },  // row 1 — rightward, slowest
+  { dir: -1 as const, speed: 3.4 },  // row 2 — leftward
+  { dir:  1 as const, speed: 2.2 },  // row 3 — rightward, very slow
+  { dir: -1 as const, speed: 3.8 },  // row 4 — leftward
+  { dir:  1 as const, speed: 2.9 },  // row 5 — rightward
+  { dir: -1 as const, speed: 3.1 },  // row 6 — leftward, mid
+  { dir:  1 as const, speed: 2.7 },  // row 7 — rightward (new bottom row)
 ] as const;
 
 // Number of CMS-copy repetitions inside the track.
@@ -140,6 +146,11 @@ interface ArtworkStripWallProps {
 }
 
 export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
+  // Render nothing on the server — this wall is purely decorative and
+  // outputting thousands of SSR tile nodes causes hydration mismatches.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   // Build each row's tile list once — stable across renders.
   const rows = useMemo(
     () => ROW_CONFIG.map((cfg, i) => ({
@@ -149,7 +160,7 @@ export function ArtworkStripWall({ projects }: ArtworkStripWallProps) {
     [projects],
   );
 
-  if (projects.length === 0) return null;
+  if (!mounted || projects.length === 0) return null;
 
   return (
     <div className={styles.wall} aria-hidden="true">
