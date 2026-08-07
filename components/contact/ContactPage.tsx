@@ -5,7 +5,7 @@ import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, valueLabel } from "@/components/archive/types";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
-async function uploadToBlob(pathname: string, file: File): Promise<string> {
+import { upload } from "@vercel/blob/client";
   const tokenRes = await fetch("/api/upload-reference", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -222,17 +222,22 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     if (files.length > 0) {
       setUploadingFiles(true);
       try {
-        const uploads = await Promise.all(
-          files.map(async (file) => {
-            const newBlob = await upload(
-              `contact-references/${Date.now()}-${file.name}`,
-              file,
-              {
-                 access: "public",
-                 handleUploadUrl: "/api/upload-reference",
-              }
-            );
-        fileUrls = uploads;
+const uploads = await Promise.all(
+  files.map(async (file) => {
+    const blob = await upload(
+      `contact-references/${Date.now()}-${file.name}`,
+      file,
+      {
+        access: "public",
+        handleUploadUrl: "/api/upload-reference",
+      }
+    );
+
+    return blob.url;
+  })
+);
+
+fileUrls = uploads;
       } catch (err) {
         setUploadingFiles(false);
         setSubmitError(err instanceof Error ? err.message : "File upload failed. Please try again.");
