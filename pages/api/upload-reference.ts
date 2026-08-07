@@ -53,11 +53,13 @@ export default async function handler(
 
   try {
     const blob = await put(pathname, body, {
-      access: "public",
+      access: "private",
       contentType,
       addRandomSuffix: false,
     });
 
+    // blob.url for private blobs is the pathname-based reference;
+    // we return it so the contact email can list the uploaded filenames.
     return res.status(200).json({ ok: true, url: blob.url });
   } catch (err) {
     console.error("[upload-reference] put error:", err);
