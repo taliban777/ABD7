@@ -58,9 +58,10 @@ export default async function handler(
       addRandomSuffix: false,
     });
 
-    // blob.url for private blobs is the pathname-based reference;
-    // we return it so the contact email can list the uploaded filenames.
-    return res.status(200).json({ ok: true, url: blob.url });
+    // For private blobs, blob.url requires auth (403 for anyone without a token).
+    // blob.downloadUrl is a pre-signed time-limited URL that anyone can open,
+    // making it safe to include in the contact email.
+    return res.status(200).json({ ok: true, url: blob.downloadUrl });
   } catch (err) {
     console.error("[upload-reference] put error:", err);
     return res.status(500).json({
