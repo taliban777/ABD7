@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
@@ -16,6 +16,10 @@ export default function HomePage({ projects = [] }: HomePageProps) {
   const panelRef    = useRef<HTMLDivElement>(null);
   const revealingRef = useRef(false);
   const reducedRef  = useRef(false);
+  // Suppress the strip wall during SSR — it uses CSS animations that depend
+  // on layout, producing a hydration mismatch if rendered server-side.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   // ── Prefetch Collection + preload top covers ─────────────────────────
   useEffect(() => {
@@ -70,9 +74,11 @@ export default function HomePage({ projects = [] }: HomePageProps) {
   return (
     <div className={styles.root}>
       {/* ── Strip wall layer (CMS artwork behind the paper block) ── */}
-      <div className={styles.stripLayer}>
-        <ArtworkStripWall projects={projects} />
-      </div>
+      {mounted && (
+        <div className={styles.stripLayer}>
+          <ArtworkStripWall projects={projects} />
+        </div>
+      )}
 
       {/* ── Hero panel (opaque paper block + typography) ─────────── */}
       <div ref={panelRef} className={styles.panel}>
