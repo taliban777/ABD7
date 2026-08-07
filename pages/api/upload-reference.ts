@@ -19,10 +19,11 @@ export default async function handler(
 
   try {
     const response = await handleUpload({
-      body: req.body,
       request: req,
 
-      onBeforeGenerateToken: async (pathname) => {
+      body: req.body,
+
+      onBeforeGenerateToken: async () => {
         return {
           allowedContentTypes: [
             "image/jpeg",
