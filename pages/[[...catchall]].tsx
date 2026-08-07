@@ -88,10 +88,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
   let plasmicData: ComponentRenderData | null = null;
   try {
     plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
-  } catch (err) {
+  } catch {
     // Plasmic may throw if it has a redirect or other non-page response for
     // this path. Return notFound so Next.js renders the custom pages/404.tsx.
-    console.log(`[v0] maybeFetchComponentData threw for ${plasmicPath}:`, err);
     return { notFound: true };
   }
 
@@ -120,8 +119,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
   let pageModules: { path: string }[] = [];
   try {
     pageModules = await PLASMIC.fetchPages();
-  } catch (err) {
-    console.log("[v0] PLASMIC.fetchPages threw:", err);
+  } catch {
+    // fetchPages failing is non-fatal — return the paths we have (empty).
   }
   const EXCLUDED = new Set(["/", "/archive", "/test", "/contact", "/colophon", "/collection", "/others"]);
 

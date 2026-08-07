@@ -295,18 +295,6 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
         ]);
 
         if (!response.ok) {
-          let body = "";
-          try {
-            body = await response.text();
-          } catch {
-            /* ignore */
-          }
-          console.log(
-            `[v0] CMS API ${response.status} for url=${url.toString()} tokenHeader=${PLASMIC_CMS_ID}:${PLASMIC_CMS_PUBLIC_TOKEN.slice(
-              0,
-              6
-            )}... body=${body.slice(0, 200)}`
-          );
           throw new Error(
             `Plasmic CMS API error: ${response.status} ${response.statusText}`
           );
@@ -333,19 +321,12 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
           offset += FETCH_LIMIT;
         }
       } catch (err) {
-        console.log("[v0] Plasmic CMS Data API fetch failed:", err);
+        console.error("Plasmic CMS Data API fetch failed:", err);
         hasMore = false;
       }
     }
 
-    console.log(
-      `[v0] CMS Data API: cmsId=${PLASMIC_CMS_ID} pages=${page} rows=${allRows.length}`
-    );
     if (allRows.length > 0) return allRows;
-  } else {
-    console.log(
-      `[v0] CMS Data API skipped — missing creds. cmsId=${PLASMIC_CMS_ID || "(none)"}`
-    );
   }
 
   // Fallback: single Plasmic loader fetch (may be capped at 100 by the query).
@@ -393,13 +374,7 @@ export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
  */
 export async function fetchCmsProjects(): Promise<CmsProject[]> {
   const allRows = await fetchAllCmsRows("projects");
-  const projects = collectProjects(allRows);
-  console.log(
-    `[v0] fetchCmsProjects: rawRows=${
-      Array.isArray(allRows) ? allRows.length : "n/a"
-    } -> projects=${projects.length}`
-  );
-  return projects;
+  return collectProjects(allRows);
 }
 
 /**
@@ -506,13 +481,7 @@ export function collectOthers(rows: unknown[]): CmsOther[] {
  */
 export async function fetchCmsOthers(): Promise<CmsOther[]> {
   const allRows = await fetchAllCmsRows("others");
-  const items = collectOthers(allRows);
-  console.log(
-    `[v0] fetchCmsOthers: rawRows=${
-      Array.isArray(allRows) ? allRows.length : "n/a"
-    } -> others=${items.length}`
-  );
-  return items;
+  return collectOthers(allRows);
 }
 
 /**

@@ -23,7 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <ThemeProvider>
       <div
         className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable}`}
-        style={{ minHeight: "100%", display: "contents" }}
+        style={{ display: "contents" }}
       >
         <Component {...pageProps} />
       </div>
