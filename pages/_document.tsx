@@ -11,7 +11,7 @@ export default function Document() {
       <Head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </Head>
-      <body>
+      <body suppressHydrationWarning>
         <Main />
         <NextScript />
       </body>
