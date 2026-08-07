@@ -74,7 +74,13 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
 
   if (isHomepage) {
-    const projects = await fetchCmsProjects();
+    let projects: CmsProject[] = [];
+    try {
+      projects = await fetchCmsProjects();
+    } catch {
+      // CMS unavailable — render the homepage with an empty wall rather
+      // than returning notFound or throwing, which would show a 404/500.
+    }
     return { props: { isHomepage: true, projects }, revalidate: 3600 };
   }
 

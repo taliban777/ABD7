@@ -393,7 +393,11 @@ async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
  */
 export function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
   if (!rowCache.has(modelId)) {
-    rowCache.set(modelId, _fetchAllCmsRowsUncached(modelId));
+    const p = _fetchAllCmsRowsUncached(modelId);
+    // Evict the entry on failure so the next caller gets a fresh attempt
+    // instead of receiving a permanently-rejected Promise from the cache.
+    p.catch(() => { rowCache.delete(modelId); });
+    rowCache.set(modelId, p);
   }
   return rowCache.get(modelId)!;
 }
