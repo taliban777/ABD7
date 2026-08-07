@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 
-export const config = { api: { bodyParser: false } };
+// Disable Next.js body parser — we stream the raw body directly to Blob.
+// sizeLimit keeps us safely under Vercel's 4.5 MB platform cap.
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: "4mb",
+  },
+};
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -12,8 +19,6 @@ const ALLOWED_TYPES = new Set([
   "application/pdf",
 ]);
 
-const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -23,58 +28,40 @@ export default async function handler(
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  // Collect raw body so handleUpload can parse it
+  const contentType = (req.headers["content-type"] ?? "").split(";")[0].trim();
+  if (!ALLOWED_TYPES.has(contentType)) {
+    return res.status(400).json({ ok: false, error: "File type not allowed" });
+  }
+
+  const rawFilename = req.headers["x-filename"];
+  const filename =
+    typeof rawFilename === "string"
+      ? decodeURIComponent(rawFilename)
+      : `upload-${Date.now()}`;
+
+  const pathname = `contact-references/${Date.now()}-${filename}`;
+
+  // Collect the raw body stream into a Buffer, then pass to put().
+  // No completion callback — put() returns the URL immediately.
   const chunks: Buffer[] = [];
   await new Promise<void>((resolve, reject) => {
     req.on("data", (chunk: Buffer) => chunks.push(chunk));
     req.on("end", resolve);
     req.on("error", reject);
   });
-  const rawBody = Buffer.concat(chunks).toString("utf-8");
-
-  let body: HandleUploadBody;
-  try {
-    body = JSON.parse(rawBody) as HandleUploadBody;
-  } catch {
-    return res.status(400).json({ ok: false, error: "Invalid request body" });
-  }
+  const body = Buffer.concat(chunks);
 
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request: req as Parameters<typeof handleUpload>[0]["request"],
-      onBeforeGenerateToken: async (pathname) => {
-        const ext = pathname.split(".").pop()?.toLowerCase() ?? "";
-        const mimeMap: Record<string, string> = {
-          jpg: "image/jpeg",
-          jpeg: "image/jpeg",
-          png: "image/png",
-          webp: "image/webp",
-          gif: "image/gif",
-          pdf: "application/pdf",
-        };
-        const mime = mimeMap[ext] ?? "application/octet-stream";
-
-        if (!ALLOWED_TYPES.has(mime)) {
-          throw new Error("File type not allowed");
-        }
-
-        return {
-          allowedContentTypes: Array.from(ALLOWED_TYPES),
-          maximumSizeInBytes: MAX_BYTES,
-          addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ pathname }),
-        };
-      },
-      onUploadCompleted: async ({ blob }) => {
-        console.log("[upload-reference] upload completed:", blob.url);
-      },
+    const blob = await put(pathname, body, {
+      access: "public",
+      contentType,
+      addRandomSuffix: false,
     });
 
-    return res.status(200).json(jsonResponse);
+    return res.status(200).json({ ok: true, url: blob.url });
   } catch (err) {
-    console.error("[upload-reference] handleUpload error:", err);
-    return res.status(400).json({
+    console.error("[upload-reference] put error:", err);
+    return res.status(500).json({
       ok: false,
       error: err instanceof Error ? err.message : "Upload failed",
     });
