@@ -5,7 +5,12 @@ import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, valueLabel } from "@/components/archive/types";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
-import { upload } from "@vercel/blob/client";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export interface ContactPageProps {
   projects?: CmsProject[];
@@ -193,15 +198,21 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       try {
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const newBlob = await upload(
-              `contact-references/${Date.now()}-${file.name}`,
-              file,
-              {
-                access: "public",
-                handleUploadUrl: "/api/upload-reference",
-              }
-            );
-            return newBlob.url;
+            const fileName = `contact-references/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+              .from("contact-references")
+              .upload(fileName, file, {
+                cacheControl: "3600",
+                upsert: false,
+              });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+              .from("contact-references")
+              .getPublicUrl(fileName);
+
+            return urlData.publicUrl;
           })
         );
         fileUrls = uploads;
