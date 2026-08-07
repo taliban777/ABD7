@@ -1,10 +1,22 @@
 "use client";
 
 /**
- * ArtworkStripWall — eight CSS-animated rows of CMS artwork thumbnails.
- * Each row shuffles the full project list with a unique seed and repeats it
- * enough times to fill a seamless loop. Renders nothing on the server
- * (client-only mount) to avoid hydration mismatches.
+ * ArtworkStripWall
+ *
+ * Eight horizontal strips of CMS artwork thumbnails drifting via pure CSS
+ * @keyframes — no requestAnimationFrame, no JS per-frame work.
+ *
+ * Distribution rules:
+ *  - Each row is shuffled independently from the full CMS collection.
+ *  - No artwork repeats within the same row (until the full set is exhausted).
+ *  - Adjacent rows are seeded with a different shuffle so obvious repetition
+ *    across neighbours is minimised.
+ *  - The shuffled list is duplicated enough times to fill the CSS keyframe
+ *    loop without a visible seam.
+ *
+ * SSR NOTE: This component renders nothing on the server (useEffect guard).
+ * The wall is purely decorative — skipping SSR eliminates the hydration
+ * mismatch that would otherwise arise from the large deterministic tile DOM.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -13,8 +25,9 @@ import type { CmsProject } from "@/components/archive/types";
 import styles from "./ArtworkStripWall.module.css";
 
 // ─── Strip configuration ──────────────────────────────────────────────────────
-// Tile size in px — tiles are flush with zero gap.
-const TILE_SIZE = 140;
+// Tiles are flush — no gap. UNIT = tile width.
+const TILE_SIZE = 140; // px
+const UNIT      = TILE_SIZE; // 140 px per step (zero gap)
 
 // Each row: direction and target drift speed in px/second.
 // dir  1 = rightward (CSS: driftRight — starts at -loopWidth, ends at 0)
@@ -79,8 +92,8 @@ interface StripRowProps {
 function StripRow({ tiles, rowIndex, dir, speed }: StripRowProps) {
   // loopWidth = one full copy-set width (no gap — tiles are flush).
   // The CSS keyframe shifts by exactly this distance so the reset is invisible.
-  const projectCount = tiles.length / COPIES;        // original count before repeating
-  const loopWidth    = projectCount * TILE_SIZE;     // px — one full copy (no gap)
+  const projectCount = tiles.length / COPIES; // original count before repeating
+  const loopWidth    = projectCount * UNIT;    // px — one full copy (no gap)
   const duration     = loopWidth / speed;      // seconds
 
   // dir  1 → driftRight: track starts at -loopWidth, ends at 0

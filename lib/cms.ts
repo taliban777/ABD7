@@ -62,29 +62,6 @@ const PLASMIC_CMS_PUBLIC_TOKEN = useEnvCreds
   : VERIFIED_PLASMIC_CMS_PUBLIC_TOKEN;
 
 // ---------------------------------------------------------------------------
-// In-process request deduplication cache
-// ---------------------------------------------------------------------------
-
-/**
- * Module-level promise cache keyed by CMS model ID.
- *
- * During a single ISR revalidation (or `next build`) multiple getStaticProps
- * handlers run concurrently in the same Node process and all call
- * fetchAllCmsRows("projects"). Without this cache each call fires independent
- * HTTP requests to the Plasmic CMS API — typically 2–3 paginated requests
- * each — so 8 pages × 3 requests = 24 outbound fetches for the same data.
- *
- * Storing the *Promise* (not the resolved value) means concurrent callers that
- * arrive before the first request resolves still share the single in-flight
- * fetch rather than racing to start their own.
- *
- * The cache is intentionally never cleared: it lives for the lifetime of the
- * Node worker process. ISR spins up a fresh worker per revalidation cycle, so
- * stale data is never a concern.
- */
-const rowCache = new Map<string, Promise<unknown[]>>();
-
-// ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
 
@@ -278,7 +255,7 @@ export function findProjectBySlug(
  * @param modelId - The Plasmic CMS table/model identifier (e.g. "projects")
  * @returns Array of all CMS row objects retrieved from Plasmic
  */
-async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
+export async function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
   const allRows: unknown[] = [];
 
   // Preferred path: direct CMS Data API with offset pagination.
@@ -318,6 +295,18 @@ async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
         ]);
 
         if (!response.ok) {
+          let body = "";
+          try {
+            body = await response.text();
+          } catch {
+            /* ignore */
+          }
+          console.log(
+            `[v0] CMS API ${response.status} for url=${url.toString()} tokenHeader=${PLASMIC_CMS_ID}:${PLASMIC_CMS_PUBLIC_TOKEN.slice(
+              0,
+              6
+            )}... body=${body.slice(0, 200)}`
+          );
           throw new Error(
             `Plasmic CMS API error: ${response.status} ${response.statusText}`
           );
@@ -344,12 +333,19 @@ async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
           offset += FETCH_LIMIT;
         }
       } catch (err) {
-        console.error("Plasmic CMS Data API fetch failed:", err);
+        console.log("[v0] Plasmic CMS Data API fetch failed:", err);
         hasMore = false;
       }
     }
 
+    console.log(
+      `[v0] CMS Data API: cmsId=${PLASMIC_CMS_ID} pages=${page} rows=${allRows.length}`
+    );
     if (allRows.length > 0) return allRows;
+  } else {
+    console.log(
+      `[v0] CMS Data API skipped — missing creds. cmsId=${PLASMIC_CMS_ID || "(none)"}`
+    );
   }
 
   // Fallback: single Plasmic loader fetch (may be capped at 100 by the query).
@@ -385,24 +381,6 @@ async function _fetchAllCmsRowsUncached(modelId: string): Promise<unknown[]> {
 }
 
 /**
- * Fetch all CMS rows for a given model — public, cached entry point.
- *
- * Stores the Promise (not the resolved value) so concurrent getStaticProps
- * callers that arrive before the first request resolves still share the
- * single in-flight fetch instead of each firing their own.
- */
-export function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
-  if (!rowCache.has(modelId)) {
-    const p = _fetchAllCmsRowsUncached(modelId);
-    // Evict the entry on failure so the next caller gets a fresh attempt
-    // instead of receiving a permanently-rejected Promise from the cache.
-    p.catch(() => { rowCache.delete(modelId); });
-    rowCache.set(modelId, p);
-  }
-  return rowCache.get(modelId)!;
-}
-
-/**
  * Fetch and extract all CMS projects from Plasmic.
  * This is the single source-of-truth fetch used by every route that
  * needs the project list. Attempts offset pagination to support 100+ items.
@@ -415,7 +393,13 @@ export function fetchAllCmsRows(modelId: string): Promise<unknown[]> {
  */
 export async function fetchCmsProjects(): Promise<CmsProject[]> {
   const allRows = await fetchAllCmsRows("projects");
-  return collectProjects(allRows);
+  const projects = collectProjects(allRows);
+  console.log(
+    `[v0] fetchCmsProjects: rawRows=${
+      Array.isArray(allRows) ? allRows.length : "n/a"
+    } -> projects=${projects.length}`
+  );
+  return projects;
 }
 
 /**
@@ -522,7 +506,13 @@ export function collectOthers(rows: unknown[]): CmsOther[] {
  */
 export async function fetchCmsOthers(): Promise<CmsOther[]> {
   const allRows = await fetchAllCmsRows("others");
-  return collectOthers(allRows);
+  const items = collectOthers(allRows);
+  console.log(
+    `[v0] fetchCmsOthers: rawRows=${
+      Array.isArray(allRows) ? allRows.length : "n/a"
+    } -> others=${items.length}`
+  );
+  return items;
 }
 
 /**

@@ -114,4 +114,9 @@ img {
   outline: none;
 }
 
-
+/* Smooth scroll progress for the page */
+@property --scroll-progress {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: true;
+}

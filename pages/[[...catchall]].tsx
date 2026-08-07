@@ -74,13 +74,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const isHomepage = !catchall || (Array.isArray(catchall) && catchall.length === 0);
 
   if (isHomepage) {
-    let projects: CmsProject[] = [];
-    try {
-      projects = await fetchCmsProjects();
-    } catch {
-      // CMS unavailable — render the homepage with an empty wall rather
-      // than returning notFound or throwing, which would show a 404/500.
-    }
+    const projects = await fetchCmsProjects();
     return { props: { isHomepage: true, projects }, revalidate: 3600 };
   }
 
@@ -94,9 +88,10 @@ export const getStaticProps: GetStaticProps = async (context) => {
   let plasmicData: ComponentRenderData | null = null;
   try {
     plasmicData = await PLASMIC.maybeFetchComponentData(plasmicPath);
-  } catch {
+  } catch (err) {
     // Plasmic may throw if it has a redirect or other non-page response for
     // this path. Return notFound so Next.js renders the custom pages/404.tsx.
+    console.log(`[v0] maybeFetchComponentData threw for ${plasmicPath}:`, err);
     return { notFound: true };
   }
 
@@ -125,8 +120,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
   let pageModules: { path: string }[] = [];
   try {
     pageModules = await PLASMIC.fetchPages();
-  } catch {
-    // fetchPages failing is non-fatal — return the paths we have (empty).
+  } catch (err) {
+    console.log("[v0] PLASMIC.fetchPages threw:", err);
   }
   const EXCLUDED = new Set(["/", "/archive", "/test", "/contact", "/colophon", "/collection", "/others"]);
 

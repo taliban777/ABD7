@@ -1,7 +1,7 @@
 import * as React from "react";
 import type { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import Head from "next/head";
-import { fetchCmsOthers, fetchCmsProjects } from "@/lib/cms";
+import { fetchCmsOthers, fetchCmsOtherBySlug, fetchCmsProjects } from "@/lib/cms";
 import type { CmsOther } from "@/components/others/types";
 import type { CmsProject } from "@/components/archive/types";
 import { otherSlug } from "@/components/others/types";
@@ -70,13 +70,11 @@ export const getStaticProps: GetStaticProps<{
   const slug = params?.slug as string;
   if (!slug) return { notFound: true };
 
-  // Fetch allItems and projects concurrently; derive item from allItems
-  // to avoid a redundant fetchCmsOthers() call inside fetchCmsOtherBySlug.
-  const [allItems, projects] = await Promise.all([
+  const [item, allItems, projects] = await Promise.all([
+    fetchCmsOtherBySlug(slug),
     fetchCmsOthers(),
     fetchCmsProjects(),
   ]);
-  const item = allItems.find((i) => otherSlug(i) === slug) ?? null;
 
   if (!item) return { notFound: true };
 

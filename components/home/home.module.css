@@ -102,6 +102,21 @@
   text-rendering: optimizeLegibility;
 }
 
+/* ── Catalogue sub-label ─────────────────────────────────────────────────
+   Optional small label beneath the title — reinforces the
+   catalogue-cover reading without competing with the title. */
+.subLabel {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -20px; /* pull closer to title baseline */
+}
+
 /* ── Enter Collection button ─────────────────────────────────────────── */
 .enterBtn {
   pointer-events: auto;
