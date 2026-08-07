@@ -75,6 +75,7 @@ export const EXHIBITIONS: ExhibitionConfig[] = [
       // right-over-left-2: both covers (front first, then back)
       { slug: "right-over-left-2",      imageKey: "frontCover" },
       { slug: "right-over-left-2",      imageKey: "backCover"  },
+      { slug: "right-over-left-3",      imageKey: "frontCover"  },
     ],
     layout: "glow",
   },
