@@ -54,6 +54,7 @@ export function GlobalNav({ projects = [] }: GlobalNavProps) {
   const mobileMenuRef = useFocusTrap<HTMLDivElement>(mobileOpen);
 
   // Close menus on route change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleRouteChange = () => {
       setDropdownOpen(false);
