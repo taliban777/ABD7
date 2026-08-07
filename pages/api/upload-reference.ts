@@ -17,17 +17,16 @@ export default async function handler(
     res.setHeader("Allow", "POST");
 
     return res.status(405).json({
-      ok: false,
       error: "Method not allowed",
     });
   }
 
   try {
-    const jsonResponse = await handleUpload({
+    const response = await handleUpload({
       body: req.body,
       request: req,
 
-      onBeforeGenerateToken: async () => {
+      onBeforeGenerateToken: async (pathname) => {
         return {
           allowedContentTypes: [
             "image/jpeg",
@@ -36,25 +35,24 @@ export default async function handler(
             "image/gif",
             "application/pdf",
           ],
-
           maximumSizeInBytes: 20 * 1024 * 1024,
 
-          addRandomSuffix: true,
+          // keep the exact pathname requested by client
+          pathname,
         };
       },
     });
 
-    return res.status(200).json(jsonResponse);
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error("[upload-reference]", error);
 
     return res.status(400).json({
-      ok: false,
       error:
         error instanceof Error
           ? error.message
-          : "Failed to generate upload token",
+          : "Upload token generation failed",
     });
   }
 }
