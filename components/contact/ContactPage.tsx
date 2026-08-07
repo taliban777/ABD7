@@ -224,13 +224,14 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       try {
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const newBlob = await uploadToBlob(
-              `contact-references/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`,
-              file
+            const newBlob = await upload(
+              `contact-references/${Date.now()}-${file.name}`,
+              file,
+              {
+                 access: "public",
+                 handleUploadUrl: "/api/upload-reference",
+              }
             );
-            return newBlob;
-          })
-        );
         fileUrls = uploads;
       } catch (err) {
         setUploadingFiles(false);
