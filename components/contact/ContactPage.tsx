@@ -359,24 +359,6 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
                 the more considered the response. Every enquiry is read and
                 answered personally.
               </p>
-
-              <dl className={styles.contextMeta}>
-                <div className={styles.metaBlock}>
-                  <dt className={styles.metaLabel}>Direct</dt>
-                  <dd className={styles.metaValue}>
-                    <a
-                      href="mailto:info@artbydani7.com"
-                      className={styles.metaLink}
-                    >
-                      info@artbydani7.com
-                    </a>
-                  </dd>
-                </div>
-                <div className={styles.metaBlock}>
-                  <dt className={styles.metaLabel}>Response time</dt>
-                  <dd className={styles.metaValue}>7–77 hours</dd>
-                </div>
-              </dl>
             </div>
           </aside>
 
