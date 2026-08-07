@@ -29,12 +29,14 @@ const UNIT      = TILE_SIZE; // 140 px per step (zero gap)
 // dir  1 = rightward (CSS: driftRight — starts at -loopWidth, ends at 0)
 // dir -1 = leftward  (CSS: driftLeft  — starts at 0, ends at -loopWidth)
 const ROW_CONFIG = [
-  { dir:  1 as const, speed: 2.6 },  // row 0 — rightward, slowest
-  { dir: -1 as const, speed: 3.4 },  // row 1 — leftward
-  { dir:  1 as const, speed: 2.2 },  // row 2 — rightward, very slow
-  { dir: -1 as const, speed: 3.8 },  // row 3 — leftward
-  { dir:  1 as const, speed: 2.9 },  // row 4 — rightward
-  { dir: -1 as const, speed: 3.1 },  // row 5 — leftward, mid
+  { dir: -1 as const, speed: 2.4 },  // row 0 — leftward (new top row)
+  { dir:  1 as const, speed: 2.6 },  // row 1 — rightward, slowest
+  { dir: -1 as const, speed: 3.4 },  // row 2 — leftward
+  { dir:  1 as const, speed: 2.2 },  // row 3 — rightward, very slow
+  { dir: -1 as const, speed: 3.8 },  // row 4 — leftward
+  { dir:  1 as const, speed: 2.9 },  // row 5 — rightward
+  { dir: -1 as const, speed: 3.1 },  // row 6 — leftward, mid
+  { dir:  1 as const, speed: 2.7 },  // row 7 — rightward (new bottom row)
 ] as const;
 
 // Number of CMS-copy repetitions inside the track.

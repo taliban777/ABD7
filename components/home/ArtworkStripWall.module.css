@@ -24,7 +24,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: stretch;
   align-items: stretch;
   pointer-events: none;
   z-index: 1;
@@ -32,8 +32,8 @@
 
 /* One horizontal row — clips the drifting track */
 .row {
-  flex: 0 0 auto;
-  height: 140px;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: hidden;
   pointer-events: auto;
 }
@@ -148,13 +148,9 @@
 /* ── Mobile: smaller tiles ───────────────────────────── */
 
 @media (max-width: 640px) {
-  .row {
-    height: 96px;
-  }
-
   .tile {
     flex: 0 0 96px;
     width: 96px;
-    height: 96px;
+    height: 100%;
   }
 }
