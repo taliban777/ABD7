@@ -1,12 +1,43 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
-
 import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
 import type { CmsProject } from "@/components/archive/types";
 import { asArray, valueLabel } from "@/components/archive/types";
 import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import { upload } from "@vercel/blob/client";
+  const tokenRes = await fetch("/api/upload-reference", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: "blob.generate-client-token",
+      payload: { pathname, clientPayload: null, multipart: false },
+    }),
+  });
+  if (!tokenRes.ok) throw new Error("Failed to get upload token");
+  const { clientToken } = await tokenRes.json();
+  if (!clientToken) throw new Error("No upload token returned");
+
+  const params = new URLSearchParams({ pathname });
+  const putRes = await fetch(`https://vercel.com/api/blob/?${params.toString()}`, {
+    method: "PUT",
+    body: file,
+    headers: {
+      Authorization: `Bearer ${clientToken}`,
+      "x-content-type": file.type || "application/octet-stream",
+      "x-vercel-blob-access": "public",
+    },
+  });
+
+  if (!putRes.ok) {
+    const err = await putRes.json().catch(() => ({}));
+    throw new Error(err.error || `Upload failed (${putRes.status})`);
+  }
+
+  const blob = await putRes.json();
+  return blob.url as string;
+}
 
 export interface ContactPageProps {
   projects?: CmsProject[];
@@ -212,10 +243,14 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       try {
         const uploads = await Promise.all(
           files.map(async (file) => {
-            const blob = await upload(file.name, file, {
-              access: "public",
-              handleUploadUrl: "/api/upload-reference",
-            });
+            const blob = await upload(
+              `contact-references/${Date.now()}-${file.name}`,
+              file,
+              {
+                access: "public",
+                handleUploadUrl: "/api/upload-reference",
+              }
+            );
             return blob.url;
           })
         );

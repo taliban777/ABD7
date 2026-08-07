@@ -195,19 +195,36 @@ export default async function handler(
   <p style="margin-top:32px;font-size:10px;color:#6f6d66;">Sent via artbydani7.com contact form</p>
 </div>`.trim();
 
+  // ─── SMTP credential check ──────────────────────────────────────────────
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const smtpHost = process.env.SMTP_HOST ?? "smtp.gmail.com";
+  const smtpPort = Number(process.env.SMTP_PORT ?? 587);
+
+  if (!smtpUser || !smtpPass) {
+    console.error("[contact] Missing SMTP credentials:", {
+      hasUser: !!smtpUser,
+      hasPass: !!smtpPass,
+    });
+    return res.status(500).json({
+      ok: false,
+      error: "Email service is not configured. SMTP_USER and SMTP_PASS environment variables are required.",
+    });
+  }
+
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: false,
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: smtpUser,
+      pass: smtpPass,
     },
   });
 
   try {
     await transporter.sendMail({
-      from: `"ARTBYDANI7 Contact" <${process.env.SMTP_USER}>`,
+      from: `"ARTBYDANI7 Contact" <${smtpUser}>`,
       to: "artbydani77@gmail.com",
       replyTo: email,
       subject: `New brief from ${name} — ARTBYDANI7`,
@@ -217,6 +234,18 @@ export default async function handler(
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("[contact] send error:", err);
-    return res.status(500).json({ ok: false, error: "Failed to send. Please try again." });
+
+    // Surface a useful, non-sensitive hint about what went wrong
+    const code = (err as { code?: string }).code;
+    let hint = "Failed to send. Please try again.";
+    if (code === "EAUTH") {
+      hint = "Email authentication failed. Check that SMTP_USER and SMTP_PASS are correct. For Gmail, use an App Password, not your regular password.";
+    } else if (code === "ESOCKET" || code === "ETIMEDOUT" || code === "ECONNECTION") {
+      hint = "Could not connect to the email server. Check SMTP_HOST and SMTP_PORT.";
+    } else if (code === "EMESSAGE") {
+      hint = "Email content was rejected by the server.";
+    }
+
+    return res.status(500).json({ ok: false, error: hint });
   }
 }

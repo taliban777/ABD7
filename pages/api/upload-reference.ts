@@ -62,6 +62,7 @@ export default async function handler(
         return {
           allowedContentTypes: Array.from(ALLOWED_TYPES),
           maximumSizeInBytes: MAX_BYTES,
+          addRandomSuffix: true,
           tokenPayload: JSON.stringify({ pathname }),
         };
       },
