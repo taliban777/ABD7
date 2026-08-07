@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import Image from "next/image";
 import styles from "./contact.module.css";
 import { GlobalNav } from "@/components/nav/GlobalNav";
@@ -179,8 +180,17 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
       inspirations: f.inspirations.filter((p) => p.id !== id),
     }));
 
+  // Vercel's edge hard-limits raw function request bodies to 4.5 MB.
+  const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB — safe margin under the 4.5 MB cap
+
   const filterFiles = (incoming: File[]): File[] => {
-    return incoming.filter((f) => f.type.startsWith("image/"));
+    const oversized = incoming.filter((f) => f.size > MAX_FILE_BYTES);
+    if (oversized.length > 0) {
+      setSubmitError(
+        `${oversized.length > 1 ? "Files" : "File"} too large: ${oversized.map((f) => f.name).join(", ")}. Please keep each file under 4 MB.`
+      );
+    }
+    return incoming.filter((f) => f.type.startsWith("image/") && f.size <= MAX_FILE_BYTES);
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -218,26 +228,33 @@ export function ContactPage({ projects = [] }: ContactPageProps) {
     if (!validate()) return;
     setSubmitError(null);
 
+    // Belt-and-suspenders: reject oversized files before they hit the API
+    const oversized = files.filter((f) => f.size > MAX_FILE_BYTES);
+    if (oversized.length > 0) {
+      setSubmitError(
+        `${oversized.length > 1 ? "Files" : "File"} too large: ${oversized.map((f) => f.name).join(", ")}. Please keep each file under 4 MB.`
+      );
+      return;
+    }
+
     let fileUrls: string[] = [];
     if (files.length > 0) {
       setUploadingFiles(true);
       try {
-const uploads = await Promise.all(
-  files.map(async (file) => {
-    const blob = await upload(
-      `contact-references/${Date.now()}-${file.name}`,
-      file,
-      {
-        access: "public",
-        handleUploadUrl: "/api/upload-reference",
-      }
-    );
-
-    return blob.url;
-  })
-);
-
-fileUrls = uploads;
+        const uploads = await Promise.all(
+          files.map(async (file) => {
+            const blob = await upload(
+              `contact-references/${Date.now()}-${file.name}`,
+              file,
+              {
+                access: "public",
+                handleUploadUrl: "/api/upload-reference",
+              }
+            );
+            return blob.url;
+          })
+        );
+        fileUrls = uploads;
       } catch (err) {
         setUploadingFiles(false);
         setSubmitError(err instanceof Error ? err.message : "File upload failed. Please try again.");
@@ -473,7 +490,7 @@ fileUrls = uploads;
                   Drag &amp; drop images, or click to browse
                 </span>
                 <span className={styles.dropzoneHint}>
-                  JPG, PNG, WEBP, GIF — no size limit, multiple files supported
+                  JPG, PNG, WEBP, GIF — max 4 MB each, multiple files supported
                 </span>
                 <input
                   ref={fileInputRef}
