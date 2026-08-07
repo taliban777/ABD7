@@ -12,9 +12,7 @@ export interface GlobalNavProps {
   projects?: CmsProject[];
 }
 
-const NAV_LINKS = [
-  { label: "HOME", href: "/" },
-] as const;
+const NAV_LINKS = [{ label: "HOME", href: "/" }] as const;
 
 const NAV_LINKS_AFTER_PROJECTS = [
   { label: "OTHERS", href: "/others" },
