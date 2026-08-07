@@ -14,20 +14,19 @@ export default async function handler(
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({
-      ok: false,
       error: "Method not allowed",
     });
   }
 
   try {
-    const jsonResponse = await handleUpload({
+    const response = await handleUpload({
       body: req.body,
       request: req,
-      onBeforeGenerateToken: async () => {
+
+      onBeforeGenerateToken: async (pathname) => {
         return {
           allowedContentTypes: [
             "image/jpeg",
-            "image/jpg",
             "image/png",
             "image/webp",
             "image/gif",
@@ -39,13 +38,15 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json(jsonResponse);
+    return res.status(200).json(response);
   } catch (error) {
-    console.error("[upload-reference]", error);
+    console.error("Blob upload token error:", error);
 
     return res.status(400).json({
-      ok: false,
-      error: error instanceof Error ? error.message : "Upload failed",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to generate upload token",
     });
   }
 }
