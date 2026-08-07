@@ -13,6 +13,7 @@
     "@plasmicapp/loader-nextjs": "^2.0.17",
     "@supabase/supabase-js": "^2.112.2",
     "@vercel/blob": "^2.7.0",
+    "@vercel/speed-insights": "^2.0.0",
     "formidable": "^3.5.4",
     "next": "14.2.35",
     "nodemailer": "^9.0.4",
