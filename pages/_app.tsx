@@ -4,6 +4,7 @@ import { Cormorant } from "next/font/google";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = localFont({ src: "./fonts/GeistVF.woff", variable: "--font-geist-sans" });
 const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff", variable: "--font-geist-mono" });
@@ -28,6 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <Component {...pageProps} />
         <SpeedInsights />
+        <Analytics />
       </div>
     </ThemeProvider>
   );
