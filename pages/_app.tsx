@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Cormorant } from "next/font/google";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = localFont({ src: "./fonts/GeistVF.woff", variable: "--font-geist-sans" });
@@ -27,6 +28,7 @@ export default function App({ Component, pageProps }: AppProps) {
         style={{ minHeight: "100%", display: "contents" }}
       >
         <Component {...pageProps} />
+        <SpeedInsights />
         <Analytics />
       </div>
     </ThemeProvider>
