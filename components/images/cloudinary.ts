@@ -48,6 +48,73 @@ function injectTransformation(url: string, transformation: string): string {
 }
 
 /**
+ * Props object that can be spread directly onto an <img> element.
+ * `srcSet` / `sizes` are omitted (undefined) for non-Cloudinary URLs so the
+ * plain `src` still renders correctly.
+ */
+export interface ResponsiveImgProps {
+  src: string;
+  srcSet?: string;
+  sizes?: string;
+}
+
+/**
+ * Build a Cloudinary `srcset` string across a set of candidate widths.
+ *
+ * @param url         Original Cloudinary URL.
+ * @param widths      Candidate widths, ascending.
+ * @param square      When true, each candidate is a square c_fill crop.
+ * @param quality     Cloudinary quality tier.
+ */
+function buildSrcSet(
+  url: string,
+  widths: number[],
+  square = false,
+  quality = "q_auto:good",
+): string {
+  return widths
+    .map((w) => {
+      const transformation = square
+        ? `w_${w},h_${w},c_fill,${quality},f_auto`
+        : `w_${w},${quality},f_auto`;
+      return `${injectTransformation(url, transformation)} ${w}w`;
+    })
+    .join(", ");
+}
+
+/**
+ * Assemble a full responsive image descriptor.
+ * Falls back to a bare `src` when the URL is not served by Cloudinary.
+ */
+function responsive(
+  url: string,
+  fallbackSrc: string,
+  widths: number[],
+  sizes: string,
+  square = false,
+  quality = "q_auto:good",
+): ResponsiveImgProps {
+  if (!url) return { src: "" };
+  if (!isCloudinaryUrl(url)) return { src: url };
+
+  return {
+    src: fallbackSrc,
+    srcSet: buildSrcSet(url, widths, square, quality),
+    sizes,
+  };
+}
+
+/* -----------------------------------------------------------------------------
+   `sizes` declarations — these must mirror the CSS grid definitions.
+   Archive grid  (archive.module.css): 4 cols → 3 cols @800px → 2 cols @640px,
+                                       inside a 24px-padded full-bleed wrapper.
+   Others grid   (others.module.css):  1 col → 2 cols @640px → 3 cols @1024px.
+   -------------------------------------------------------------------------- */
+const ARCHIVE_SIZES = "(max-width: 640px) 46vw, (max-width: 800px) 31vw, 24vw";
+const OTHERS_SIZES = "(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw";
+const RELATED_SIZES = "(max-width: 640px) 40vw, 180px";
+
+/**
  * Get archive thumbnail URL with optimization.
  * Preserves the artwork's natural aspect ratio — no forced square crop.
  * Parameters: w_800,q_auto:good,f_auto
@@ -61,6 +128,43 @@ export function getArchiveImageUrl(url: string): string {
   if (!isCloudinaryUrl(url)) return url;
 
   return injectTransformation(url, "w_800,q_auto:good,f_auto");
+}
+
+/**
+ * Responsive descriptor for archive grid covers.
+ * A phone at 2 columns downloads ~400w instead of the fixed 800w original.
+ */
+export function getArchiveImageProps(url: string): ResponsiveImgProps {
+  return responsive(
+    url,
+    getArchiveImageUrl(url),
+    [200, 300, 400, 600, 800, 1200],
+    ARCHIVE_SIZES,
+    true,
+  );
+}
+
+/**
+ * Small fixed 64px list-view thumbnail. Serving the 800w archive image here
+ * wasted roughly 12× the bytes actually rendered.
+ * Parameters: w_128,q_auto:eco,f_auto (128 = 64 CSS px at 2× density)
+ */
+export function getListThumbUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_128,q_auto:eco,f_auto");
+}
+
+/**
+ * Floating hover preview on the Index page — rendered at a fixed 180×180.
+ * Parameters: w_360,h_360,c_fill,q_auto:eco,f_auto
+ */
+export function getIndexHoverThumbUrl(url: string): string {
+  if (!url) return "";
+  if (!isCloudinaryUrl(url)) return url;
+
+  return injectTransformation(url, "w_360,h_360,c_fill,q_auto:eco,f_auto");
 }
 
 /**
@@ -100,6 +204,20 @@ export function getRelatedImageUrl(url: string): string {
 }
 
 /**
+ * Responsive descriptor for related-project cards.
+ */
+export function getRelatedImageProps(url: string): ResponsiveImgProps {
+  return responsive(
+    url,
+    getRelatedImageUrl(url),
+    [160, 240, 320, 480],
+    RELATED_SIZES,
+    true,
+    "q_auto:eco",
+  );
+}
+
+/**
  * Get a small square thumbnail for use in the homepage strip wall.
  * Parameters: w_240,h_240,c_fill,q_auto:eco,f_auto
  * - w_240,h_240: tiny square, sufficient for strip wall density
@@ -127,6 +245,19 @@ export function getOthersImageUrl(url: string): string {
   if (!isCloudinaryUrl(url)) return url;
 
   return injectTransformation(url, "w_800,q_auto:good,f_auto");
+}
+
+/**
+ * Responsive descriptor for the Others collection grid.
+ * Aspect ratio is preserved — no square crop.
+ */
+export function getOthersImageProps(url: string): ResponsiveImgProps {
+  return responsive(
+    url,
+    getOthersImageUrl(url),
+    [300, 480, 640, 800, 1200],
+    OTHERS_SIZES,
+  );
 }
 
 /**

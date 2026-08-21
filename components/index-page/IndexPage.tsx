@@ -13,7 +13,7 @@ import {
 } from "@/components/archive/types";
 import { sortProjects } from "@/components/archive/logic/sortProjects";
 import { filterProjects } from "@/components/archive/logic/filterProjects";
-import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import { getIndexHoverThumbUrl } from "@/components/images/cloudinary";
 import { EMPTY_SELECTION } from "@/components/archive/types";
 
 export interface IndexPageProps {

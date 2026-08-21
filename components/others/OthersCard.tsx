@@ -2,7 +2,7 @@ import Link from "next/link";
 import styles from "./others.module.css";
 import type { CmsOther } from "./types";
 import { otherSlug } from "./types";
-import { getOthersImageUrl } from "@/components/images/cloudinary";
+import { getOthersImageProps } from "@/components/images/cloudinary";
 
 export interface OthersCardProps {
   item: CmsOther;
@@ -42,7 +42,7 @@ export function OthersCard({ item, wide = false }: OthersCardProps) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             className={`w-full h-auto block ${styles.image}`}
-            src={getOthersImageUrl(item.image)}
+            {...getOthersImageProps(item.image)}
             alt={item.title}
             loading="lazy"
             decoding="async"

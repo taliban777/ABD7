@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./archive.module.css";
 import { CmsProject, asArray, projectSlug, valueLabel } from "./types";
-import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import { getArchiveImageProps } from "@/components/images/cloudinary";
 
 export interface ArtworkCardProps extends Partial<CmsProject> {
   /** Zero-padded catalogue number, e.g. "007". */
@@ -60,9 +60,12 @@ export function ArtworkCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             className={`${styles.cover} ${loaded ? styles.coverLoaded : ""}`}
-            src={getArchiveImageUrl(frontCover)}
+            {...getArchiveImageProps(frontCover)}
             alt={title}
-            loading="lazy"
+            // First row is above the fold on every breakpoint — load it eagerly
+            // so the LCP candidate isn't delayed by the lazy-load heuristic.
+            loading={index < 4 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : "auto"}
             decoding="async"
             onLoad={() => setLoaded(true)}
           />

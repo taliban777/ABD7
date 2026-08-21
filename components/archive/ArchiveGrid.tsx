@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArtworkCard } from "./ArtworkCard";
 import styles from "./archive.module.css";
 import { CmsProject, asArray, valueLabel } from "./types";
-import { getArchiveImageUrl } from "@/components/images/cloudinary";
+import { getListThumbUrl } from "@/components/images/cloudinary";
 
 interface ArchiveGridProps {
   projects: CmsProject[];
@@ -42,8 +42,10 @@ export function ArchiveGrid({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     className={styles.listThumbImg}
-                    src={getArchiveImageUrl(project.frontCover)}
+                    src={getListThumbUrl(project.frontCover)}
                     alt=""
+                    width={64}
+                    height={64}
                     loading="lazy"
                     decoding="async"
                   />
