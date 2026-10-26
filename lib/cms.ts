@@ -70,7 +70,16 @@ export function resolveImageUrl(value: unknown): string {
   if (Array.isArray(value) && value.length > 0) return resolveImageUrl(value[0]);
   if (value !== null && typeof value === "object") {
     const o = value as Record<string, unknown>;
-    return resolveImageUrl(o.url ?? o.src ?? o.imageUrl ?? o.uri ?? "");
+    const directUrl = o.url ?? o.src ?? o.imageUrl ?? o.uri;
+    if (directUrl) return resolveImageUrl(directUrl);
+
+    // Plasmic multi-image fields can wrap each uploaded asset in a keyed
+    // object (for example `{ "01": { url: "..." } }`). Walk those nested
+    // values so both direct uploads and wrapped gallery entries work.
+    for (const nestedValue of Object.values(o)) {
+      const nestedUrl = resolveImageUrl(nestedValue);
+      if (nestedUrl) return nestedUrl;
+    }
   }
   return "";
 }

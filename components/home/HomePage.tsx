@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { getArchiveImageUrl } from "@/components/images/cloudinary";
 import type { CmsProject } from "@/components/archive/types";
 import { ArtworkStripWall } from "./ArtworkStripWall";
 import styles from "./home.module.css";
@@ -17,21 +16,11 @@ export default function HomePage({ projects = [] }: HomePageProps) {
   const revealingRef = useRef(false);
   const reducedRef  = useRef(false);
 
-  // ── Prefetch Collection + preload top covers ─────────────────────────
+  // Prefetch the collection route without competing with navigation for
+  // bandwidth by downloading its artwork ahead of time.
   useEffect(() => {
     router.prefetch("/collection");
-
-    const covers = projects
-      .map((p) => p.frontCover)
-      .filter(Boolean)
-      .slice(0, 12);
-    for (const cover of covers) {
-      const img = new window.Image();
-      img.crossOrigin = "anonymous";
-      img.decoding = "async";
-      img.src = getArchiveImageUrl(cover);
-    }
-  }, [router, projects]);
+  }, [router]);
 
   // ── Detect reduced motion once ───────────────────────────────────────
   useEffect(() => {
@@ -64,7 +53,7 @@ export default function HomePage({ projects = [] }: HomePageProps) {
       router.push("/collection");
     };
     panel.addEventListener("transitionend", go, { once: true });
-    window.setTimeout(go, 1200);
+    window.setTimeout(go, 650);
   }, [router]);
 
   return (
