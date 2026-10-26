@@ -123,5 +123,7 @@ export const getStaticProps: GetStaticProps<{
 
   if (!project) return { notFound: true };
 
-  return { props: { project, allProjects }, revalidate: 3600 };
+  // Keep project detail pages fresh after CMS edits (especially gallery uploads)
+  // while still using ISR instead of rebuilding on every request.
+  return { props: { project, allProjects }, revalidate: 60 };
 };
