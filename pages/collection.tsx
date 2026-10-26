@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { GetStaticProps, InferGetStaticPropsType } from "next";
+import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { ArchivePage } from "@/components/archive/ArchivePage";
@@ -8,7 +8,7 @@ import type { CmsProject } from "@/components/archive/types";
 
 export default function CollectionRoute({
   projects,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
   const yearParam =
     typeof router.query.year === "string" ? router.query.year : null;
@@ -35,9 +35,14 @@ export default function CollectionRoute({
   );
 }
 
-export const getStaticProps: GetStaticProps<{
+export const getServerSideProps: GetServerSideProps<{
   projects: CmsProject[];
-}> = async () => {
+}> = async ({ res }) => {
   const projects = await fetchCmsProjects();
-  return { props: { projects }, revalidate: 3600 };
+
+  // CMS changes should be visible on the next request instead of waiting for
+  // the previous page's ISR window to expire.
+  res.setHeader("Cache-Control", "private, no-store, max-age=0");
+
+  return { props: { projects } };
 };
